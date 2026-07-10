@@ -1,0 +1,75 @@
+import importlib.metadata
+from typing import Dict, Type, List, Optional, Any
+from unilog.parsers.base import BaseParser
+
+# Registry mapping format name -> Parser Class
+_registry: Dict[str, Type[BaseParser]] = {}
+_loaded = False
+
+def _ensure_loaded():
+    global _loaded
+    if not _loaded:
+        _loaded = True
+        # Explicitly import all built-in parsers here to register them
+        try:
+            from unilog.parsers.json_log import JSONParser
+            from unilog.parsers.custom import CustomParser
+            from unilog.parsers.nginx import NginxParser
+            from unilog.parsers.apache import ApacheParser
+            from unilog.parsers.syslog import SyslogParser
+            from unilog.parsers.django import DjangoParser
+            from unilog.parsers.windows import WindowsParser
+            # Other parsers will be imported here when added
+        except ImportError:
+            pass
+        load_entry_points()
+
+def register_parser(cls: Type[BaseParser]) -> Type[BaseParser]:
+    """Decorator to register a parser class with the registry."""
+    if not issubclass(cls, BaseParser):
+        raise TypeError(f"Parser class must inherit from BaseParser, got {cls.__name__}")
+    
+    name = getattr(cls, "name", None)
+    if not name or name == "base":
+        raise ValueError(f"Parser class must define a valid non-base name attribute, got {name}")
+    
+    _registry[name] = cls
+    return cls
+
+def get_parser(name: str) -> Optional[Type[BaseParser]]:
+    """Retrieve a parser class by name."""
+    _ensure_loaded()
+    return _registry.get(name)
+
+def list_formats() -> List[Dict[str, Any]]:
+    """List all registered formats and their metadata."""
+    _ensure_loaded()
+    formats = []
+    # Sort by priority desc, name asc
+    sorted_parsers = sorted(
+        _registry.values(),
+        key=lambda cls: (-getattr(cls, "priority", 0), getattr(cls, "name", ""))
+    )
+    for cls in sorted_parsers:
+        formats.append({
+            "name": getattr(cls, "name", ""),
+            "description": getattr(cls, "description", ""),
+            "priority": getattr(cls, "priority", 0),
+            "supported_extensions": getattr(cls, "supported_extensions", []),
+            "class": cls
+        })
+    return formats
+
+def load_entry_points():
+    """Load external parsers registered via entry_points under 'unilog.parsers'."""
+    try:
+        eps = importlib.metadata.entry_points(group="unilog.parsers")
+        for ep in eps:
+            try:
+                cls = ep.load()
+                register_parser(cls)
+            except Exception:
+                # Silently ignore errors during load to avoid crashing on broken plugin
+                pass
+    except Exception:
+        pass
