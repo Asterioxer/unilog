@@ -1,0 +1,4 @@
+Level,Date and Time,Source,Event ID,Task Category,Description
+Information,2026-07-10 12:00:00,Microsoft-Windows-Security-Auditing,4624,Logon,An account was successfully logged on.
+Warning,2026-07-10 12:01:00,Disk,7,None,The device \Device\Harddisk0\DR0 has a bad block.
+Error,2026-07-10 12:02:00,Service Control Manager,7031,None,The user service terminated unexpectedly.

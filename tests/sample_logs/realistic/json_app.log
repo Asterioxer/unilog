@@ -1,0 +1,300 @@
+{"timestamp": "2026-07-10T12:00:00", "level": "info", "message": "Disk space low", "req_id": "req-0", "latency_ms": 307}
+{"timestamp": "2026-07-10T12:00:05", "level": "error", "message": "API request processed", "req_id": "req-1", "latency_ms": 290}
+{"timestamp": "2026-07-10T12:00:10", "level": "debug", "message": "API request processed", "req_id": "req-2", "latency_ms": 239}
+{"timestamp": "2026-07-10T12:00:15", "level": "warning", "message": "Failed to write to cache", "req_id": "req-3", "latency_ms": 402}
+{"timestamp": "2026-07-10T12:00:20", "level": "info", "message": "API request processed", "req_id": "req-4", "latency_ms": 429}
+{"timestamp": "2026-07-10T12:00:25", "level": "warning", "message": "Disk space low", "req_id": "req-5", "latency_ms": 50}
+{"timestamp": "2026-07-10T12:00:30", "level": "warning", "message": "User login successful", "req_id": "req-6", "latency_ms": 193}
+{"timestamp": "2026-07-10T12:00:35", "level": "warning", "message": "Disk space low", "req_id": "req-7", "latency_ms": 423}
+{"timestamp": "2026-07-10T12:00:40", "level": "info", "message": "User login successful", "req_id": "req-8", "latency_ms": 406}
+{"timestamp": "2026-07-10T12:00:45", "level": "info", "message": "Failed to write to cache", "req_id": "req-9", "latency_ms": 491}
+{"timestamp": "2026-07-10T12:00:50", "level": "debug", "message": "Failed to write to cache", "req_id": "req-10", "latency_ms": 221}
+{"timestamp": "2026-07-10T12:00:55", "level": "warning", "message": "Failed to write to cache", "req_id": "req-11", "latency_ms": 493}
+{"timestamp": "2026-07-10T12:01:00", "level": "warning", "message": "API request processed", "req_id": "req-12", "latency_ms": 83}
+{"timestamp": "2026-07-10T12:01:05", "level": "error", "message": "Disk space low", "req_id": "req-13", "latency_ms": 49}
+{"timestamp": "2026-07-10T12:01:10", "level": "error", "message": "User login successful", "req_id": "req-14", "latency_ms": 425}
+{"timestamp": "2026-07-10T12:01:15", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-15", "latency_ms": 430}
+{"timestamp": "2026-07-10T12:01:20", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-16", "latency_ms": 456}
+{"timestamp": "2026-07-10T12:01:25", "level": "debug", "message": "User login successful", "req_id": "req-17", "latency_ms": 53}
+{"timestamp": "2026-07-10T12:01:30", "level": "debug", "message": "User login successful", "req_id": "req-18", "latency_ms": 79}
+{"timestamp": "2026-07-10T12:01:35", "level": "info", "message": "User login successful", "req_id": "req-19", "latency_ms": 408}
+{"timestamp": "2026-07-10T12:01:40", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-20", "latency_ms": 94}
+{"timestamp": "2026-07-10T12:01:45", "level": "info", "message": "Failed to write to cache", "req_id": "req-21", "latency_ms": 483}
+{"timestamp": "2026-07-10T12:01:50", "level": "info", "message": "Failed to write to cache", "req_id": "req-22", "latency_ms": 12}
+{"timestamp": "2026-07-10T12:01:55", "level": "warning", "message": "Disk space low", "req_id": "req-23", "latency_ms": 372}
+{"timestamp": "2026-07-10T12:02:00", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-24", "latency_ms": 195}
+{"timestamp": "2026-07-10T12:02:05", "level": "warning", "message": "Disk space low", "req_id": "req-25", "latency_ms": 455}
+{"timestamp": "2026-07-10T12:02:10", "level": "debug", "message": "Failed to write to cache", "req_id": "req-26", "latency_ms": 241}
+{"timestamp": "2026-07-10T12:02:15", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-27", "latency_ms": 230}
+{"timestamp": "2026-07-10T12:02:20", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-28", "latency_ms": 221}
+{"timestamp": "2026-07-10T12:02:25", "level": "info", "message": "User login successful", "req_id": "req-29", "latency_ms": 468}
+{"timestamp": "2026-07-10T12:02:30", "level": "info", "message": "Disk space low", "req_id": "req-30", "latency_ms": 338}
+{"timestamp": "2026-07-10T12:02:35", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-31", "latency_ms": 384}
+{"timestamp": "2026-07-10T12:02:40", "level": "info", "message": "Disk space low", "req_id": "req-32", "latency_ms": 71}
+{"timestamp": "2026-07-10T12:02:45", "level": "info", "message": "API request processed", "req_id": "req-33", "latency_ms": 157}
+{"timestamp": "2026-07-10T12:02:50", "level": "info", "message": "Failed to write to cache", "req_id": "req-34", "latency_ms": 417}
+{"timestamp": "2026-07-10T12:02:55", "level": "error", "message": "User login successful", "req_id": "req-35", "latency_ms": 215}
+{"timestamp": "2026-07-10T12:03:00", "level": "debug", "message": "Failed to write to cache", "req_id": "req-36", "latency_ms": 407}
+{"timestamp": "2026-07-10T12:03:05", "level": "info", "message": "Failed to write to cache", "req_id": "req-37", "latency_ms": 483}
+{"timestamp": "2026-07-10T12:03:10", "level": "warning", "message": "User login successful", "req_id": "req-38", "latency_ms": 359}
+{"timestamp": "2026-07-10T12:03:15", "level": "info", "message": "Failed to write to cache", "req_id": "req-39", "latency_ms": 229}
+{"timestamp": "2026-07-10T12:03:20", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-40", "latency_ms": 13}
+{"timestamp": "2026-07-10T12:03:25", "level": "warning", "message": "API request processed", "req_id": "req-41", "latency_ms": 399}
+{"timestamp": "2026-07-10T12:03:30", "level": "info", "message": "Disk space low", "req_id": "req-42", "latency_ms": 21}
+{"timestamp": "2026-07-10T12:03:35", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-43", "latency_ms": 141}
+{"timestamp": "2026-07-10T12:03:40", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-44", "latency_ms": 255}
+{"timestamp": "2026-07-10T12:03:45", "level": "info", "message": "Failed to write to cache", "req_id": "req-45", "latency_ms": 367}
+{"timestamp": "2026-07-10T12:03:50", "level": "info", "message": "Failed to write to cache", "req_id": "req-46", "latency_ms": 303}
+{"timestamp": "2026-07-10T12:03:55", "level": "warning", "message": "Disk space low", "req_id": "req-47", "latency_ms": 273}
+{"timestamp": "2026-07-10T12:04:00", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-48", "latency_ms": 219}
+{"timestamp": "2026-07-10T12:04:05", "level": "warning", "message": "User login successful", "req_id": "req-49", "latency_ms": 306}
+invalid json line
+{"timestamp": "2026-07-10T12:04:15", "level": "debug", "message": "Failed to write to cache", "req_id": "req-51", "latency_ms": 370}
+{"timestamp": "2026-07-10T12:04:20", "level": "info", "message": "Disk space low", "req_id": "req-52", "latency_ms": 324}
+{"timestamp": "2026-07-10T12:04:25", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-53", "latency_ms": 44}
+{"timestamp": "2026-07-10T12:04:30", "level": "debug", "message": "Failed to write to cache", "req_id": "req-54", "latency_ms": 115}
+{"timestamp": "2026-07-10T12:04:35", "level": "error", "message": "Failed to write to cache", "req_id": "req-55", "latency_ms": 163}
+{"timestamp": "2026-07-10T12:04:40", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-56", "latency_ms": 454}
+{"timestamp": "2026-07-10T12:04:45", "level": "debug", "message": "User login successful", "req_id": "req-57", "latency_ms": 73}
+{"timestamp": "2026-07-10T12:04:50", "level": "warning", "message": "Disk space low", "req_id": "req-58", "latency_ms": 156}
+{"timestamp": "2026-07-10T12:04:55", "level": "warning", "message": "User login successful", "req_id": "req-59", "latency_ms": 232}
+{"timestamp": "2026-07-10T12:05:00", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-60", "latency_ms": 169}
+{"timestamp": "2026-07-10T12:05:05", "level": "error", "message": "User login successful", "req_id": "req-61", "latency_ms": 222}
+{"timestamp": "2026-07-10T12:05:10", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-62", "latency_ms": 140}
+{"timestamp": "2026-07-10T12:05:15", "level": "debug", "message": "User login successful", "req_id": "req-63", "latency_ms": 214}
+{"timestamp": "2026-07-10T12:05:20", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-64", "latency_ms": 422}
+{"timestamp": "2026-07-10T12:05:25", "level": "warning", "message": "User login successful", "req_id": "req-65", "latency_ms": 229}
+{"timestamp": "2026-07-10T12:05:30", "level": "warning", "message": "Failed to write to cache", "req_id": "req-66", "latency_ms": 78}
+{"timestamp": "2026-07-10T12:05:35", "level": "debug", "message": "User login successful", "req_id": "req-67", "latency_ms": 349}
+{"timestamp": "2026-07-10T12:05:40", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-68", "latency_ms": 382}
+{"timestamp": "2026-07-10T12:05:45", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-69", "latency_ms": 471}
+{"timestamp": "2026-07-10T12:05:50", "level": "warning", "message": "Disk space low", "req_id": "req-70", "latency_ms": 187}
+{"timestamp": "2026-07-10T12:05:55", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-71", "latency_ms": 275}
+{"timestamp": "2026-07-10T12:06:00", "level": "debug", "message": "API request processed", "req_id": "req-72", "latency_ms": 496}
+{"timestamp": "2026-07-10T12:06:05", "level": "info", "message": "User login successful", "req_id": "req-73", "latency_ms": 14}
+{"timestamp": "2026-07-10T12:06:10", "level": "info", "message": "Disk space low", "req_id": "req-74", "latency_ms": 63}
+{"timestamp": "2026-07-10T12:06:15", "level": "debug", "message": "User login successful", "req_id": "req-75", "latency_ms": 378}
+{"timestamp": "2026-07-10T12:06:20", "level": "error", "message": "Failed to write to cache", "req_id": "req-76", "latency_ms": 348}
+{"timestamp": "2026-07-10T12:06:25", "level": "info", "message": "User login successful", "req_id": "req-77", "latency_ms": 339}
+{"timestamp": "2026-07-10T12:06:30", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-78", "latency_ms": 485}
+{"timestamp": "2026-07-10T12:06:35", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-79", "latency_ms": 160}
+{"timestamp": "2026-07-10T12:06:40", "level": "info", "message": "API request processed", "req_id": "req-80", "latency_ms": 156}
+{"timestamp": "2026-07-10T12:06:45", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-81", "latency_ms": 340}
+{"timestamp": "2026-07-10T12:06:50", "level": "info", "message": "User login successful", "req_id": "req-82", "latency_ms": 112}
+{"timestamp": "2026-07-10T12:06:55", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-83", "latency_ms": 16}
+{"timestamp": "2026-07-10T12:07:00", "level": "error", "message": "Disk space low", "req_id": "req-84", "latency_ms": 202}
+{"timestamp": "2026-07-10T12:07:05", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-85", "latency_ms": 27}
+{"timestamp": "2026-07-10T12:07:10", "level": "warning", "message": "Disk space low", "req_id": "req-86", "latency_ms": 220}
+{"timestamp": "2026-07-10T12:07:15", "level": "error", "message": "API request processed", "req_id": "req-87", "latency_ms": 336}
+{"timestamp": "2026-07-10T12:07:20", "level": "warning", "message": "Failed to write to cache", "req_id": "req-88", "latency_ms": 286}
+{"timestamp": "2026-07-10T12:07:25", "level": "warning", "message": "API request processed", "req_id": "req-89", "latency_ms": 350}
+{"timestamp": "2026-07-10T12:07:30", "level": "info", "message": "User login successful", "req_id": "req-90", "latency_ms": 445}
+{"timestamp": "2026-07-10T12:07:35", "level": "info", "message": "API request processed", "req_id": "req-91", "latency_ms": 70}
+{"timestamp": "2026-07-10T12:07:40", "level": "info", "message": "API request processed", "req_id": "req-92", "latency_ms": 8}
+{"timestamp": "2026-07-10T12:07:45", "level": "info", "message": "API request processed", "req_id": "req-93", "latency_ms": 361}
+{"timestamp": "2026-07-10T12:07:50", "level": "info", "message": "Disk space low", "req_id": "req-94", "latency_ms": 261}
+{"timestamp": "2026-07-10T12:07:55", "level": "error", "message": "User login successful", "req_id": "req-95", "latency_ms": 346}
+{"timestamp": "2026-07-10T12:08:00", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-96", "latency_ms": 177}
+{"timestamp": "2026-07-10T12:08:05", "level": "info", "message": "API request processed", "req_id": "req-97", "latency_ms": 7}
+{"timestamp": "2026-07-10T12:08:10", "level": "info", "message": "Failed to write to cache", "req_id": "req-98", "latency_ms": 33}
+{"timestamp": "2026-07-10T12:08:15", "level": "warning", "message": "Disk space low", "req_id": "req-99", "latency_ms": 208}
+{"timestamp": "2026-07-10T12:08:20", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-100", "latency_ms": 452}
+{"timestamp": "2026-07-10T12:08:25", "level": "info", "message": "User login successful", "req_id": "req-101", "latency_ms": 320}
+{"timestamp": "2026-07-10T12:08:30", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-102", "latency_ms": 103}
+{"timestamp": "2026-07-10T12:08:35", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-103", "latency_ms": 220}
+{"timestamp": "2026-07-10T12:08:40", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-104", "latency_ms": 76}
+{"timestamp": "2026-07-10T12:08:45", "level": "info", "message": "Failed to write to cache", "req_id": "req-105", "latency_ms": 88}
+{"timestamp": "2026-07-10T12:08:50", "level": "warning", "message": "Failed to write to cache", "req_id": "req-106", "latency_ms": 146}
+{"timestamp": "2026-07-10T12:08:55", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-107", "latency_ms": 420}
+{"timestamp": "2026-07-10T12:09:00", "level": "info", "message": "Failed to write to cache", "req_id": "req-108", "latency_ms": 218}
+{"timestamp": "2026-07-10T12:09:05", "level": "warning", "message": "Disk space low", "req_id": "req-109", "latency_ms": 234}
+{"timestamp": "2026-07-10T12:09:10", "level": "debug", "message": "API request processed", "req_id": "req-110", "latency_ms": 318}
+{"timestamp": "2026-07-10T12:09:15", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-111", "latency_ms": 225}
+{"timestamp": "2026-07-10T12:09:20", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-112", "latency_ms": 60}
+{"timestamp": "2026-07-10T12:09:25", "level": "error", "message": "User login successful", "req_id": "req-113", "latency_ms": 47}
+{"timestamp": "2026-07-10T12:09:30", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-114", "latency_ms": 442}
+{"timestamp": "2026-07-10T12:09:35", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-115", "latency_ms": 44}
+{"timestamp": "2026-07-10T12:09:40", "level": "info", "message": "API request processed", "req_id": "req-116", "latency_ms": 453}
+{"timestamp": "2026-07-10T12:09:45", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-117", "latency_ms": 122}
+{"timestamp": "2026-07-10T12:09:50", "level": "info", "message": "Disk space low", "req_id": "req-118", "latency_ms": 85}
+{"timestamp": "2026-07-10T12:09:55", "level": "error", "message": "User login successful", "req_id": "req-119", "latency_ms": 172}
+{"timestamp": "2026-07-10T12:10:00", "level": "info", "message": "Failed to write to cache", "req_id": "req-120", "latency_ms": 344}
+{"timestamp": "2026-07-10T12:10:05", "level": "debug", "message": "User login successful", "req_id": "req-121", "latency_ms": 104}
+{"timestamp": "2026-07-10T12:10:10", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-122", "latency_ms": 151}
+{"timestamp": "2026-07-10T12:10:15", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-123", "latency_ms": 468}
+{"timestamp": "2026-07-10T12:10:20", "level": "warning", "message": "Disk space low", "req_id": "req-124", "latency_ms": 158}
+{"timestamp": "2026-07-10T12:10:25", "level": "warning", "message": "API request processed", "req_id": "req-125", "latency_ms": 296}
+{"timestamp": "2026-07-10T12:10:30", "level": "info", "message": "User login successful", "req_id": "req-126", "latency_ms": 14}
+{"timestamp": "2026-07-10T12:10:35", "level": "warning", "message": "Failed to write to cache", "req_id": "req-127", "latency_ms": 355}
+{"timestamp": "2026-07-10T12:10:40", "level": "info", "message": "Disk space low", "req_id": "req-128", "latency_ms": 313}
+{"timestamp": "2026-07-10T12:10:45", "level": "warning", "message": "Failed to write to cache", "req_id": "req-129", "latency_ms": 452}
+{"timestamp": "2026-07-10T12:10:50", "level": "warning", "message": "API request processed", "req_id": "req-130", "latency_ms": 439}
+{"timestamp": "2026-07-10T12:10:55", "level": "warning", "message": "User login successful", "req_id": "req-131", "latency_ms": 122}
+{"timestamp": "2026-07-10T12:11:00", "level": "error", "message": "Failed to write to cache", "req_id": "req-132", "latency_ms": 264}
+{"timestamp": "2026-07-10T12:11:05", "level": "warning", "message": "User login successful", "req_id": "req-133", "latency_ms": 97}
+{"timestamp": "2026-07-10T12:11:10", "level": "info", "message": "API request processed", "req_id": "req-134", "latency_ms": 469}
+{"timestamp": "2026-07-10T12:11:15", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-135", "latency_ms": 91}
+{"timestamp": "2026-07-10T12:11:20", "level": "warning", "message": "API request processed", "req_id": "req-136", "latency_ms": 142}
+{"timestamp": "2026-07-10T12:11:25", "level": "warning", "message": "Disk space low", "req_id": "req-137", "latency_ms": 385}
+{"timestamp": "2026-07-10T12:11:30", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-138", "latency_ms": 67}
+{"timestamp": "2026-07-10T12:11:35", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-139", "latency_ms": 298}
+{"timestamp": "2026-07-10T12:11:40", "level": "debug", "message": "Disk space low", "req_id": "req-140", "latency_ms": 74}
+{"timestamp": "2026-07-10T12:11:45", "level": "warning", "message": "Failed to write to cache", "req_id": "req-141", "latency_ms": 19}
+{"timestamp": "2026-07-10T12:11:50", "level": "error", "message": "Disk space low", "req_id": "req-142", "latency_ms": 16}
+{"timestamp": "2026-07-10T12:11:55", "level": "debug", "message": "API request processed", "req_id": "req-143", "latency_ms": 329}
+{"timestamp": "2026-07-10T12:12:00", "level": "debug", "message": "API request processed", "req_id": "req-144", "latency_ms": 448}
+{"timestamp": "2026-07-10T12:12:05", "level": "error", "message": "API request processed", "req_id": "req-145", "latency_ms": 493}
+{"timestamp": "2026-07-10T12:12:10", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-146", "latency_ms": 14}
+{"timestamp": "2026-07-10T12:12:15", "level": "debug", "message": "Disk space low", "req_id": "req-147", "latency_ms": 80}
+{"timestamp": "2026-07-10T12:12:20", "level": "info", "message": "API request processed", "req_id": "req-148", "latency_ms": 401}
+{"timestamp": "2026-07-10T12:12:25", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-149", "latency_ms": 349}
+{'bad_quotes': 1}
+{"timestamp": "2026-07-10T12:12:35", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-151", "latency_ms": 413}
+{"timestamp": "2026-07-10T12:12:40", "level": "debug", "message": "Disk space low", "req_id": "req-152", "latency_ms": 302}
+{"timestamp": "2026-07-10T12:12:45", "level": "error", "message": "Failed to write to cache", "req_id": "req-153", "latency_ms": 141}
+{"timestamp": "2026-07-10T12:12:50", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-154", "latency_ms": 499}
+{"timestamp": "2026-07-10T12:12:55", "level": "warning", "message": "Disk space low", "req_id": "req-155", "latency_ms": 316}
+{"timestamp": "2026-07-10T12:13:00", "level": "debug", "message": "Failed to write to cache", "req_id": "req-156", "latency_ms": 429}
+{"timestamp": "2026-07-10T12:13:05", "level": "error", "message": "Disk space low", "req_id": "req-157", "latency_ms": 59}
+{"timestamp": "2026-07-10T12:13:10", "level": "error", "message": "Failed to write to cache", "req_id": "req-158", "latency_ms": 10}
+{"timestamp": "2026-07-10T12:13:15", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-159", "latency_ms": 79}
+{"timestamp": "2026-07-10T12:13:20", "level": "error", "message": "Failed to write to cache", "req_id": "req-160", "latency_ms": 383}
+{"timestamp": "2026-07-10T12:13:25", "level": "info", "message": "Failed to write to cache", "req_id": "req-161", "latency_ms": 234}
+{"timestamp": "2026-07-10T12:13:30", "level": "debug", "message": "API request processed", "req_id": "req-162", "latency_ms": 375}
+{"timestamp": "2026-07-10T12:13:35", "level": "info", "message": "Disk space low", "req_id": "req-163", "latency_ms": 320}
+{"timestamp": "2026-07-10T12:13:40", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-164", "latency_ms": 207}
+{"timestamp": "2026-07-10T12:13:45", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-165", "latency_ms": 146}
+{"timestamp": "2026-07-10T12:13:50", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-166", "latency_ms": 320}
+{"timestamp": "2026-07-10T12:13:55", "level": "debug", "message": "Disk space low", "req_id": "req-167", "latency_ms": 28}
+{"timestamp": "2026-07-10T12:14:00", "level": "info", "message": "User login successful", "req_id": "req-168", "latency_ms": 428}
+{"timestamp": "2026-07-10T12:14:05", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-169", "latency_ms": 280}
+{"timestamp": "2026-07-10T12:14:10", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-170", "latency_ms": 221}
+{"timestamp": "2026-07-10T12:14:15", "level": "info", "message": "API request processed", "req_id": "req-171", "latency_ms": 68}
+{"timestamp": "2026-07-10T12:14:20", "level": "warning", "message": "Disk space low", "req_id": "req-172", "latency_ms": 450}
+{"timestamp": "2026-07-10T12:14:25", "level": "error", "message": "API request processed", "req_id": "req-173", "latency_ms": 405}
+{"timestamp": "2026-07-10T12:14:30", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-174", "latency_ms": 86}
+{"timestamp": "2026-07-10T12:14:35", "level": "warning", "message": "User login successful", "req_id": "req-175", "latency_ms": 485}
+{"timestamp": "2026-07-10T12:14:40", "level": "debug", "message": "Disk space low", "req_id": "req-176", "latency_ms": 73}
+{"timestamp": "2026-07-10T12:14:45", "level": "warning", "message": "API request processed", "req_id": "req-177", "latency_ms": 224}
+{"timestamp": "2026-07-10T12:14:50", "level": "info", "message": "Disk space low", "req_id": "req-178", "latency_ms": 382}
+{"timestamp": "2026-07-10T12:14:55", "level": "debug", "message": "Failed to write to cache", "req_id": "req-179", "latency_ms": 54}
+{"timestamp": "2026-07-10T12:15:00", "level": "info", "message": "API request processed", "req_id": "req-180", "latency_ms": 321}
+{"timestamp": "2026-07-10T12:15:05", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-181", "latency_ms": 101}
+{"timestamp": "2026-07-10T12:15:10", "level": "debug", "message": "Disk space low", "req_id": "req-182", "latency_ms": 460}
+{"timestamp": "2026-07-10T12:15:15", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-183", "latency_ms": 289}
+{"timestamp": "2026-07-10T12:15:20", "level": "debug", "message": "Failed to write to cache", "req_id": "req-184", "latency_ms": 41}
+{"timestamp": "2026-07-10T12:15:25", "level": "info", "message": "API request processed", "req_id": "req-185", "latency_ms": 191}
+{"timestamp": "2026-07-10T12:15:30", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-186", "latency_ms": 53}
+{"timestamp": "2026-07-10T12:15:35", "level": "info", "message": "Disk space low", "req_id": "req-187", "latency_ms": 201}
+{"timestamp": "2026-07-10T12:15:40", "level": "info", "message": "User login successful", "req_id": "req-188", "latency_ms": 293}
+{"timestamp": "2026-07-10T12:15:45", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-189", "latency_ms": 271}
+{"timestamp": "2026-07-10T12:15:50", "level": "info", "message": "Failed to write to cache", "req_id": "req-190", "latency_ms": 262}
+{"timestamp": "2026-07-10T12:15:55", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-191", "latency_ms": 93}
+{"timestamp": "2026-07-10T12:16:00", "level": "error", "message": "Disk space low", "req_id": "req-192", "latency_ms": 103}
+{"timestamp": "2026-07-10T12:16:05", "level": "info", "message": "API request processed", "req_id": "req-193", "latency_ms": 252}
+{"timestamp": "2026-07-10T12:16:10", "level": "info", "message": "Failed to write to cache", "req_id": "req-194", "latency_ms": 238}
+{"timestamp": "2026-07-10T12:16:15", "level": "debug", "message": "Disk space low", "req_id": "req-195", "latency_ms": 446}
+{"timestamp": "2026-07-10T12:16:20", "level": "debug", "message": "Failed to write to cache", "req_id": "req-196", "latency_ms": 350}
+{"timestamp": "2026-07-10T12:16:25", "level": "error", "message": "Disk space low", "req_id": "req-197", "latency_ms": 481}
+{"timestamp": "2026-07-10T12:16:30", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-198", "latency_ms": 179}
+{"timestamp": "2026-07-10T12:16:35", "level": "info", "message": "API request processed", "req_id": "req-199", "latency_ms": 122}
+{"timestamp": "2026-07-10T12:16:40", "level": "warning", "message": "Disk space low", "req_id": "req-200", "latency_ms": 493}
+{"timestamp": "2026-07-10T12:16:45", "level": "debug", "message": "Failed to write to cache", "req_id": "req-201", "latency_ms": 277}
+{"timestamp": "2026-07-10T12:16:50", "level": "error", "message": "Failed to write to cache", "req_id": "req-202", "latency_ms": 128}
+{"timestamp": "2026-07-10T12:16:55", "level": "debug", "message": "API request processed", "req_id": "req-203", "latency_ms": 456}
+{"timestamp": "2026-07-10T12:17:00", "level": "debug", "message": "Disk space low", "req_id": "req-204", "latency_ms": 182}
+{"timestamp": "2026-07-10T12:17:05", "level": "warning", "message": "API request processed", "req_id": "req-205", "latency_ms": 234}
+{"timestamp": "2026-07-10T12:17:10", "level": "warning", "message": "Disk space low", "req_id": "req-206", "latency_ms": 484}
+{"timestamp": "2026-07-10T12:17:15", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-207", "latency_ms": 45}
+{"timestamp": "2026-07-10T12:17:20", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-208", "latency_ms": 223}
+{"timestamp": "2026-07-10T12:17:25", "level": "warning", "message": "Disk space low", "req_id": "req-209", "latency_ms": 19}
+{"timestamp": "2026-07-10T12:17:30", "level": "warning", "message": "API request processed", "req_id": "req-210", "latency_ms": 446}
+{"timestamp": "2026-07-10T12:17:35", "level": "warning", "message": "Disk space low", "req_id": "req-211", "latency_ms": 111}
+{"timestamp": "2026-07-10T12:17:40", "level": "info", "message": "Disk space low", "req_id": "req-212", "latency_ms": 325}
+{"timestamp": "2026-07-10T12:17:45", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-213", "latency_ms": 82}
+{"timestamp": "2026-07-10T12:17:50", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-214", "latency_ms": 296}
+{"timestamp": "2026-07-10T12:17:55", "level": "warning", "message": "User login successful", "req_id": "req-215", "latency_ms": 25}
+{"timestamp": "2026-07-10T12:18:00", "level": "info", "message": "API request processed", "req_id": "req-216", "latency_ms": 403}
+{"timestamp": "2026-07-10T12:18:05", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-217", "latency_ms": 11}
+{"timestamp": "2026-07-10T12:18:10", "level": "warning", "message": "API request processed", "req_id": "req-218", "latency_ms": 460}
+{"timestamp": "2026-07-10T12:18:15", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-219", "latency_ms": 299}
+{"timestamp": "2026-07-10T12:18:20", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-220", "latency_ms": 500}
+{"timestamp": "2026-07-10T12:18:25", "level": "error", "message": "Disk space low", "req_id": "req-221", "latency_ms": 210}
+{"timestamp": "2026-07-10T12:18:30", "level": "error", "message": "API request processed", "req_id": "req-222", "latency_ms": 391}
+{"timestamp": "2026-07-10T12:18:35", "level": "warning", "message": "API request processed", "req_id": "req-223", "latency_ms": 54}
+{"timestamp": "2026-07-10T12:18:40", "level": "info", "message": "API request processed", "req_id": "req-224", "latency_ms": 418}
+{"timestamp": "2026-07-10T12:18:45", "level": "info", "message": "Cache hit ratio: 0.85", "req_id": "req-225", "latency_ms": 257}
+{"timestamp": "2026-07-10T12:18:50", "level": "info", "message": "User login successful", "req_id": "req-226", "latency_ms": 463}
+{"timestamp": "2026-07-10T12:18:55", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-227", "latency_ms": 435}
+{"timestamp": "2026-07-10T12:19:00", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-228", "latency_ms": 381}
+{"timestamp": "2026-07-10T12:19:05", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-229", "latency_ms": 489}
+{"timestamp": "2026-07-10T12:19:10", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-230", "latency_ms": 180}
+{"timestamp": "2026-07-10T12:19:15", "level": "info", "message": "API request processed", "req_id": "req-231", "latency_ms": 374}
+{"timestamp": "2026-07-10T12:19:20", "level": "debug", "message": "Failed to write to cache", "req_id": "req-232", "latency_ms": 364}
+{"timestamp": "2026-07-10T12:19:25", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-233", "latency_ms": 500}
+{"timestamp": "2026-07-10T12:19:30", "level": "warning", "message": "API request processed", "req_id": "req-234", "latency_ms": 5}
+{"timestamp": "2026-07-10T12:19:35", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-235", "latency_ms": 55}
+{"timestamp": "2026-07-10T12:19:40", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-236", "latency_ms": 78}
+{"timestamp": "2026-07-10T12:19:45", "level": "error", "message": "Failed to write to cache", "req_id": "req-237", "latency_ms": 406}
+{"timestamp": "2026-07-10T12:19:50", "level": "warning", "message": "Failed to write to cache", "req_id": "req-238", "latency_ms": 416}
+{"timestamp": "2026-07-10T12:19:55", "level": "info", "message": "User login successful", "req_id": "req-239", "latency_ms": 343}
+{"timestamp": "2026-07-10T12:20:00", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-240", "latency_ms": 355}
+{"timestamp": "2026-07-10T12:20:05", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-241", "latency_ms": 372}
+{"timestamp": "2026-07-10T12:20:10", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-242", "latency_ms": 372}
+{"timestamp": "2026-07-10T12:20:15", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-243", "latency_ms": 70}
+{"timestamp": "2026-07-10T12:20:20", "level": "debug", "message": "Failed to write to cache", "req_id": "req-244", "latency_ms": 437}
+{"timestamp": "2026-07-10T12:20:25", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-245", "latency_ms": 249}
+{"timestamp": "2026-07-10T12:20:30", "level": "debug", "message": "Disk space low", "req_id": "req-246", "latency_ms": 311}
+{"timestamp": "2026-07-10T12:20:35", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-247", "latency_ms": 126}
+{"timestamp": "2026-07-10T12:20:40", "level": "warning", "message": "User login successful", "req_id": "req-248", "latency_ms": 196}
+{"timestamp": "2026-07-10T12:20:45", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-249", "latency_ms": 79}
+{"timestamp": "2026-07-10T12:20:50", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-250", "latency_ms": 308}
+{"timestamp": "2026-07-10T12:20:55", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-251", "latency_ms": 493}
+{"timestamp": "2026-07-10T12:21:00", "level": "info", "message": "API request processed", "req_id": "req-252", "latency_ms": 36}
+{"timestamp": "2026-07-10T12:21:05", "level": "debug", "message": "API request processed", "req_id": "req-253", "latency_ms": 55}
+{"timestamp": "2026-07-10T12:21:10", "level": "warning", "message": "API request processed", "req_id": "req-254", "latency_ms": 21}
+{"timestamp": "2026-07-10T12:21:15", "level": "warning", "message": "API request processed", "req_id": "req-255", "latency_ms": 87}
+{"timestamp": "2026-07-10T12:21:20", "level": "info", "message": "API request processed", "req_id": "req-256", "latency_ms": 239}
+{"timestamp": "2026-07-10T12:21:25", "level": "info", "message": "User login successful", "req_id": "req-257", "latency_ms": 379}
+{"timestamp": "2026-07-10T12:21:30", "level": "warning", "message": "User login successful", "req_id": "req-258", "latency_ms": 141}
+{"timestamp": "2026-07-10T12:21:35", "level": "warning", "message": "API request processed", "req_id": "req-259", "latency_ms": 164}
+{"timestamp": "2026-07-10T12:21:40", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-260", "latency_ms": 375}
+{"timestamp": "2026-07-10T12:21:45", "level": "error", "message": "Disk space low", "req_id": "req-261", "latency_ms": 257}
+{"timestamp": "2026-07-10T12:21:50", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-262", "latency_ms": 83}
+{"timestamp": "2026-07-10T12:21:55", "level": "info", "message": "User login successful", "req_id": "req-263", "latency_ms": 226}
+{"timestamp": "2026-07-10T12:22:00", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-264", "latency_ms": 87}
+{"timestamp": "2026-07-10T12:22:05", "level": "warning", "message": "Disk space low", "req_id": "req-265", "latency_ms": 481}
+{"timestamp": "2026-07-10T12:22:10", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-266", "latency_ms": 83}
+{"timestamp": "2026-07-10T12:22:15", "level": "info", "message": "Disk space low", "req_id": "req-267", "latency_ms": 397}
+{"timestamp": "2026-07-10T12:22:20", "level": "debug", "message": "Failed to write to cache", "req_id": "req-268", "latency_ms": 391}
+{"timestamp": "2026-07-10T12:22:25", "level": "error", "message": "API request processed", "req_id": "req-269", "latency_ms": 379}
+{"timestamp": "2026-07-10T12:22:30", "level": "warning", "message": "Failed to write to cache", "req_id": "req-270", "latency_ms": 52}
+{"timestamp": "2026-07-10T12:22:35", "level": "error", "message": "API request processed", "req_id": "req-271", "latency_ms": 191}
+{"timestamp": "2026-07-10T12:22:40", "level": "debug", "message": "Failed to write to cache", "req_id": "req-272", "latency_ms": 197}
+{"timestamp": "2026-07-10T12:22:45", "level": "error", "message": "Disk space low", "req_id": "req-273", "latency_ms": 440}
+{"timestamp": "2026-07-10T12:22:50", "level": "debug", "message": "Cache hit ratio: 0.85", "req_id": "req-274", "latency_ms": 249}
+{"timestamp": "2026-07-10T12:22:55", "level": "warning", "message": "User login successful", "req_id": "req-275", "latency_ms": 67}
+{"timestamp": "2026-07-10T12:23:00", "level": "debug", "message": "Failed to write to cache", "req_id": "req-276", "latency_ms": 274}
+{"timestamp": "2026-07-10T12:23:05", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-277", "latency_ms": 275}
+{"timestamp": "2026-07-10T12:23:10", "level": "error", "message": "Failed to write to cache", "req_id": "req-278", "latency_ms": 132}
+{"timestamp": "2026-07-10T12:23:15", "level": "info", "message": "Connection timeout, retrying", "req_id": "req-279", "latency_ms": 149}
+{"timestamp": "2026-07-10T12:23:20", "level": "warning", "message": "Cache hit ratio: 0.85", "req_id": "req-280", "latency_ms": 247}
+{"timestamp": "2026-07-10T12:23:25", "level": "error", "message": "Disk space low", "req_id": "req-281", "latency_ms": 261}
+{"timestamp": "2026-07-10T12:23:30", "level": "debug", "message": "API request processed", "req_id": "req-282", "latency_ms": 448}
+{"timestamp": "2026-07-10T12:23:35", "level": "warning", "message": "Disk space low", "req_id": "req-283", "latency_ms": 377}
+{"timestamp": "2026-07-10T12:23:40", "level": "debug", "message": "Disk space low", "req_id": "req-284", "latency_ms": 166}
+{"timestamp": "2026-07-10T12:23:45", "level": "debug", "message": "Disk space low", "req_id": "req-285", "latency_ms": 381}
+{"timestamp": "2026-07-10T12:23:50", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-286", "latency_ms": 105}
+{"timestamp": "2026-07-10T12:23:55", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-287", "latency_ms": 204}
+{"timestamp": "2026-07-10T12:24:00", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-288", "latency_ms": 294}
+{"timestamp": "2026-07-10T12:24:05", "level": "error", "message": "API request processed", "req_id": "req-289", "latency_ms": 190}
+{"timestamp": "2026-07-10T12:24:10", "level": "warning", "message": "Connection timeout, retrying", "req_id": "req-290", "latency_ms": 120}
+{"timestamp": "2026-07-10T12:24:15", "level": "debug", "message": "Failed to write to cache", "req_id": "req-291", "latency_ms": 210}
+{"timestamp": "2026-07-10T12:24:20", "level": "debug", "message": "Connection timeout, retrying", "req_id": "req-292", "latency_ms": 297}
+{"timestamp": "2026-07-10T12:24:25", "level": "debug", "message": "Failed to write to cache", "req_id": "req-293", "latency_ms": 223}
+{"timestamp": "2026-07-10T12:24:30", "level": "warning", "message": "API request processed", "req_id": "req-294", "latency_ms": 252}
+{"timestamp": "2026-07-10T12:24:35", "level": "error", "message": "Connection timeout, retrying", "req_id": "req-295", "latency_ms": 270}
+{"timestamp": "2026-07-10T12:24:40", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-296", "latency_ms": 419}
+{"timestamp": "2026-07-10T12:24:45", "level": "error", "message": "Cache hit ratio: 0.85", "req_id": "req-297", "latency_ms": 211}
+{"timestamp": "2026-07-10T12:24:50", "level": "error", "message": "Disk space low", "req_id": "req-298", "latency_ms": 73}
+{"timestamp": "2026-07-10T12:24:55", "level": "info", "message": "Disk space low", "req_id": "req-299", "latency_ms": 487}

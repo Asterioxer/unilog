@@ -1,0 +1,200 @@
+[2026-07-10 12:00:00] DEBUG django.request: GET /api/endpoint 500 150ms
+2026-07-10 12:00:10,185 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:00:20] INFO django.request: GET /api/endpoint 200 187ms
+2026-07-10 12:00:30,955 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:00:40] ERROR django.request: GET /api/endpoint 500 190ms
+2026-07-10 12:00:50,282 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:01:00] ERROR django.request: GET /api/endpoint 404 165ms
+2026-07-10 12:01:10,386 - app.views - INFO - Exception in transaction
+[2026-07-10 12:01:20] ERROR django.request: GET /api/endpoint 301 184ms
+2026-07-10 12:01:30,175 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:01:40] DEBUG django.request: GET /api/endpoint 500 190ms
+2026-07-10 12:01:50,290 - app.views - INFO - Exception in transaction
+[2026-07-10 12:02:00] DEBUG django.request: GET /api/endpoint 500 44ms
+2026-07-10 12:02:10,757 - app.views - INFO - Exception in transaction
+[2026-07-10 12:02:20] DEBUG django.request: GET /api/endpoint 404 198ms
+2026-07-10 12:02:30,628 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:02:40] ERROR django.request: GET /api/endpoint 301 51ms
+2026-07-10 12:02:50,265 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:03:00] WARNING django.request: GET /api/endpoint 500 52ms
+2026-07-10 12:03:10,597 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:03:20] WARNING django.request: GET /api/endpoint 200 145ms
+2026-07-10 12:03:30,377 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:03:40] ERROR django.request: GET /api/endpoint 500 66ms
+2026-07-10 12:03:50,696 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:04:00] INFO django.request: GET /api/endpoint 404 43ms
+2026-07-10 12:04:10,746 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:04:20] ERROR django.request: GET /api/endpoint 301 28ms
+2026-07-10 12:04:30,300 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:04:40] INFO django.request: GET /api/endpoint 200 61ms
+2026-07-10 12:04:50,613 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:05:00] ERROR django.request: GET /api/endpoint 404 141ms
+2026-07-10 12:05:10,335 - app.views - INFO - Exception in transaction
+[2026-07-10 12:05:20] ERROR django.request: GET /api/endpoint 404 40ms
+2026-07-10 12:05:30,149 - app.views - INFO - Exception in transaction
+[2026-07-10 12:05:40] INFO django.request: GET /api/endpoint 200 182ms
+2026-07-10 12:05:50,968 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:06:00] WARNING django.request: GET /api/endpoint 500 78ms
+2026-07-10 12:06:10,289 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:06:20] DEBUG django.request: GET /api/endpoint 200 131ms
+2026-07-10 12:06:30,778 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:06:40] DEBUG django.request: GET /api/endpoint 404 200ms
+2026-07-10 12:06:50,829 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:07:00] DEBUG django.request: GET /api/endpoint 200 5ms
+2026-07-10 12:07:10,877 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:07:20] DEBUG django.request: GET /api/endpoint 500 15ms
+2026-07-10 12:07:30,719 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:07:40] INFO django.request: GET /api/endpoint 500 49ms
+2026-07-10 12:07:50,593 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:08:00] DEBUG django.request: GET /api/endpoint 200 20ms
+2026-07-10 12:08:10,408 - app.views - INFO - Exception in transaction
+[2026-07-10 12:08:20] ERROR django.request: GET /api/endpoint 500 135ms
+2026-07-10 12:08:30,472 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:08:40] DEBUG django.request: GET /api/endpoint 200 116ms
+2026-07-10 12:08:50,221 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:09:00] DEBUG django.request: GET /api/endpoint 301 191ms
+2026-07-10 12:09:10,948 - app.views - INFO - Exception in transaction
+[2026-07-10 12:09:20] WARNING django.request: GET /api/endpoint 200 71ms
+2026-07-10 12:09:30,256 - app.views - INFO - Exception in transaction
+[2026-07-10 12:09:40] DEBUG django.request: GET /api/endpoint 200 7ms
+2026-07-10 12:09:50,322 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:10:00] WARNING django.request: GET /api/endpoint 200 189ms
+2026-07-10 12:10:10,151 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:10:20] INFO django.request: GET /api/endpoint 404 157ms
+2026-07-10 12:10:30,223 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:10:40] ERROR django.request: GET /api/endpoint 200 82ms
+2026-07-10 12:10:50,299 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:11:00] DEBUG django.request: GET /api/endpoint 200 85ms
+2026-07-10 12:11:10,336 - app.views - INFO - Exception in transaction
+[2026-07-10 12:11:20] WARNING django.request: GET /api/endpoint 200 23ms
+2026-07-10 12:11:30,692 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:11:40] DEBUG django.request: GET /api/endpoint 500 122ms
+2026-07-10 12:11:50,792 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:12:00] INFO django.request: GET /api/endpoint 500 82ms
+2026-07-10 12:12:10,110 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:12:20] WARNING django.request: GET /api/endpoint 301 196ms
+2026-07-10 12:12:30,798 - app.views - INFO - Exception in transaction
+[2026-07-10 12:12:40] ERROR django.request: GET /api/endpoint 301 185ms
+2026-07-10 12:12:50,237 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:13:00] INFO django.request: GET /api/endpoint 200 147ms
+2026-07-10 12:13:10,656 - app.views - INFO - Exception in transaction
+[2026-07-10 12:13:20] INFO django.request: GET /api/endpoint 500 55ms
+2026-07-10 12:13:30,685 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:13:40] WARNING django.request: GET /api/endpoint 404 166ms
+2026-07-10 12:13:50,172 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:14:00] DEBUG django.request: GET /api/endpoint 500 49ms
+2026-07-10 12:14:10,340 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:14:20] WARNING django.request: GET /api/endpoint 404 140ms
+2026-07-10 12:14:30,892 - app.views - INFO - Exception in transaction
+[2026-07-10 12:14:40] ERROR django.request: GET /api/endpoint 200 79ms
+2026-07-10 12:14:50,281 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:15:00] ERROR django.request: GET /api/endpoint 200 185ms
+2026-07-10 12:15:10,441 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:15:20] DEBUG django.request: GET /api/endpoint 404 93ms
+2026-07-10 12:15:30,486 - app.views - INFO - Exception in transaction
+[2026-07-10 12:15:40] WARNING django.request: GET /api/endpoint 500 28ms
+2026-07-10 12:15:50,402 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:16:00] WARNING django.request: GET /api/endpoint 200 153ms
+2026-07-10 12:16:10,727 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:16:20] WARNING django.request: GET /api/endpoint 301 57ms
+2026-07-10 12:16:30,309 - app.views - ERROR - Exception in transaction
+django raw syntax error
+2026-07-10 12:16:50,688 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:17:00] ERROR django.request: GET /api/endpoint 301 19ms
+2026-07-10 12:17:10,353 - app.views - INFO - Exception in transaction
+[2026-07-10 12:17:20] ERROR django.request: GET /api/endpoint 301 76ms
+2026-07-10 12:17:30,862 - app.views - INFO - Exception in transaction
+[2026-07-10 12:17:40] ERROR django.request: GET /api/endpoint 200 44ms
+2026-07-10 12:17:50,915 - app.views - INFO - Exception in transaction
+[2026-07-10 12:18:00] INFO django.request: GET /api/endpoint 500 157ms
+2026-07-10 12:18:10,278 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:18:20] WARNING django.request: GET /api/endpoint 500 184ms
+2026-07-10 12:18:30,499 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:18:40] INFO django.request: GET /api/endpoint 404 100ms
+2026-07-10 12:18:50,966 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:19:00] ERROR django.request: GET /api/endpoint 301 144ms
+2026-07-10 12:19:10,885 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:19:20] DEBUG django.request: GET /api/endpoint 301 149ms
+2026-07-10 12:19:30,424 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:19:40] INFO django.request: GET /api/endpoint 301 127ms
+2026-07-10 12:19:50,615 - app.views - INFO - Exception in transaction
+[2026-07-10 12:20:00] INFO django.request: GET /api/endpoint 404 188ms
+2026-07-10 12:20:10,741 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:20:20] DEBUG django.request: GET /api/endpoint 200 134ms
+2026-07-10 12:20:30,133 - app.views - INFO - Exception in transaction
+[2026-07-10 12:20:40] ERROR django.request: GET /api/endpoint 500 96ms
+2026-07-10 12:20:50,351 - app.views - INFO - Exception in transaction
+[2026-07-10 12:21:00] DEBUG django.request: GET /api/endpoint 200 141ms
+2026-07-10 12:21:10,230 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:21:20] DEBUG django.request: GET /api/endpoint 200 116ms
+2026-07-10 12:21:30,900 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:21:40] INFO django.request: GET /api/endpoint 500 129ms
+2026-07-10 12:21:50,735 - app.views - INFO - Exception in transaction
+[2026-07-10 12:22:00] DEBUG django.request: GET /api/endpoint 200 195ms
+2026-07-10 12:22:10,574 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:22:20] WARNING django.request: GET /api/endpoint 200 176ms
+2026-07-10 12:22:30,842 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:22:40] WARNING django.request: GET /api/endpoint 500 163ms
+2026-07-10 12:22:50,978 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:23:00] INFO django.request: GET /api/endpoint 404 28ms
+2026-07-10 12:23:10,840 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:23:20] WARNING django.request: GET /api/endpoint 500 137ms
+2026-07-10 12:23:30,886 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:23:40] INFO django.request: GET /api/endpoint 404 179ms
+2026-07-10 12:23:50,414 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:24:00] INFO django.request: GET /api/endpoint 200 30ms
+2026-07-10 12:24:10,945 - app.views - INFO - Exception in transaction
+[2026-07-10 12:24:20] INFO django.request: GET /api/endpoint 200 120ms
+2026-07-10 12:24:30,140 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:24:40] ERROR django.request: GET /api/endpoint 200 154ms
+2026-07-10 12:24:50,768 - app.views - INFO - Exception in transaction
+[2026-07-10 12:25:00] DEBUG django.request: GET /api/endpoint 404 143ms
+2026-07-10 12:25:10,956 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:25:20] DEBUG django.request: GET /api/endpoint 200 27ms
+2026-07-10 12:25:30,875 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:25:40] WARNING django.request: GET /api/endpoint 404 154ms
+2026-07-10 12:25:50,971 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:26:00] ERROR django.request: GET /api/endpoint 301 80ms
+2026-07-10 12:26:10,257 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:26:20] INFO django.request: GET /api/endpoint 404 121ms
+2026-07-10 12:26:30,203 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:26:40] INFO django.request: GET /api/endpoint 500 39ms
+2026-07-10 12:26:50,207 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:27:00] DEBUG django.request: GET /api/endpoint 200 159ms
+2026-07-10 12:27:10,572 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:27:20] INFO django.request: GET /api/endpoint 200 103ms
+2026-07-10 12:27:30,801 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:27:40] INFO django.request: GET /api/endpoint 404 77ms
+2026-07-10 12:27:50,657 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:28:00] WARNING django.request: GET /api/endpoint 500 198ms
+2026-07-10 12:28:10,319 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:28:20] WARNING django.request: GET /api/endpoint 500 195ms
+2026-07-10 12:28:30,489 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:28:40] INFO django.request: GET /api/endpoint 500 120ms
+2026-07-10 12:28:50,369 - app.views - INFO - Exception in transaction
+[2026-07-10 12:29:00] WARNING django.request: GET /api/endpoint 404 102ms
+2026-07-10 12:29:10,143 - app.views - INFO - Exception in transaction
+[2026-07-10 12:29:20] INFO django.request: GET /api/endpoint 500 113ms
+2026-07-10 12:29:30,858 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:29:40] DEBUG django.request: GET /api/endpoint 404 96ms
+2026-07-10 12:29:50,898 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:30:00] INFO django.request: GET /api/endpoint 200 195ms
+2026-07-10 12:30:10,519 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:30:20] INFO django.request: GET /api/endpoint 301 63ms
+2026-07-10 12:30:30,457 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:30:40] WARNING django.request: GET /api/endpoint 404 166ms
+2026-07-10 12:30:50,743 - app.views - ERROR - Exception in transaction
+[2026-07-10 12:31:00] DEBUG django.request: GET /api/endpoint 404 68ms
+2026-07-10 12:31:10,117 - app.views - INFO - Exception in transaction
+[2026-07-10 12:31:20] ERROR django.request: GET /api/endpoint 301 124ms
+2026-07-10 12:31:30,990 - app.views - INFO - Exception in transaction
+[2026-07-10 12:31:40] WARNING django.request: GET /api/endpoint 500 122ms
+2026-07-10 12:31:50,490 - app.views - INFO - Exception in transaction
+[2026-07-10 12:32:00] WARNING django.request: GET /api/endpoint 404 62ms
+2026-07-10 12:32:10,517 - app.views - WARNING - Exception in transaction
+[2026-07-10 12:32:20] DEBUG django.request: GET /api/endpoint 404 165ms
+2026-07-10 12:32:30,763 - app.views - INFO - Exception in transaction
+[2026-07-10 12:32:40] INFO django.request: GET /api/endpoint 200 151ms
+2026-07-10 12:32:50,718 - app.views - DEBUG - Exception in transaction
+[2026-07-10 12:33:00] ERROR django.request: GET /api/endpoint 200 93ms
+2026-07-10 12:33:10,168 - app.views - DEBUG - Exception in transaction
