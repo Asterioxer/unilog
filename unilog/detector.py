@@ -1,7 +1,6 @@
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, Optional
 from unilog.registry import list_formats
 from unilog.utils import sample_lines
-from unilog.parsers.base import BaseParser
 
 def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
     """

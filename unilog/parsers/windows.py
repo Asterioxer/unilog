@@ -1,7 +1,7 @@
 import csv
-import io
 import xml.etree.ElementTree as ET
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from unilog.parsers.base import BaseParser
 from unilog.registry import register_parser
 from unilog.utils import normalize_timestamp, safe_int
@@ -46,8 +46,15 @@ class WindowsParser(BaseParser):
 
     def parse_line(self, line: str) -> Dict[str, Any]:
         line = line.strip()
-        if not line:
+        if not line or not self.match(line):
             return {"_parse_error": True, "raw": line}
+
+        timestamp: Optional[datetime] = None
+        level: str = "INFO"
+        source: Optional[str] = None
+        event_id: Optional[int] = None
+        category: Optional[str] = None
+        message: Optional[str] = None
 
         # Handle XML Event
         if line.startswith("<Event"):
@@ -145,8 +152,8 @@ class WindowsParser(BaseParser):
             while len(row) < 6:
                 row.append("")
 
-            raw_lvl = row[0].strip()
-            level = raw_lvl.upper()
+            raw_csv_lvl = row[0].strip()
+            level = raw_csv_lvl.upper()
             if level == "INFORMATION":
                 level = "INFO"
             elif level == "WARNING":

@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from unilog.parsers.base import BaseParser
 from unilog.registry import register_parser
 from unilog.utils import normalize_timestamp

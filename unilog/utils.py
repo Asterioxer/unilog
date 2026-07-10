@@ -3,7 +3,7 @@ import io
 import sys
 from typing import Generator, List, Optional, Union, Any
 from datetime import datetime
-from dateutil import parser as date_parser
+from dateutil import parser as date_parser  # type: ignore
 
 def safe_int(val: Any) -> Optional[int]:
     """Safely convert a value to an integer, returning None on failure."""
@@ -78,8 +78,10 @@ def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
             for line in f:
                 yield line
 
-def sample_lines(path: Union[str, io.TextIOBase], n: int = 50) -> List[str]:
-    """Read first n lines from path/stream for detection."""
+def sample_lines(path: Union[str, io.TextIOBase, List[str]], n: int = 50) -> List[str]:
+    """Read first n lines from path/stream/list for detection."""
+    if isinstance(path, list):
+        return path[:n]
     lines = []
     try:
         # If it's stdin/stream and we consume from it, we might lose lines.
@@ -93,7 +95,7 @@ def sample_lines(path: Union[str, io.TextIOBase], n: int = 50) -> List[str]:
             # We'll just read from it.
             stream = sys.stdin if path == "-" else path
             for _ in range(n):
-                line = stream.readline()
+                line = stream.readline()  # type: ignore
                 if not line:
                     break
                 lines.append(line)

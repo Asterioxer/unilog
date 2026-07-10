@@ -12,13 +12,13 @@ def _ensure_loaded():
         _loaded = True
         # Explicitly import all built-in parsers here to register them
         try:
-            from unilog.parsers.json_log import JSONParser
-            from unilog.parsers.custom import CustomParser
-            from unilog.parsers.nginx import NginxParser
-            from unilog.parsers.apache import ApacheParser
-            from unilog.parsers.syslog import SyslogParser
-            from unilog.parsers.django import DjangoParser
-            from unilog.parsers.windows import WindowsParser
+            from unilog.parsers.json_log import JSONParser  # noqa: F401
+            from unilog.parsers.custom import CustomParser  # noqa: F401
+            from unilog.parsers.nginx import NginxParser  # noqa: F401
+            from unilog.parsers.apache import ApacheParser  # noqa: F401
+            from unilog.parsers.syslog import SyslogParser  # noqa: F401
+            from unilog.parsers.django import DjangoParser  # noqa: F401
+            from unilog.parsers.windows import WindowsParser  # noqa: F401
             # Other parsers will be imported here when added
         except ImportError:
             pass

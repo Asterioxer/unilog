@@ -197,7 +197,6 @@ def test_windows_parser_xml_minimal():
     assert isinstance(res["timestamp"], datetime)
 
 def test_custom_parser_and_registration():
-    import pytest
     from unilog.core import register_format, parse_string
     from unilog.registry import get_parser
 

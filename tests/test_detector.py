@@ -1,9 +1,5 @@
-import pytest
-import pandas as pd
 from unilog.parsers.base import BaseParser, RegexParser, StructuredRegexParser
 from unilog.registry import register_parser, get_parser, list_formats
-from unilog.detector import detect
-from unilog.core import parse_string, parse
 
 def test_registry():
     # Define a mock parser

@@ -1,11 +1,11 @@
 import io
 import sys
-import pandas as pd
-from typing import Generator, Dict, Any, Optional, List, Union
+import pandas as pd  # type: ignore
+from typing import Generator, Dict, Any, Optional, List
 
 from unilog.detector import detect as detect_format
 from unilog.registry import get_parser, register_parser
-from unilog.utils import read_file, sample_lines
+from unilog.utils import read_file
 from unilog.parsers.base import BaseParser
 
 def stream(path_or_stream: Any, format: Optional[str] = None) -> Generator[Dict[str, Any], None, None]:
@@ -49,6 +49,8 @@ def stream(path_or_stream: Any, format: Optional[str] = None) -> Generator[Dict[
     if buffered_lines:
         for line in buffered_lines:
             line_str = line.rstrip("\r\n")
+            if not line_str.strip():
+                continue
             if parser_inst:
                 yield parser_inst.parse_line(line_str)
             else:
@@ -61,6 +63,8 @@ def stream(path_or_stream: Any, format: Optional[str] = None) -> Generator[Dict[
         stream_obj = sys.stdin if path_or_stream == "-" else path_or_stream
         for line in stream_obj:
             line_str = line.rstrip("\r\n")
+            if not line_str.strip():
+                continue
             if parser_inst:
                 yield parser_inst.parse_line(line_str)
             else:
@@ -69,6 +73,8 @@ def stream(path_or_stream: Any, format: Optional[str] = None) -> Generator[Dict[
         # For standard files, read from the beginning
         for line in read_file(path_or_stream):
             line_str = line.rstrip("\r\n")
+            if not line_str.strip():
+                continue
             if parser_inst:
                 yield parser_inst.parse_line(line_str)
             else:

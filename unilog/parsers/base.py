@@ -47,11 +47,11 @@ class BaseParser(abc.ABC):
                 except Exception:
                     pass
                     
-        if not parsed_records:
-            # If no matches, return 0
+        total_lines = len([line for line in sample_lines if line.strip()])
+        if total_lines == 0 or not parsed_records:
             return 0.0
 
-        match_ratio = matches / len(sample_lines)
+        match_ratio = matches / total_lines
         
         # Scoring Weights:
         # - 40% Regex/Match ratio
@@ -81,10 +81,9 @@ class BaseParser(abc.ABC):
             else:
                 numeric_valid += 1 # Default to valid if no numeric fields defined
 
-        n_records = len(parsed_records)
-        ts_ratio = timestamp_parsed / n_records if n_records else 0.0
-        req_ratio = required_fields_present / n_records if n_records else 0.0
-        num_ratio = numeric_valid / n_records if n_records else 0.0
+        ts_ratio = timestamp_parsed / total_lines
+        req_ratio = required_fields_present / total_lines
+        num_ratio = numeric_valid / total_lines
         
         score = (
             (match_ratio * 0.40) +
