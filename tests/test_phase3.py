@@ -241,3 +241,103 @@ def test_chunk_generator_keyboard_interrupt():
         res = list(chunks)
         assert len(res) == 1
         assert res[0].loc[0, "col"] == 1
+
+def test_custom_parser_empty_pattern_edge_cases():
+    from unilog.parsers.custom import CustomParser
+    parser = CustomParser() # pattern_str is empty
+    assert parser._pattern is None
+    assert parser.match("any line") is False
+    assert parser.parse_line("any line") == {"_parse_error": True, "raw": "any line"}
+    assert parser.confidence_score([]) == 0.0
+    assert parser.confidence_score(["   ", "\t"]) == 0.0
+    assert parser.confidence_score(["line"]) == 0.0
+
+def test_windows_parser_xml_fallbacks():
+    from unilog.parsers.windows import WindowsParser
+    parser = WindowsParser()
+    
+    # 1. Namespace-less XML Level=1 (CRITICAL) and unnamed Data element
+    xml_lvl1 = '<Event><System><Provider Name="MySource"/><EventID>1001</EventID><TimeCreated SystemTime="2026-07-10T12:00:00Z"/><Level>1</Level><Task>10</Task></System><EventData><Data Name="Param1">val1</Data><Data>unnamed_val</Data></EventData></Event>'
+    res1 = parser.parse_line(xml_lvl1)
+    assert res1.get("_parse_error") is not True
+    assert res1["level"] == "CRITICAL"
+    assert res1["source"] == "MySource"
+    assert res1["event_id"] == 1001
+    assert "Param1=val1; unnamed_val" in res1["message"]
+
+    # 2. Namespace-less XML Level=2 (ERROR)
+    xml_lvl2 = '<Event><System><Provider Name="MySource"/><EventID>1002</EventID><TimeCreated SystemTime="2026-07-10T12:00:00Z"/><Level>2</Level></System></Event>'
+    res2 = parser.parse_line(xml_lvl2)
+    assert res2["level"] == "ERROR"
+
+    # 3. Namespace-less XML Level=3 (WARNING)
+    xml_lvl3 = '<Event><System><Provider Name="MySource"/><EventID>1003</EventID><TimeCreated SystemTime="2026-07-10T12:00:00Z"/><Level>3</Level></System></Event>'
+    res3 = parser.parse_line(xml_lvl3)
+    assert res3["level"] == "WARNING"
+
+    # 4. XML with System element missing
+    xml_no_sys = '<Event><SystemOther></SystemOther></Event>'
+    res_err = parser.parse_line(xml_no_sys)
+    assert res_err.get("_parse_error") is True
+
+def test_registry_load_entry_points_exceptions():
+    from unittest.mock import patch, MagicMock
+    from unilog.registry import load_entry_points, register_parser
+    
+    # Mock entry_points to raise an exception
+    with patch("importlib.metadata.entry_points", side_effect=Exception("Failed to load group")):
+        load_entry_points() # should handle exception and pass
+        
+    # Mock entry_points to return a broken entry point
+    mock_ep = MagicMock()
+    mock_ep.load.side_effect = Exception("Broken ep")
+    
+    with patch("importlib.metadata.entry_points", return_value=[mock_ep]):
+        load_entry_points() # should handle exception in ep.load() and pass
+
+    # TypeError on invalid class
+    import pytest
+    with pytest.raises(TypeError, match="Parser class must inherit from BaseParser"):
+        register_parser(object) # type: ignore
+
+    # ValueError on missing name
+    from unilog.parsers.base import BaseParser
+    class MissingNameParser(BaseParser):
+        name = ""
+    with pytest.raises(ValueError, match="Parser class must define a valid non-base name attribute"):
+        register_parser(MissingNameParser)
+
+def test_registry_import_error_reset():
+    from unittest.mock import patch
+    import unilog.registry
+    unilog.registry._loaded = False
+    with patch("builtins.__import__", side_effect=ImportError("Mocked import error")):
+        unilog.registry._ensure_loaded()
+    assert unilog.registry._loaded is True
+
+def test_utils_edge_cases():
+    from unilog.utils import normalize_timestamp, read_file, sample_lines
+    from unittest.mock import patch
+    import io
+    
+    # normalize_timestamp falsy values
+    assert normalize_timestamp("") is None
+    assert normalize_timestamp(None) is None # type: ignore
+    assert normalize_timestamp(" - ") is None
+    
+    # specific format fails parse
+    assert normalize_timestamp("bad_ts", fmt="%Y-%m-%d") is None
+    
+    # complex fallback parse fails
+    assert normalize_timestamp("10/Jul/2026:bad:time", fmt=None) is None
+
+    # read_file with stdin mock
+    mock_stdin = io.StringIO("stdin log line\n")
+    with patch("sys.stdin", mock_stdin):
+        lines = list(read_file("-"))
+        assert len(lines) == 1
+        assert lines[0] == "stdin log line\n"
+
+    # sample_lines general exception handler trigger
+    res_lines = sample_lines(12345) # type: ignore # passing integer causes exception in sample_lines
+    assert res_lines == []
