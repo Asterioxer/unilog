@@ -151,14 +151,16 @@ Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
 
 ### API Endpoints
 
-- `GET /health` - API health check status.
-- `POST /parse` - Parse raw log text payload.
-- `POST /detect` - Detect format with confidence score list.
-- `POST /stats` - Generate metrics (Top IPs, levels, endpoints, bytes).
-- `POST /formats` - List all registered parser configurations.
-- `POST /stream` - Parse logs and stream JSON records line-by-line.
-- `POST /upload` - Upload file for parsing. Large files (>1MB) parse asynchronously in background tasks and return a `task_id`.
-- `GET /tasks/{task_id}` - Retrieve progress or result of background upload parsing.
+- `GET /health` - General status of the REST service.
+- `GET /live` - Liveness health check status (Kubernetes standard).
+- `GET /ready` - Readiness health check status (Kubernetes standard).
+- `POST /api/v1/parse` - Parse raw log text payload.
+- `POST /api/v1/detect` - Detect format with confidence score list.
+- `POST /api/v1/stats` - Generate metrics (Top IPs, levels, endpoints, bytes).
+- `POST /api/v1/formats` - List all registered parser configurations.
+- `POST /api/v1/stream` - Parse logs and stream JSON records line-by-line.
+- `POST /api/v1/upload` - Upload file for parsing. Large files (>1MB) parse asynchronously in background tasks and return a `task_id`.
+- `GET /api/v1/tasks/{task_id}` - Retrieve progress or result of background upload parsing.
 
 ### API Architecture
 
@@ -176,14 +178,14 @@ flowchart LR
 
 **Parse log payload:**
 ```bash
-curl -X POST http://localhost:8000/parse \
+curl -X POST http://localhost:8000/api/v1/parse \
   -H "Content-Type: application/json" \
   -d '{"log_text": "127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] \"GET /index.html HTTP/1.1\" 200 1043", "format": "nginx"}'
 ```
 
 **Upload log file:**
 ```bash
-curl -X POST http://localhost:8000/upload \
+curl -X POST http://localhost:8000/api/v1/upload \
   -F "file=@access.log" \
   -F "format=auto"
 ```
@@ -193,7 +195,7 @@ curl -X POST http://localhost:8000/upload \
 ```python
 import requests
 
-url = "http://localhost:8000/parse"
+url = "http://localhost:8000/api/v1/parse"
 payload = {
     "log_text": '127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] "GET /index.html HTTP/1.1" 200 1043',
     "format": "auto"
