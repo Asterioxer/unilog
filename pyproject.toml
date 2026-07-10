@@ -9,6 +9,9 @@ dependencies = [
     "click>=8.0.0",
     "python-dateutil>=2.8.2",
     "rich>=13.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "python-multipart>=0.0.6",
 ]
 
 [project.scripts]
@@ -21,6 +24,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "httpx>=0.24.0",
 ]
 
 [build-system]

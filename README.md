@@ -129,6 +129,79 @@ unilog parse access.log --output table --head 10
 unilog parse access.log --output json --chunksize 1000
 ```
 
+## REST API Platform
+
+`unilog` includes a complete FastAPI-based REST API backend to power web clients and remote scripts.
+
+### Running the API
+
+You can launch the REST API directly using `uvicorn`:
+
+```bash
+uv run uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Or run via Docker:
+
+```bash
+docker-compose up --build
+```
+
+Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
+
+### API Endpoints
+
+- `GET /health` - API health check status.
+- `POST /parse` - Parse raw log text payload.
+- `POST /detect` - Detect format with confidence score list.
+- `POST /stats` - Generate metrics (Top IPs, levels, endpoints, bytes).
+- `POST /formats` - List all registered parser configurations.
+- `POST /stream` - Parse logs and stream JSON records line-by-line.
+- `POST /upload` - Upload file for parsing. Large files (>1MB) parse asynchronously in background tasks and return a `task_id`.
+- `GET /tasks/{task_id}` - Retrieve progress or result of background upload parsing.
+
+### API Architecture
+
+```mermaid
+flowchart LR
+    Client([HTTP Client]) --> |HTTP requests| API[FastAPI Engine]
+    API --> |Health Check| Health[health router]
+    API --> |Log Analysis| Log[log router]
+    Log --> |Upload size > 1MB| BG[BackgroundTasks service]
+    Log --> |Upload size <= 1MB| Core[unilog core]
+    BG --> |Asynchronous processing| Core
+```
+
+### curl Examples
+
+**Parse log payload:**
+```bash
+curl -X POST http://localhost:8000/parse \
+  -H "Content-Type: application/json" \
+  -d '{"log_text": "127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] \"GET /index.html HTTP/1.1\" 200 1043", "format": "nginx"}'
+```
+
+**Upload log file:**
+```bash
+curl -X POST http://localhost:8000/upload \
+  -F "file=@access.log" \
+  -F "format=auto"
+```
+
+### Python requests Example
+
+```python
+import requests
+
+url = "http://localhost:8000/parse"
+payload = {
+    "log_text": '127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] "GET /index.html HTTP/1.1" 200 1043',
+    "format": "auto"
+}
+response = requests.post(url, json=payload)
+print(response.json())
+```
+
 ## Contribution Guide
 
 1. Clone the repository and install dependencies with `uv`:
@@ -138,7 +211,7 @@ unilog parse access.log --output json --chunksize 1000
 2. Run quality checking tools before submitting PRs:
    ```bash
    uv run ruff check .
-   uv run mypy unilog
-   uv run pytest --cov=unilog
+   uv run mypy unilog api
+   uv run pytest --cov=unilog --cov=api --cov-report=term-missing
    ```
-3. Ensure coverage remains at or above 90%.
+3. Ensure coverage remains at or above 92%.

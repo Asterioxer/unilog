@@ -39,8 +39,12 @@ jobs:
 
       - name: Run Type Checks (Mypy)
         run: |
-          uv run mypy unilog
+          uv run mypy unilog api
 
       - name: Run Test Suite & Coverage (Pytest)
         run: |
-          uv run pytest --cov=unilog --cov-report=term-missing
+          uv run pytest --cov=unilog --cov=api --cov-report=term-missing
+
+      - name: Verify Docker Image Build
+        run: |
+          docker build -t unilog-api .
