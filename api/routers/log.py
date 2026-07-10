@@ -1,3 +1,4 @@
+import os
 import io
 import json
 import uuid
@@ -19,10 +20,11 @@ from api.services.background_tasks import process_file_task, tasks_db, get_task_
 
 router = APIRouter(tags=["Logs"])
 
-# Allowed extensions and maximum file limits
+# Allowed extensions and maximum file limits loaded from environment
 ALLOWED_EXTENSIONS = {".log", ".txt", ".json", ".csv", ".gz"}
-MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
-BACKGROUND_THRESHOLD_SIZE = 1 * 1024 * 1024  # 1 MB (larger than this uses background tasks)
+MAX_FILE_SIZE = int(os.environ.get("UNILOG_MAX_FILE_SIZE", str(100 * 1024 * 1024)))
+BACKGROUND_THRESHOLD_SIZE = int(os.environ.get("UNILOG_BACKGROUND_THRESHOLD", str(1 * 1024 * 1024)))
+RATE_LIMIT_VALUE = os.environ.get("UNILOG_RATE_LIMIT", "100/minute")
 
 @router.post(
     "/parse",
@@ -30,7 +32,7 @@ BACKGROUND_THRESHOLD_SIZE = 1 * 1024 * 1024  # 1 MB (larger than this uses backg
     summary="Parse raw log text",
     description="Analyze a payload of log lines and return structured JSON records."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def parse_logs(request: Request, req: ParseRequest):
     if req.format and req.format != "auto" and not get_parser(req.format):
         raise HTTPException(status_code=400, detail=f"Invalid format requested: {req.format}")
@@ -48,7 +50,7 @@ async def parse_logs(request: Request, req: ParseRequest):
     summary="Detect log format",
     description="Detect log format and list confidence scores for registered parsers."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def detect_logs(request: Request, req: DetectRequest):
     try:
         # StringIO stream to avoid string memory duplication
@@ -74,7 +76,7 @@ async def detect_logs(request: Request, req: DetectRequest):
     summary="Generate log statistics",
     description="Compute summary statistics and details (error rates, endpoints, IPs) on the provided log payload."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def stats_logs(request: Request, req: StatsRequest):
     if req.format and req.format != "auto" and not get_parser(req.format):
         raise HTTPException(status_code=400, detail=f"Invalid format requested: {req.format}")
@@ -103,7 +105,7 @@ async def stats_logs(request: Request, req: StatsRequest):
     summary="List registered log formats",
     description="Get details of all built-in and pluggable parser formats registered."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def formats_logs(request: Request):
     try:
         fmts = unilog.list_formats()
@@ -125,7 +127,7 @@ async def formats_logs(request: Request):
     summary="Stream parsed records",
     description="Stream parsed JSON log records chunked and line-by-line."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def stream_logs(request: Request, req: ParseRequest):
     if req.format and req.format != "auto" and not get_parser(req.format):
         raise HTTPException(status_code=400, detail=f"Invalid format requested: {req.format}")
@@ -146,7 +148,7 @@ async def stream_logs(request: Request, req: ParseRequest):
     summary="Upload log file for parsing",
     description="Upload a log file (.log, .txt, .json, .csv, or .gz). Large files (>1MB) are parsed asynchronously."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def upload_log_file(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -244,7 +246,7 @@ async def upload_log_file(
     summary="Get background task status",
     description="Retrieve execution state and parsed records of an asynchronous background parsing task."
 )
-@limiter.limit("100/minute")
+@limiter.limit(RATE_LIMIT_VALUE)
 async def check_task(request: Request, task_id: str):
     status_info = get_task_status(task_id)
     if status_info["status"] == "not_found":

@@ -4,6 +4,7 @@ import logging
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 
 from api.routers import health, log
@@ -23,7 +24,16 @@ A production-ready platform API for unilog (Universal Log Parser).
 This API handles format auto-detection, parsing log text, generating aggregate statistics,
 and asynchronous file uploads with background task execution.
     """,
-    version="0.2.0-alpha",
+    version="0.2.0-beta",
+    contact={
+        "name": "unilog Developer Team",
+        "url": "https://github.com/Asterioxer/unilog",
+        "email": "sohamaxpauli@gmail.com"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://github.com/Asterioxer/unilog/blob/main/LICENSE"
+    },
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -107,6 +117,9 @@ async def request_id_and_logging_middleware(request: Request, call_next):
     
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time"] = f"{process_time:.2f}ms"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     
     # Structured key-value logging (logfmt)
     logger.info(
@@ -115,10 +128,13 @@ async def request_id_and_logging_middleware(request: Request, call_next):
     )
     return response
 
-# Enable CORS
+# Enable gzip compression
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Enable CORS for local React development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

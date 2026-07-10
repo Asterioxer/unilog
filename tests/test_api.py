@@ -27,6 +27,9 @@ def test_api_middleware_headers():
     response = client.get("/health")
     assert "X-Request-ID" in response.headers
     assert "X-Response-Time" in response.headers
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer-when-downgrade"
 
 def test_api_formats():
     response = client.post("/api/v1/formats")
