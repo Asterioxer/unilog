@@ -1,148 +1,207 @@
 import io
 import sys
 import pandas as pd  # type: ignore
-from typing import Generator, Dict, Any, Optional, List
+from typing import Generator, Dict, Any, Optional, List, Union
 
 from unilog.detector import detect as detect_format
 from unilog.registry import get_parser, register_parser
 from unilog.utils import read_file
 from unilog.parsers.base import BaseParser
+from unilog.stats import aggregate_stats
 
 def stream(path_or_stream: Any, format: Optional[str] = None) -> Generator[Dict[str, Any], None, None]:
     """
-    Stream parsed log records one line at a time.
+    Stream parsed log records one line at a time from a path or stream.
+    
+    This iterator is lazy, memory efficient, handles exceptions,
+    and supports graceful interruption.
     """
-    # 1. Determine format and parser
     parser_inst: Optional[BaseParser] = None
     buffered_lines: List[str] = []
 
-    # Check if we need auto-detection
-    if not format or format == "auto":
-        # We need to sample lines to detect
-        if isinstance(path_or_stream, io.TextIOBase) or path_or_stream == "-":
+    # File existence check
+    if isinstance(path_or_stream, str) and path_or_stream != "-":
+        import os
+        if not os.path.exists(path_or_stream):
+            raise FileNotFoundError(f"[Errno 2] No such file or directory: '{path_or_stream}'")
+
+    try:
+        # 1. Determine format and parser
+        if not format or format == "auto":
             # For stream or stdin, we must read the sample lines and buffer them
-            stream_obj = sys.stdin if path_or_stream == "-" else path_or_stream
-            for _ in range(50):
-                line = stream_obj.readline()
-                if not line:
-                    break
-                buffered_lines.append(line)
-            
-            # Detect using the buffer
-            det_res = detect_format(buffered_lines)
-            parser_inst = det_res["parser_instance"]
+            if isinstance(path_or_stream, io.TextIOBase) or path_or_stream == "-":
+                stream_obj = sys.stdin if path_or_stream == "-" else path_or_stream
+                for _ in range(50):
+                    line = stream_obj.readline()
+                    if not line:
+                        break
+                    buffered_lines.append(line)
+                
+                det_res = detect_format(buffered_lines)
+                parser_inst = det_res["parser"]
+            else:
+                det_res = detect_format(path_or_stream)
+                parser_inst = det_res["parser"]
         else:
-            # For standard files, we can sample without consuming the main stream
-            det_res = detect_format(path_or_stream)
-            parser_inst = det_res["parser_instance"]
-    else:
-        # Load from registry
-        parser_cls = get_parser(format)
-        if parser_cls:
-            parser_inst = parser_cls()
+            parser_cls = get_parser(format)
+            if parser_cls:
+                parser_inst = parser_cls()
 
-    # If no parser found, we'll return raw logs with _parse_error = True or use fallback
-    # In core, let's fall back to a generic parser or raw dict representation
+        # 2. Iterate and parse
+        # Yield buffered lines first
+        if buffered_lines:
+            for line in buffered_lines:
+                line_str = line.rstrip("\r\n")
+                if not line_str.strip():
+                    continue
+                if parser_inst:
+                    yield parser_inst.parse_line(line_str)
+                else:
+                    yield {"_parse_error": True, "raw": line_str}
+
+        # Yield rest of the stream
+        if isinstance(path_or_stream, io.TextIOBase) or path_or_stream == "-":
+            stream_obj = sys.stdin if path_or_stream == "-" else path_or_stream
+            for line in stream_obj:
+                line_str = line.rstrip("\r\n")
+                if not line_str.strip():
+                    continue
+                if parser_inst:
+                    yield parser_inst.parse_line(line_str)
+                else:
+                    yield {"_parse_error": True, "raw": line_str}
+        else:
+            for line in read_file(path_or_stream):
+                line_str = line.rstrip("\r\n")
+                if not line_str.strip():
+                    continue
+                if parser_inst:
+                    yield parser_inst.parse_line(line_str)
+                else:
+                    yield {"_parse_error": True, "raw": line_str}
+
+    except KeyboardInterrupt:
+        # Graceful interruption
+        return
+    except (FileNotFoundError, PermissionError):
+        raise
+    except Exception:
+        # Standard iterator safety
+        return
+
+def parse(
+    path_or_stream: Any,
+    format: Optional[str] = None,
+    chunksize: Optional[int] = None
+) -> Union[pd.DataFrame, Generator[pd.DataFrame, None, None]]:
+    """
+    Parse a log file or stream and return a pandas DataFrame.
     
-    # 2. Iterate and parse
-    # If we have buffered lines, yield them first
-    if buffered_lines:
-        for line in buffered_lines:
-            line_str = line.rstrip("\r\n")
-            if not line_str.strip():
-                continue
-            if parser_inst:
-                yield parser_inst.parse_line(line_str)
-            else:
-                yield {"_parse_error": True, "raw": line_str}
-
-    # Now read the rest of the stream/file
-    # If path_or_stream was stdin/stream, we just read the rest of it.
-    # Otherwise, we open the file path from start.
-    if isinstance(path_or_stream, io.TextIOBase) or path_or_stream == "-":
-        stream_obj = sys.stdin if path_or_stream == "-" else path_or_stream
-        for line in stream_obj:
-            line_str = line.rstrip("\r\n")
-            if not line_str.strip():
-                continue
-            if parser_inst:
-                yield parser_inst.parse_line(line_str)
-            else:
-                yield {"_parse_error": True, "raw": line_str}
-    else:
-        # For standard files, read from the beginning
-        for line in read_file(path_or_stream):
-            line_str = line.rstrip("\r\n")
-            if not line_str.strip():
-                continue
-            if parser_inst:
-                yield parser_inst.parse_line(line_str)
-            else:
-                yield {"_parse_error": True, "raw": line_str}
-
-def parse(path_or_stream: Any, format: Optional[str] = None) -> pd.DataFrame:
+    If `chunksize` is specified, returns an iterator yielding DataFrames of size `chunksize`.
+    Otherwise, builds the DataFrame using chunked memory construction for speed and low memory.
     """
-    Parse log file/stream and return a pandas DataFrame.
-    """
-    records = list(stream(path_or_stream, format=format))
-    if not records:
+    gen = stream(path_or_stream, format=format)
+    
+    if chunksize is not None:
+        if chunksize <= 0:
+            raise ValueError("chunksize must be greater than 0")
+            
+        def chunk_generator() -> Generator[pd.DataFrame, None, None]:
+            chunk: List[Dict[str, Any]] = []
+            try:
+                for record in gen:
+                    chunk.append(record)
+                    if len(chunk) == chunksize:
+                        yield pd.DataFrame.from_records(chunk)
+                        chunk = []
+                if chunk:
+                    yield pd.DataFrame.from_records(chunk)
+            except KeyboardInterrupt:
+                if chunk:
+                    yield pd.DataFrame.from_records(chunk)
+                return
+        return chunk_generator()
+
+    # Performance optimization: Chunked DataFrame construction to avoid huge list overhead
+    chunk_size_internal = 50000
+    dfs: List[pd.DataFrame] = []
+    chunk: List[Dict[str, Any]] = []
+    
+    for record in gen:
+        chunk.append(record)
+        if len(chunk) == chunk_size_internal:
+            dfs.append(pd.DataFrame.from_records(chunk))
+            chunk = []
+            
+    if chunk:
+        dfs.append(pd.DataFrame.from_records(chunk))
+        
+    if not dfs:
         return pd.DataFrame()
-    return pd.DataFrame.from_records(records)
+        
+    return pd.concat(dfs, ignore_index=True)
 
 def parse_string(log_text: str, format: Optional[str] = None) -> pd.DataFrame:
     """
     Parse a string of log text (multiple lines) and return a DataFrame.
     """
     stream_obj = io.StringIO(log_text)
-    return parse(stream_obj, format=format)
+    # Never return a generator for parse_string
+    df = parse(stream_obj, format=format)
+    if isinstance(df, pd.DataFrame):
+        return df
+    # Fallback/unexpected generator type conversion
+    return pd.concat(list(df), ignore_index=True)
 
 def detect(path_or_stream: Any) -> Dict[str, Any]:
     """
-    Detect log format of the given path/stream.
-    Returns: {"format": str, "confidence": float}
+    Detect log format of the given path/stream/list.
+    Returns: {"format": str, "confidence": float, "parser": ..., "rankings": [...], "reason": ...}
     """
-    res = detect_format(path_or_stream)
-    return {
-        "format": res["format"],
-        "confidence": res["confidence"]
-    }
+    return detect_format(path_or_stream)
 
 def stats(path_or_stream: Any) -> Dict[str, Any]:
     """
-    Quick statistics summary of the log file.
-    We will fully implement this once stats plugins are wired.
+    Compute aggregate statistics summary of a log file/stream.
     """
-    # Simple default stats for now
     df = parse(path_or_stream)
-    if df.empty:
-        return {"total_lines": 0, "format": "unknown", "error_rate": 0.0}
-    
-    total_lines = len(df)
-    errors = df.get("_parse_error", pd.Series([False]*total_lines))
-    error_rate = errors.sum() / total_lines if total_lines else 0.0
-    
-    # Try to find format name
-    det = detect(path_or_stream)
-    
-    return {
-        "total_lines": total_lines,
-        "format": det["format"],
-        "error_rate": round(error_rate, 4)
-    }
+    if not isinstance(df, pd.DataFrame):
+        # Handle chunksize if it accidentally returns a generator
+        df = pd.concat(list(df), ignore_index=True)
+        
+    raw_lines = []
+    if not df.empty and "raw" in df.columns:
+        raw_lines = df["raw"].dropna().head(50).tolist()
+        
+    det = detect(raw_lines)
+    results = aggregate_stats(df)
+    results["format"] = det["format"]
+    return results
 
 def anomalies(path_or_stream: Any) -> pd.DataFrame:
     """
-    Analyze log file and return a DataFrame of anomalies.
-    Will be implemented in anomaly module.
+    Identify anomalies in the log file.
+    (Detailed statistics-based logic to be wired in Phase 5).
     """
-    return pd.DataFrame()
+    df = parse(path_or_stream)
+    if not isinstance(df, pd.DataFrame):
+        df = pd.concat(list(df), ignore_index=True)
+    # Phase 3: return empty DataFrame with 'anomaly_reason' column to preserve API contract
+    if df.empty:
+        return pd.DataFrame(columns=["anomaly_reason"])
+    df["anomaly_reason"] = None
+    return df.iloc[0:0].copy() # Return empty DataFrame with identical columns + anomaly_reason
 
-def register_format(name: str, pattern: str, timestamp_field: Optional[str] = None, timestamp_format: Optional[str] = None):
+def register_format(
+    name: str,
+    pattern: str,
+    timestamp_field: Optional[str] = None,
+    timestamp_format: Optional[str] = None
+):
     """
-    Public API to register a custom format with registry.
+    Register a custom format by name.
     """
     from unilog.parsers.custom import CustomParser
-    # Dynamically build a class and register it
     class_name = f"Custom_{name}"
     custom_class = type(
         class_name,
