@@ -48,3 +48,23 @@ jobs:
       - name: Verify Docker Image Build
         run: |
           docker build -t unilog-api .
+
+      - name: Verify Container Startup (Smoke Test)
+        run: |
+          docker run -d --name unilog-container -p 8000:8000 unilog-api
+          for i in {1..15}; do
+            if curl -s http://localhost:8000/health | grep -q "healthy"; then
+              echo "Smoke test passed successfully!"
+              docker stop unilog-container
+              docker rm unilog-container
+              exit 0
+            fi
+            echo "Waiting for container to start..."
+            sleep 1
+          done
+          echo "Error: Container failed to start or health check did not pass."
+          docker logs unilog-container
+          docker stop unilog-container
+          docker rm unilog-container
+          exit 1
+

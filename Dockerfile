@@ -1,7 +1,7 @@
-FROM python:3.12-slim
+FROM python:3.12.1-slim
 
-# Install astral/uv
-COPY --from=astral-sh/uv:latest /uv /uvx /bin/
+# Install astral/uv from official registry
+COPY --from=ghcr.io/astral-sh/uv:0.3.3 /uv /uvx /bin/
 
 WORKDIR /app
 
