@@ -17,7 +17,7 @@ export default function Landing() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100 } }
   };
 
   const formats = [
