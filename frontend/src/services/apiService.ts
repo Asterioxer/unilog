@@ -54,7 +54,12 @@ export const apiService = {
   },
 
   // Upload file (sync or async)
-  async uploadFile(file: File, format?: string): Promise<UploadResponse> {
+  async uploadFile(
+    file: File, 
+    format?: string, 
+    signal?: AbortSignal,
+    onProgress?: (percent: number) => void
+  ): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append("file", file);
     if (format) {
@@ -67,6 +72,13 @@ export const apiService = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        signal,
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percentCompleted);
+          }
+        }
       }
     );
     return data;

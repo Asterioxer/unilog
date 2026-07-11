@@ -186,4 +186,77 @@ describe("Dashboard page interactive metrics flows", () => {
     expect(uploadSpy).toHaveBeenCalled();
     expect(getTaskSpy).toHaveBeenCalled();
   });
+
+  it("handles empty validation warnings on raw text analysis when empty", async () => {
+    render(<Dashboard />, { wrapper });
+
+    // Switch to paste tab
+    const pasteTab = screen.getByText("Raw Text Dump");
+    await act(async () => {
+      pasteTab.click();
+    });
+
+    const analyzeBtn = screen.getByText("Run Analytics");
+    await act(async () => {
+      analyzeBtn.click();
+    });
+
+    expect(
+      screen.getByText("Please paste some log text to analyze")
+    ).toBeInTheDocument();
+  });
+
+  it("handles change log format select dropdown", async () => {
+    vi.spyOn(apiService, "getFormats").mockResolvedValueOnce({
+      formats: [
+        { 
+          name: "nginx", 
+          description: "Nginx Access Log",
+          priority: 1,
+          supported_extensions: [".log"]
+        }
+      ]
+    });
+
+    render(<Dashboard />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Nginx Access Log/i)).toBeInTheDocument();
+    });
+
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    await act(async () => {
+      fireEvent.change(select, { target: { value: "nginx" } });
+    });
+
+    expect(select.value).toBe("nginx");
+  });
+
+  it("handles cancel upload action", async () => {
+    vi.spyOn(apiService, "uploadFile").mockImplementation(() => {
+      return new Promise(() => {}); // never resolves to simulate pending upload
+    });
+
+    render(<Dashboard />, { wrapper });
+
+    const fileInput = document.querySelector("input[type='file']") as HTMLInputElement;
+    const file = new File(["dummy"], "unilog.log", { type: "text/plain" });
+
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    const analyzeBtn = screen.getByText("Run Analytics");
+    await act(async () => {
+      analyzeBtn.click();
+    });
+
+    // Cancel upload button should be visible inside UploadPanel
+    const cancelBtn = screen.getByText("Cancel Upload");
+    await act(async () => {
+      cancelBtn.click();
+    });
+
+    expect(screen.getByText("Upload cancelled by user")).toBeInTheDocument();
+  });
 });

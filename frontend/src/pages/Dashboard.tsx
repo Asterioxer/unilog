@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
-  Upload, FileWarning, CheckCircle2, BarChart2, AlertOctagon, Clock, Database, AlertCircle 
+  FileWarning, CheckCircle2, BarChart2, AlertOctagon, Clock, Database, AlertCircle 
 } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { useTaskPoller } from "../hooks/useTaskPoller";
+import UploadPanel from "../components/UploadPanel";
 import type { StatsResponse, FormatDetail } from "../types/api";
 import {
   ResponsiveContainer,
@@ -37,8 +38,9 @@ export default function Dashboard() {
   // Analytics stats hold state
   const [statsData, setStatsData] = useState<StatsResponse | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Fetch list of registered formats
   const { data: formatsData } = useQuery({
@@ -63,8 +65,17 @@ export default function Dashboard() {
 
   // File upload mutation
   const uploadFileMutation = useMutation({
-    mutationFn: (payload: { file: File; format?: string }) => 
-      apiService.uploadFile(payload.file, payload.format === "auto" ? undefined : payload.format),
+    mutationFn: (payload: { file: File; format?: string }) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setUploadProgress(0);
+      return apiService.uploadFile(
+        payload.file,
+        payload.format === "auto" ? undefined : payload.format,
+        controller.signal,
+        (percent) => setUploadProgress(percent)
+      );
+    },
     onSuccess: (data) => {
       if (data.task_id) {
         // Asynchronous processing (large file >1MB)
@@ -72,10 +83,6 @@ export default function Dashboard() {
         setGeneralError(null);
       } else if (data.status === "completed" && data.records) {
         // Synchronous processing completed (small file <=1MB)
-        // Since sync upload doesn't directly return full stats metadata, we generate stats from file text or convert records
-        // For simplicity and compatibility, we can query stats for the small uploaded text, or since server has processed it, we can trigger stats computation!
-        // To be extremely clean: we trigger stats generation from file content reader or mock/convert
-        // Let's read the file content locally to request stats directly since the backend supports instant stats computation!
         const reader = new FileReader();
         reader.onload = async (e) => {
           const text = e.target?.result as string;
@@ -97,6 +104,16 @@ export default function Dashboard() {
       setStatsData(null);
     }
   });
+
+  const handleCancelUpload = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    uploadFileMutation.reset();
+    setUploadProgress(0);
+    setGeneralError("Upload cancelled by user");
+  };
 
   // Background task poller hook
   useTaskPoller(
@@ -183,12 +200,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-      setGeneralError(null);
-    }
-  };
+
 
   const isProcessing = parseTextMutation.isPending || uploadFileMutation.isPending || !!activeTaskId;
 
@@ -239,29 +251,22 @@ export default function Dashboard() {
 
             {/* Tab Contents */}
             {activeTab === "file" ? (
-              <div 
-                className="border-2 border-dashed border-border hover:border-primary/50 transition-colors rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer relative"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  className="hidden" 
-                  onChange={handleFileChange} 
-                />
-                <Upload className="h-10 w-10 text-muted-foreground mb-4" />
-                {file ? (
-                  <div>
-                    <p className="font-semibold text-primary text-sm">{file.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{(file.size / 1024).toFixed(2)} KB</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm font-semibold">Click to select log payload file</p>
-                    <p className="text-xs text-muted-foreground mt-1">Supports .log, .txt, .json, .gz</p>
-                  </div>
-                )}
-              </div>
+              <UploadPanel
+                onFileSelect={(f) => {
+                  setFile(f);
+                  setGeneralError(null);
+                }}
+                selectedFile={file}
+                onClear={() => {
+                  setFile(null);
+                  setGeneralError(null);
+                }}
+                isUploading={uploadFileMutation.isPending}
+                uploadProgress={uploadProgress}
+                onCancel={handleCancelUpload}
+                error={generalError}
+                setError={setGeneralError}
+              />
             ) : (
               <textarea
                 value={logText}
@@ -308,7 +313,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-bold tracking-tight">Status Monitor</h2>
             
             {/* General Error Banner */}
-            {generalError && (
+            {generalError && activeTab !== "file" && (
               <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-2.5 animate-pulse">
                 <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                 <p>{generalError}</p>
