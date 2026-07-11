@@ -1,13 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
+import { BrowserRouter } from "react-router-dom";
 import Landing from "../pages/Landing";
 import Dashboard from "../pages/Dashboard";
 
 describe("Landing and Dashboard placeholder render checks", () => {
   it("renders Landing component text", () => {
-    render(<Landing />);
-    expect(screen.getByText("unilog")).toBeInTheDocument();
+    render(
+      <BrowserRouter>
+        <Landing />
+      </BrowserRouter>
+    );
     expect(screen.getByText(/Universal Log Analytics/i)).toBeInTheDocument();
+    expect(screen.getByText(/Platform Features/i)).toBeInTheDocument();
   });
 
   it("renders Dashboard component text", () => {
