@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
-  FileWarning, CheckCircle2, BarChart2, AlertOctagon, Clock, Database, AlertCircle 
+  FileWarning, CheckCircle2, BarChart2, Clock, Database, AlertCircle 
 } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { useTaskPoller } from "../hooks/useTaskPoller";
 import UploadPanel from "../components/UploadPanel";
+import SummaryCard from "../components/SummaryCard";
 import type { StatsResponse, FormatDetail } from "../types/api";
 import {
   ResponsiveContainer,
@@ -361,153 +362,144 @@ export default function Dashboard() {
       </div>
 
       {/* Analytics Visualizations Panels */}
-      {statsData && (
+      {(statsData || isProcessing) && (
         <div className="space-y-8 animate-fade-in">
           {/* Card Metrics Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-5 border border-border bg-card rounded-xl shadow-xs flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                <BarChart2 className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block">Total Log Lines</span>
-                <span className="text-2xl font-bold">{statsData.total_lines}</span>
-              </div>
-            </div>
-
-            <div className="p-5 border border-border bg-card rounded-xl shadow-xs flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
-                <AlertOctagon className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block">Error Rate</span>
-                <span className="text-2xl font-bold">{statsData.error_rate.toFixed(2)}%</span>
-              </div>
-            </div>
-
-            <div className="p-5 border border-border bg-card rounded-xl shadow-xs flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-blue-500/10 text-blue-500">
-                <Database className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block">Data Volume</span>
-                <span className="text-2xl font-bold">{(statsData.bytes_transferred / 1024).toFixed(1)} KB</span>
-              </div>
-            </div>
-
-            <div className="p-5 border border-border bg-card rounded-xl shadow-xs flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-violet-500/10 text-violet-500">
-                <Clock className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block">Time Range Covered</span>
-                <span className="text-sm font-semibold truncate max-w-[150px] block">
-                  {statsData.time_range ? statsData.time_range.join(" to ") : "N/A"}
-                </span>
-              </div>
-            </div>
+            <SummaryCard
+              title="Log Format"
+              value={statsData?.format ? statsData.format.toUpperCase() : undefined}
+              subtitle="Detected Format Type"
+              icon={<Database className="h-5 w-5 text-primary" />}
+              isLoading={isProcessing}
+            />
+            <SummaryCard
+              title="Total Log Lines"
+              value={statsData?.total_lines}
+              subtitle="Log Lines Parsed"
+              icon={<BarChart2 className="h-5 w-5 text-emerald-500" />}
+              isLoading={isProcessing}
+            />
+            <SummaryCard
+              title="Error Rate"
+              value={statsData ? `${statsData.error_rate.toFixed(2)}%` : undefined}
+              subtitle="Percentage of Error Entries"
+              icon={<AlertCircle className="h-5 w-5 text-destructive" />}
+              isLoading={isProcessing}
+            />
+            <SummaryCard
+              title="Time Range Covered"
+              value={statsData?.time_range ? statsData.time_range.join(" to ") : "N/A"}
+              subtitle="Detected Timestamp Span"
+              icon={<Clock className="h-5 w-5 text-blue-500" />}
+              isLoading={isProcessing}
+            />
           </div>
 
-          {/* Detail Recharts Grids */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Log Level Distribution */}
-            <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
-              <h3 className="text-base font-bold tracking-tight mb-4">Log Level Distribution</h3>
-              <div className="h-64 flex items-center justify-center">
-                {chartLogLevels.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartLogLevels}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {chartLogLevels.map((entry, idx) => (
-                          <Cell 
-                            key={`cell-${idx}`} 
-                            fill={LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <span className="text-sm text-muted-foreground">No level keys mapped</span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-4">
-                {chartLogLevels.map((entry) => (
-                  <div key={entry.name} className="flex items-center gap-1.5 text-xs">
-                    <span 
-                      className="h-2.5 w-2.5 rounded-xs" 
-                      style={{ backgroundColor: LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown }} 
-                    />
-                    <span className="font-medium">{entry.name}: {entry.value}</span>
+          {statsData && (
+            <>
+              {/* Detail Recharts Grids */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Log Level Distribution */}
+                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
+                  <h3 className="text-base font-bold tracking-tight mb-4">Log Level Distribution</h3>
+                  <div className="h-64 flex items-center justify-center">
+                    {chartLogLevels.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={chartLogLevels}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {chartLogLevels.map((entry, idx) => (
+                              <Cell 
+                                key={`cell-${idx}`} 
+                                fill={LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown} 
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No level keys mapped</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-4">
+                    {chartLogLevels.map((entry) => (
+                      <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+                        <span 
+                          className="h-2.5 w-2.5 rounded-xs" 
+                          style={{ backgroundColor: LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown }} 
+                        />
+                        <span className="font-medium">{entry.name}: {entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Top IP Addresses */}
-            <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between lg:col-span-2">
-              <h3 className="text-base font-bold tracking-tight mb-4">Top Client IP Request Rates</h3>
-              <div className="h-64">
-                {chartTopIps.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={chartTopIps}
-                      layout="vertical"
-                      margin={{ left: 20, right: 20, top: 10, bottom: 10 }}
-                    >
-                      <XAxis type="number" />
-                      <YAxis dataKey="ip" type="category" width={100} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="var(--color-primary)" radius={[0, 4, 4, 0]}>
-                        {chartTopIps.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill="var(--color-primary)" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                    No client IP values mapped in stats
+                {/* Top IP Addresses */}
+                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between lg:col-span-2">
+                  <h3 className="text-base font-bold tracking-tight mb-4">Top Client IP Request Rates</h3>
+                  <div className="h-64">
+                    {chartTopIps.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={chartTopIps}
+                          layout="vertical"
+                          margin={{ left: 20, right: 20, top: 10, bottom: 10 }}
+                        >
+                          <XAxis type="number" />
+                          <YAxis dataKey="ip" type="category" width={100} />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="var(--color-primary)" radius={[0, 4, 4, 0]}>
+                            {chartTopIps.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill="var(--color-primary)" />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                        No client IP values mapped in stats
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Top Requested Paths */}
-          <div className="grid grid-cols-1 gap-8">
-            <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col">
-              <h3 className="text-base font-bold tracking-tight mb-4">Top Requested Resources & Endpoints</h3>
-              <div className="h-64">
-                {chartTopEndpoints.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={chartTopEndpoints}
-                      margin={{ top: 10, bottom: 10 }}
-                    >
-                      <XAxis dataKey="endpoint" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                    No path endpoints mapped in stats
+              {/* Top Requested Paths */}
+              <div className="grid grid-cols-1 gap-8">
+                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col">
+                  <h3 className="text-base font-bold tracking-tight mb-4">Top Requested Resources & Endpoints</h3>
+                  <div className="h-64">
+                    {chartTopEndpoints.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={chartTopEndpoints}
+                          margin={{ top: 10, bottom: 10 }}
+                        >
+                          <XAxis dataKey="endpoint" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                        No path endpoints mapped in stats
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>

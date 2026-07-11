@@ -86,7 +86,7 @@ describe("Dashboard page interactive metrics flows", () => {
 
     expect(screen.getByText("500")).toBeInTheDocument(); // total lines
     expect(screen.getByText("2.50%")).toBeInTheDocument(); // error rate
-    expect(screen.getByText("500.0 KB")).toBeInTheDocument(); // volume
+    expect(screen.getByText("NGINX")).toBeInTheDocument(); // format
 
     expect(generateStatsSpy).toHaveBeenCalled();
   });
