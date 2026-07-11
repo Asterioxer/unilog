@@ -1,12 +1,16 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
-  FileWarning, CheckCircle2, BarChart2, Clock, Database, AlertCircle 
+  FileWarning, CheckCircle2, BarChart2, Clock, Database, AlertCircle, ChevronDown 
 } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { useTaskPoller } from "../hooks/useTaskPoller";
 import UploadPanel from "../components/UploadPanel";
 import SummaryCard from "../components/SummaryCard";
+import EmptyState from "../components/EmptyState";
+import MetricBadge from "../components/MetricBadge";
+import AnimatedCounter from "../components/AnimatedCounter";
+import MetadataPanel from "../components/MetadataPanel";
 import type { StatsResponse, FormatDetail } from "../types/api";
 import {
   ResponsiveContainer,
@@ -21,13 +25,17 @@ import {
 } from "recharts";
 
 const LOG_LEVEL_COLORS: Record<string, string> = {
-  INFO: "var(--color-primary)",
-  WARN: "#eab308",
+  INFO: "#22c55e",
+  DEBUG: "#3b82f6",
+  WARN: "#f59e0b",
+  WARNING: "#f59e0b",
   ERROR: "#ef4444",
-  FATAL: "#7f1d1d",
-  DEBUG: "#6b7280",
-  unknown: "#a1a1aa"
+  CRITICAL: "#a855f7",
+  SUCCESS: "#10b981",
+  unknown: "#9ca3af"
 };
+
+import type { DetectResponse } from "../types/api";
 
 export default function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
@@ -38,10 +46,17 @@ export default function Dashboard() {
   
   // Analytics stats hold state
   const [statsData, setStatsData] = useState<StatsResponse | null>(null);
+  const [detectData, setDetectData] = useState<DetectResponse | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
+  // Metadata tracker states
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
+  const [uploadedFileSize, setUploadedFileSize] = useState<number | null>(null);
+  const [processingDurationMs, setProcessingDurationMs] = useState<number | null>(null);
+
   const abortControllerRef = useRef<AbortController | null>(null);
+  const startTimeRef = useRef<number>(0);
 
   // Fetch list of registered formats
   const { data: formatsData } = useQuery({
@@ -50,17 +65,31 @@ export default function Dashboard() {
     initialData: { formats: [] }
   });
 
-  // Parse direct text stats mutation
+  // Parse direct text stats mutation (Parallel requests)
   const parseTextMutation = useMutation({
-    mutationFn: (text: string) => apiService.generateStats(text, selectedFormat === "auto" ? undefined : selectedFormat),
+    mutationFn: async (text: string) => {
+      const format = selectedFormat === "auto" ? undefined : selectedFormat;
+      const [stats, detect] = await Promise.all([
+        apiService.generateStats(text, format),
+        apiService.detectFormat(text)
+      ]);
+      return { stats, detect };
+    },
     onSuccess: (data) => {
-      setStatsData(data);
+      setStatsData(data.stats);
+      setDetectData(data.detect);
       setGeneralError(null);
+      
+      const duration = performance.now() - startTimeRef.current;
+      setProcessingDurationMs(duration);
+      setUploadedFilename("Pasted Dump");
+      setUploadedFileSize(new Blob([logText]).size);
     },
     onError: (err: unknown) => {
       const apiError = err as { message?: string };
       setGeneralError(apiError.message || "Failed to process log text analytics");
       setStatsData(null);
+      setDetectData(null);
     }
   });
 
@@ -78,19 +107,42 @@ export default function Dashboard() {
       );
     },
     onSuccess: (data) => {
+      setUploadedFilename(data.filename);
+      setUploadedFileSize(data.size);
+
       if (data.task_id) {
         // Asynchronous processing (large file >1MB)
         setActiveTaskId(data.task_id);
         setGeneralError(null);
+
+        // Concurrently run format detection on the first 20KB of the large file
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const text = e.target?.result as string;
+          try {
+            const detect = await apiService.detectFormat(text);
+            setDetectData(detect);
+          } catch (err) {
+            console.error("Failed format detection on background file header", err);
+          }
+        };
+        reader.readAsText(file!.slice(0, 20 * 1024));
       } else if (data.status === "completed" && data.records) {
         // Synchronous processing completed (small file <=1MB)
         const reader = new FileReader();
         reader.onload = async (e) => {
           const text = e.target?.result as string;
           try {
-            const stats = await apiService.generateStats(text, data.format);
+            const [stats, detect] = await Promise.all([
+              apiService.generateStats(text, data.format),
+              apiService.detectFormat(text)
+            ]);
             setStatsData(stats);
+            setDetectData(detect);
             setGeneralError(null);
+
+            const duration = performance.now() - startTimeRef.current;
+            setProcessingDurationMs(duration);
           } catch (err: unknown) {
             const apiError = err as { message?: string };
             setGeneralError(apiError.message || "Failed to generate analytics for uploaded file");
@@ -174,8 +226,11 @@ export default function Dashboard() {
           top_ips: topIps,
           log_levels: levels,
           top_endpoints: topEndpoints,
-          bytes_transferred: bytes
+           bytes_transferred: bytes
         });
+
+        const duration = performance.now() - startTimeRef.current;
+        setProcessingDurationMs(duration);
       }
     },
     (err) => {
@@ -186,6 +241,11 @@ export default function Dashboard() {
 
   const handleAnalyze = () => {
     setGeneralError(null);
+    setStatsData(null);
+    setDetectData(null);
+    setProcessingDurationMs(null);
+    startTimeRef.current = performance.now();
+
     if (activeTab === "paste") {
       if (!logText.trim()) {
         setGeneralError("Please paste some log text to analyze");
@@ -309,9 +369,9 @@ export default function Dashboard() {
         </div>
 
         {/* Info & Status Panel */}
-        <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col gap-6 justify-between">
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold tracking-tight">Status Monitor</h2>
+        <div className="flex flex-col gap-6">
+          <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col gap-4">
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Status Monitor</h2>
             
             {/* General Error Banner */}
             {generalError && activeTab !== "file" && (
@@ -348,7 +408,48 @@ export default function Dashboard() {
                 <p>No log records loaded. Use the panels to run computations.</p>
               </div>
             )}
+
+            {/* Collapsible rankings view */}
+            {detectData && (
+              <div className="border-t border-border pt-4 mt-2">
+                <details className="group">
+                  <summary className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer list-none select-none">
+                    <span className="flex items-center gap-1.5">
+                      Detection Confidence
+                      <MetricBadge variant="success">{(detectData.confidence * 100).toFixed(1)}%</MetricBadge>
+                    </span>
+                    <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-3 space-y-2 max-h-36 overflow-y-auto">
+                    {detectData.rankings.map((ranking) => (
+                      <div key={ranking.format} className="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+                        <span className="font-mono text-foreground font-semibold uppercase">{ranking.format}</span>
+                        <span className="font-medium text-muted-foreground">{(ranking.confidence * 100).toFixed(2)}%</span>
+                      </div>
+                    ))}
+                    {detectData.reason && (
+                      <p className="text-[10px] text-muted-foreground italic leading-relaxed pt-1.5 border-t border-border/40 mt-1">
+                        Reason: {detectData.reason}
+                      </p>
+                    )}
+                  </div>
+                </details>
+              </div>
+            )}
           </div>
+
+          {/* Metadata Panel */}
+          {(statsData || isProcessing) && (
+            <MetadataPanel
+              filename={uploadedFilename || undefined}
+              fileSize={uploadedFileSize || undefined}
+              processingTimeMs={processingDurationMs || undefined}
+              parserName={statsData?.format}
+              rowsCount={statsData?.total_lines}
+              taskId={activeTaskId}
+              taskStatus={activeTaskId ? (isProcessing ? "processing" : "completed") : undefined}
+            />
+          )}
 
           <div className="p-4 rounded-lg bg-muted/50 border border-border flex flex-col gap-2">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -369,29 +470,71 @@ export default function Dashboard() {
             <SummaryCard
               title="Log Format"
               value={statsData?.format ? statsData.format.toUpperCase() : undefined}
-              subtitle="Detected Format Type"
+              subtitle={statsData ? `Parser: ${statsData.format}` : "Detected Format Type"}
               icon={<Database className="h-5 w-5 text-primary" />}
+              accentColor="primary"
+              badge={
+                detectData ? (
+                  <MetricBadge variant="success">
+                    {(detectData.confidence * 100).toFixed(0)}%
+                  </MetricBadge>
+                ) : undefined
+              }
               isLoading={isProcessing}
             />
             <SummaryCard
               title="Total Log Lines"
-              value={statsData?.total_lines}
+              value={
+                statsData ? (
+                  <AnimatedCounter value={statsData.total_lines} />
+                ) : undefined
+              }
               subtitle="Log Lines Parsed"
               icon={<BarChart2 className="h-5 w-5 text-emerald-500" />}
+              accentColor="emerald"
               isLoading={isProcessing}
             />
             <SummaryCard
               title="Error Rate"
-              value={statsData ? `${statsData.error_rate.toFixed(2)}%` : undefined}
+              value={
+                statsData ? (
+                  <AnimatedCounter value={statsData.error_rate} decimals={2} suffix="%" />
+                ) : undefined
+              }
               subtitle="Percentage of Error Entries"
               icon={<AlertCircle className="h-5 w-5 text-destructive" />}
+              accentColor="destructive"
+              badge={
+                statsData ? (
+                  <MetricBadge
+                    variant={
+                      statsData.error_rate > 5
+                        ? "error"
+                        : statsData.error_rate > 0
+                        ? "warning"
+                        : "success"
+                    }
+                  >
+                    {statsData.error_rate > 5
+                      ? "High"
+                      : statsData.error_rate > 0
+                      ? "Warn"
+                      : "Clear"}
+                  </MetricBadge>
+                ) : undefined
+              }
               isLoading={isProcessing}
             />
             <SummaryCard
               title="Time Range Covered"
               value={statsData?.time_range ? statsData.time_range.join(" to ") : "N/A"}
-              subtitle="Detected Timestamp Span"
+              subtitle={
+                statsData?.time_range 
+                  ? "Duration bounds detected" 
+                  : "No timestamp range"
+              }
               icon={<Clock className="h-5 w-5 text-blue-500" />}
+              accentColor="blue"
               isLoading={isProcessing}
             />
           </div>
@@ -402,7 +545,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Log Level Distribution */}
                 <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
-                  <h3 className="text-base font-bold tracking-tight mb-4">Log Level Distribution</h3>
+                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Log Level Distribution</h3>
                   <div className="h-64 flex items-center justify-center">
                     {chartLogLevels.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
@@ -427,7 +570,12 @@ export default function Dashboard() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <span className="text-sm text-muted-foreground">No level keys mapped</span>
+                      <EmptyState
+                        icon={<FileWarning className="h-6 w-6 text-muted-foreground" />}
+                        title="No Levels Detected"
+                        description={`This log format (${statsData?.format}) does not map structured logging severity level indicators.`}
+                        className="border-none bg-transparent min-h-0 py-0"
+                      />
                     )}
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-4">
@@ -445,7 +593,7 @@ export default function Dashboard() {
 
                 {/* Top IP Addresses */}
                 <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between lg:col-span-2">
-                  <h3 className="text-base font-bold tracking-tight mb-4">Top Client IP Request Rates</h3>
+                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Top Client IP Request Rates</h3>
                   <div className="h-64">
                     {chartTopIps.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
@@ -465,9 +613,12 @@ export default function Dashboard() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                        No client IP values mapped in stats
-                      </div>
+                      <EmptyState
+                        icon={<Database className="h-6 w-6 text-muted-foreground" />}
+                        title="No Client IP Information"
+                        description={`This log format (${statsData?.format}) does not contain client or remote host IP address records.`}
+                        className="border-none bg-transparent min-h-0 py-6"
+                      />
                     )}
                   </div>
                 </div>
@@ -476,7 +627,7 @@ export default function Dashboard() {
               {/* Top Requested Paths */}
               <div className="grid grid-cols-1 gap-8">
                 <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col">
-                  <h3 className="text-base font-bold tracking-tight mb-4">Top Requested Resources & Endpoints</h3>
+                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Top Requested Resources & Endpoints</h3>
                   <div className="h-64">
                     {chartTopEndpoints.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
@@ -491,9 +642,12 @@ export default function Dashboard() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                        No path endpoints mapped in stats
-                      </div>
+                      <EmptyState
+                        icon={<Clock className="h-6 w-6 text-muted-foreground" />}
+                        title="No Path Information"
+                        description={`This log format (${statsData?.format}) does not capture requested server resources, paths, or actions.`}
+                        className="border-none bg-transparent min-h-0 py-6"
+                      />
                     )}
                   </div>
                 </div>
