@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
+import LogsTable from "./pages/LogsTable";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 const queryClient = new QueryClient({
@@ -30,8 +31,9 @@ export default function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
+                    {/* Log Explorer Table subroute */}
+                    <Route path="/logs" element={<LogsTable />} />
                     {/* Placeholder sub-routes for sidebar matches */}
-                    <Route path="/logs" element={<Dashboard />} />
                     <Route path="/rules" element={<Dashboard />} />
                     <Route path="/docs" element={<Dashboard />} />
                     <Route path="/settings" element={<Dashboard />} />

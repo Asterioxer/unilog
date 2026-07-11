@@ -21,3 +21,10 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+// Mock navigator.clipboard for JSDOM compatibility
+Object.defineProperty(navigator, "clipboard", {
+  writable: true,
+  value: {
+    writeText: vi.fn().mockResolvedValue(undefined),
+  },
+});
