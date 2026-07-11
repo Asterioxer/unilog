@@ -30,6 +30,7 @@ This roadmap outlines the milestones for the `unilog` platform ecosystem.
 - Custom regex builder interface with live testing feedback
 
 ## Milestone E: Advanced Analytics & Orchestration (Future)
+- **Dynamic Configuration Endpoint**: Add `GET /api/v1/config` to expose backend upload limits (e.g., maximum file sizes) and supported formats/extensions to the frontend dynamically.
 - **Anomaly Detection Module**: Outlier detection using Isolation Forest or DBSCAN on request frequencies and error rates.
 - **Alerting Rules Engine**: Configure notification destinations (Webhooks, Slack, Email) when error rates exceed threshold.
 - **Database Backend**: Persistent log indices using DuckDB or SQLite for historical search queries.
