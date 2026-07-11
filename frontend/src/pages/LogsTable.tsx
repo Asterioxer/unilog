@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { 
   Search, ArrowUpDown, ChevronLeft, ChevronRight, Copy, Download, SlidersHorizontal, CheckSquare, Square, Trash2, Code, RefreshCw
 } from "lucide-react";
 import { apiService } from "../services/apiService";
+import { useKeyboardShortcut } from "../hooks/useKeyboardShortcut";
 import type { FormatDetail } from "../types/api";
 
 type SortConfig = {
@@ -20,6 +21,16 @@ export default function LogsTable() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "", direction: null });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useKeyboardShortcut(
+    { key: "k", ctrlKey: true },
+    (e) => {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+    }
+  );
 
   // Column visibility states
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
@@ -257,6 +268,7 @@ export default function LogsTable() {
             <div className="relative min-w-[280px]">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search matching entries..."
                 value={searchQuery}
