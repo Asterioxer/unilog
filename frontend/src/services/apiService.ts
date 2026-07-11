@@ -1,0 +1,82 @@
+import { apiClient } from "./apiClient";
+import type {
+  FormatsResponse,
+  DetectResponse,
+  ParseResponse,
+  StatsResponse,
+  UploadResponse,
+  TaskResponse,
+} from "../types/api";
+
+export const apiService = {
+  // Liveness check
+  async checkLiveness(): Promise<{ status: string }> {
+    const { data } = await apiClient.get<{ status: string }>("/live");
+    return data;
+  },
+
+  // Readiness check
+  async checkReadiness(): Promise<{ status: string }> {
+    const { data } = await apiClient.get<{ status: string }>("/ready");
+    return data;
+  },
+
+  // Get registered formats
+  async getFormats(): Promise<FormatsResponse> {
+    const { data } = await apiClient.post<FormatsResponse>("/api/v1/formats");
+    return data;
+  },
+
+  // Detect log format
+  async detectFormat(logText: string): Promise<DetectResponse> {
+    const { data } = await apiClient.post<DetectResponse>("/api/v1/detect", {
+      log_text: logText,
+    });
+    return data;
+  },
+
+  // Parse log text
+  async parseLog(logText: string, format?: string): Promise<ParseResponse> {
+    const { data } = await apiClient.post<ParseResponse>("/api/v1/parse", {
+      log_text: logText,
+      format,
+    });
+    return data;
+  },
+
+  // Generate log statistics
+  async generateStats(logText: string, format?: string): Promise<StatsResponse> {
+    const { data } = await apiClient.post<StatsResponse>("/api/v1/stats", {
+      log_text: logText,
+      format,
+    });
+    return data;
+  },
+
+  // Upload file (sync or async)
+  async uploadFile(file: File, format?: string): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (format) {
+      formData.append("format", format);
+    }
+    const { data } = await apiClient.post<UploadResponse>(
+      "/api/v1/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return data;
+  },
+
+  // Get background task status
+  async getTaskStatus(taskId: string): Promise<TaskResponse> {
+    const { data } = await apiClient.get<TaskResponse>(
+      `/api/v1/tasks/${taskId}`
+    );
+    return data;
+  },
+};
