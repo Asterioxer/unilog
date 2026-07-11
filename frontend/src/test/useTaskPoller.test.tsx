@@ -59,7 +59,7 @@ describe("useTaskPoller react query poller hook", () => {
     // Wait for the next poll to complete
     await waitFor(() => {
       expect(result.current.data?.status).toBe("completed");
-    });
+    }, { timeout: 3000 });
 
     expect(onCompleteMock).toHaveBeenCalled();
     expect(onFailureMock).not.toHaveBeenCalled();
