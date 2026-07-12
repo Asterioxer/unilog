@@ -1,0 +1,35 @@
+name: 💡 Feature Request
+description: Propose a new feature or enhancement for unilog
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make unilog better? Let us know! Please describe your proposal below.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: e.g. I struggle to parse custom database logs because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: A clear and concise description of what you want to happen.
+      placeholder: Describe the feature or improvement...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you have considered.
+      placeholder: Other ways to solve this problem...
+    validations:
+      required: false

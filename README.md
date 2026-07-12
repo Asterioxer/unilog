@@ -224,6 +224,12 @@ For more details on configuration parameters and security disclosures, see [secu
 - **Automated Dependabot Reviews**: Security and migration assessment for automated dependency updates.
 - **Comment Caching & Triage Labeling**: Edit-in-place comments indexed by commit SHAs to prevent spam, applying `needs-review`, `tests`, or `documentation` labels automatically.
 - **Maintainer Intelligence Benchmark Suite**: A manifest-driven evaluation framework located under `benchmarks/` to run regression tests and score AI reviewer accuracy.
+- **Maintainer DevEx Integrations**:
+  - **Release Drafter**: Automatically compiles draft release notes mapped to PR labels.
+  - **Issue Forms**: Enforces structured bug report and feature request templates.
+  - **Path Labeler**: Automatically tags PRs based on changed code areas (backend, frontend, docs, ci).
+  - **OpenSSF Scorecard**: Scans and logs repository security metrics.
+  - **Automated PR Coverage**: Posts coverage metrics tables on each pull request.
 
 For more details on operations, configuration, and swapping LLM clients, see [maintainer-intelligence.md](docs/maintainer-intelligence.md).
 

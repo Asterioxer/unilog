@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.4] - 2026-07-12
+### Added
+- **Release Drafter**: Integrated `.github/release-drafter.yml` and release workflow to automatically catalog draft releases by PR labels.
+- **GitHub Issue Forms**: Created structured YAML issue form templates for bug reports and feature requests.
+- **Path Labeler**: Added automated labels mappings for incoming pull requests (backend, frontend, documentation, ci).
+- **OpenSSF Scorecard**: Standardized weekly analysis scans checking action pins, branch protection, and vulnerability logs.
+- **Automated PR Coverage Reports**: Embedded `pytest-coverage-comment` action inside CI quality gates reporting coverage tables directly on pull requests.
+
 ## [0.3.3] - 2026-07-12
 ### Added
 - **Benchmarks Abstraction**: Created evaluation runner interfaces (`base_engine.py`, `mock_engine.py`, `gemini_engine.py`) under a dedicated `benchmarks/` directory.
