@@ -105,7 +105,8 @@ def test_zero_score_parsers_omitted_from_rankings():
 def test_garbage_input_no_rankings():
     """Garbage input should produce no rankings (all parsers score 0)."""
     from unilog.detector import detect
-    import tempfile, os
+    import tempfile
+    import os
 
     # Create a temp garbage file
     with tempfile.NamedTemporaryFile(mode="w", suffix=".log", delete=False) as f:
