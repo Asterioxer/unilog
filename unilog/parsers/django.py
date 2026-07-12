@@ -13,6 +13,9 @@ class DjangoParser(StructuredRegexParser):
     priority = 65
     supported_extensions = [".log", ".txt"]
 
+    required_fields = ["timestamp", "level", "message"]
+    optional_fields = ["logger"]
+
     # Pattern for [2026-07-10 12:00:00] INFO django.request: message
     _django_pattern = re.compile(
         r'^\[(?P<timestamp_raw>[^\]]+)\]\s+(?P<level>\w+)\s+(?P<logger>[\w\.]+):\s+(?P<message>.*)$'

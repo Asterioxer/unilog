@@ -13,6 +13,9 @@ class JSONParser(BaseParser):
     priority = 90
     supported_extensions = [".json", ".jsonl"]
 
+    required_fields = ["timestamp", "level", "message"]
+    optional_fields = []
+
     def match(self, line: str) -> bool:
         line = line.strip()
         if not (line.startswith("{") and line.endswith("}")):

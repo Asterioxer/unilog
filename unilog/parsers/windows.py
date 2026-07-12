@@ -15,6 +15,9 @@ class WindowsParser(BaseParser):
     priority = 55
     supported_extensions = [".csv", ".xml"]
 
+    required_fields = ["timestamp", "level", "source", "event_id"]
+    optional_fields = ["category", "message"]
+
     def _is_csv_header(self, row: List[str]) -> bool:
         if not row:
             return False

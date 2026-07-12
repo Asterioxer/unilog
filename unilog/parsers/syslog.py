@@ -13,6 +13,9 @@ class SyslogParser(StructuredRegexParser):
     priority = 60
     supported_extensions = [".log", ".syslog"]
 
+    required_fields = ["timestamp", "hostname", "process", "message", "level"]
+    optional_fields = ["priority", "pid", "syslog_version", "msgid", "structured_data"]
+
     # RFC 3164 pattern: <PRI>MMM DD HH:MM:SS hostname process[pid]: message
     _rfc3164_pattern = re.compile(
         r'^<(?P<priority>\d+)>(?P<timestamp_raw>[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2})\s+'

@@ -12,6 +12,9 @@ class NginxParser(StructuredRegexParser):
     priority = 80
     supported_extensions = [".log", ".txt"]
 
+    required_fields = ["source_ip", "timestamp", "method", "path", "status_code", "size"]
+    optional_fields = ["remote_user", "protocol", "referer", "user_agent"]
+
     # Pattern supporting both Common and Combined formats, and handling IPv4/IPv6 IPs
     _pattern = re.compile(
         r'^(?P<source_ip>\S+) - (?P<remote_user>\S+) \[(?P<timestamp_raw>[^\]]+)\] '

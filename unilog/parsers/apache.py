@@ -9,3 +9,6 @@ class ApacheParser(NginxParser):
     description = "Apache Combined/Common Access Log"
     priority = 75
     supported_extensions = [".log", ".txt", ".conf"]
+
+    required_fields = ["source_ip", "timestamp", "method", "path", "status_code", "size"]
+    optional_fields = ["remote_user", "protocol", "referer", "user_agent"]

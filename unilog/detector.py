@@ -2,6 +2,10 @@ from typing import Dict, Any, List
 from unilog.registry import list_formats, load_entry_points
 from unilog.utils import sample_lines
 
+# Configurable threshold for ambiguity detection.
+# If the top two parsers are within this margin, the result is flagged as ambiguous.
+AMBIGUITY_EPSILON = 0.02
+
 def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
     """
     Detect the log format of a path, stream, or line list.
@@ -12,6 +16,9 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
         "confidence": 0.0 - 1.0,
         "parser": BaseParser instance or None,
         "rankings": [{"format": str, "confidence": float}, ...],
+        "ambiguous": bool,
+        "alternatives": [{"format": str, "confidence": float}, ...],
+        "confidence_breakdown": dict or None,
         "reason": str
     }
     """
@@ -27,6 +34,9 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
             "confidence": 0.0,
             "parser": None,
             "rankings": [],
+            "ambiguous": False,
+            "alternatives": [],
+            "confidence_breakdown": None,
             "reason": "Input is empty or could not be read."
         }
 
@@ -43,17 +53,22 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
             score = parser_inst.confidence_score(sample)
             
             # File extension heuristic (+0.05 score, max 1.0)
-            if hasattr(path_or_stream, "name") or isinstance(path_or_stream, str):
+            # Only apply when the parser already has a non-zero confidence
+            if score > 0.0 and (hasattr(path_or_stream, "name") or isinstance(path_or_stream, str)):
                 name_str = path_or_stream.name if hasattr(path_or_stream, "name") else str(path_or_stream)
                 extensions = fmt_info.get("supported_extensions", [])
                 if any(name_str.endswith(ext) for ext in extensions):
                     score = min(1.0, score + 0.05)
 
+            # Retrieve confidence breakdown if available
+            breakdown = getattr(parser_inst, "_confidence_breakdown", None)
+
             rankings_list.append({
                 "format": fmt_info["name"],
                 "confidence": round(score, 4),
                 "parser_class": parser_cls,
-                "priority": fmt_info.get("priority", 0)
+                "priority": fmt_info.get("priority", 0),
+                "confidence_breakdown": breakdown,
             })
         except Exception:
             pass
@@ -64,28 +79,55 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
     # 3. Format name alphabetically ascending (fallback tie-breaker)
     rankings_list.sort(key=lambda r: (-r["confidence"], -r["priority"], r["format"]))
 
-    # Map rankings to final API format
-    api_rankings = [{"format": r["format"], "confidence": r["confidence"]} for r in rankings_list]
+    # Filter out zero-score parsers from the public rankings
+    non_zero_rankings = [r for r in rankings_list if r["confidence"] > 0.0]
+    api_rankings = [{"format": r["format"], "confidence": r["confidence"]} for r in non_zero_rankings]
 
-    if rankings_list and rankings_list[0]["confidence"] >= threshold:
-        best = rankings_list[0]
+    # Ambiguity detection: check if top two parsers are within epsilon
+    ambiguous = False
+    alternatives: List[Dict[str, Any]] = []
+
+    if len(non_zero_rankings) >= 2:
+        top_score = non_zero_rankings[0]["confidence"]
+        for alt in non_zero_rankings[1:]:
+            if top_score - alt["confidence"] <= AMBIGUITY_EPSILON:
+                ambiguous = True
+                alternatives.append({
+                    "format": alt["format"],
+                    "confidence": alt["confidence"],
+                })
+
+    if non_zero_rankings and non_zero_rankings[0]["confidence"] >= threshold:
+        best = non_zero_rankings[0]
         parser_inst = best["parser_class"]()
+        
+        reason = f"Detected format '{best['format']}' with confidence {best['confidence']} (threshold: {threshold})."
+        if ambiguous:
+            alt_names = ", ".join(f"'{a['format']}' ({a['confidence']})" for a in alternatives)
+            reason += f" Ambiguous: {alt_names} within margin."
+
         return {
             "format": best["format"],
             "confidence": best["confidence"],
             "parser": parser_inst,
             "rankings": api_rankings,
-            "reason": f"Detected format '{best['format']}' with confidence {best['confidence']} (threshold: {threshold})."
+            "ambiguous": ambiguous,
+            "alternatives": alternatives,
+            "confidence_breakdown": best.get("confidence_breakdown"),
+            "reason": reason,
         }
 
     reason_str = "No registered parser exceeded the confidence threshold."
-    if rankings_list:
-        reason_str = f"Best match '{rankings_list[0]['format']}' scored {rankings_list[0]['confidence']}, which is below threshold {threshold}."
+    if non_zero_rankings:
+        reason_str = f"Best match '{non_zero_rankings[0]['format']}' scored {non_zero_rankings[0]['confidence']}, which is below threshold {threshold}."
         
     return {
         "format": "unknown",
         "confidence": 0.0,
         "parser": None,
         "rankings": api_rankings,
-        "reason": reason_str
+        "ambiguous": False,
+        "alternatives": [],
+        "confidence_breakdown": None,
+        "reason": reason_str,
     }

@@ -27,6 +27,8 @@ def cli():
 @click.option("--head", "-n", type=int, help="Show only the first N lines")
 @click.option("--tail", "-t", type=int, help="Show only the last N lines")
 @click.option("--chunksize", "-c", type=int, help="Process and output in chunks of N lines")
+@click.option("--show-raw", is_flag=True, default=False, help="Show full raw log lines without truncation")
+@click.option("--raw-width", type=int, default=80, help="Max width for raw column in table output (default: 80)")
 def parse_cmd(
     path: Optional[str],
     format: Optional[str],
@@ -34,7 +36,9 @@ def parse_cmd(
     output: str,
     head: Optional[int],
     tail: Optional[int],
-    chunksize: Optional[int]
+    chunksize: Optional[int],
+    show_raw: bool,
+    raw_width: int
 ):
     """Parse log file/stream and output records."""
     # Validate input source
@@ -44,6 +48,8 @@ def parse_cmd(
         input_source = path
     else:
         raise click.UsageError("Must provide a log file path or use --stdin flag.")
+
+    effective_raw_width = None if show_raw else raw_width
 
     # 1. Chunked Parsing option
     if chunksize is not None:
@@ -57,7 +63,7 @@ def parse_cmd(
                 if tail is not None:
                     chunk_df = chunk_df.tail(tail)
                     
-                _output_dataframe(chunk_df, output, is_chunk=True, is_first=first)
+                _output_dataframe(chunk_df, output, is_chunk=True, is_first=first, raw_width=effective_raw_width)
                 first = False
             return
         except Exception as e:
@@ -79,7 +85,7 @@ def parse_cmd(
         elif tail is not None:
             df = df.tail(tail)
 
-        _output_dataframe(df, output, is_chunk=False)
+        _output_dataframe(df, output, is_chunk=False, raw_width=effective_raw_width)
     except Exception as e:
         console.print(f"[bold red]Error parsing log: {e}[/bold red]")
         sys.exit(1)
@@ -102,7 +108,15 @@ def detect_cmd(path: str, threshold: float):
         else:
             console.print(f"Detected format: [bold green]{format_name}[/bold green] (confidence: {confidence * 100:.1f}%)")
             
-        # Print rankings in a pretty table
+            # Show ambiguity warning if applicable
+            if res.get("ambiguous") and res.get("alternatives"):
+                for alt in res["alternatives"]:
+                    console.print(
+                        f"[yellow][!] Ambiguous:[/yellow] {alt['format']} is also a close match "
+                        f"({alt['confidence'] * 100:.1f}%)"
+                    )
+
+        # Print rankings table (zero-score parsers already filtered by detector)
         if res.get("rankings"):
             table = Table(title="Parser Rankings", box=box.ROUNDED)
             table.add_column("Format", style="cyan")
@@ -198,18 +212,27 @@ def formats_cmd():
 # CLI OUTPUT HELPERS
 # ==============================================================================
 
-def _output_dataframe(df: pd.DataFrame, mode: str, is_chunk: bool = False, is_first: bool = True):
-    """Format and print DataFrame to stdout based on the mode."""
+def _output_dataframe(
+    df: pd.DataFrame,
+    mode: str,
+    is_chunk: bool = False,
+    is_first: bool = True,
+    raw_width: Optional[int] = 80,
+):
+    """Format and print DataFrame to stdout based on the mode.
+    
+    Args:
+        raw_width: Max character width for the 'raw' column in table mode.
+                   None means no truncation (--show-raw).
+    """
     if mode == "csv":
-        # Print CSV format
-        # For chunking, write header only on the first chunk
+        # Print CSV format (no truncation)
         csv_str = df.to_csv(index=False, header=is_first)
         sys.stdout.write(csv_str)
         sys.stdout.flush()
         
     elif mode == "json":
-        # Print JSON format
-        # If chunking, we print as a JSON lines format or single array
+        # Print JSON format (no truncation)
         if is_chunk:
             for rec in df.to_dict(orient="records"):
                 sys.stdout.write(json.dumps(rec, default=str) + "\n")
@@ -231,7 +254,14 @@ def _output_dataframe(df: pd.DataFrame, mode: str, is_chunk: bool = False, is_fi
         max_rows = 50
         rows_to_show = df.head(max_rows)
         for _, row in rows_to_show.iterrows():
-            table.add_row(*[str(val) if val is not None else "" for val in row])
+            cells = []
+            for col, val in zip(df.columns, row):
+                cell_str = str(val) if val is not None else ""
+                # Truncate the raw column in table mode
+                if col == "raw" and raw_width is not None and len(cell_str) > raw_width:
+                    cell_str = cell_str[:raw_width] + "…"
+                cells.append(cell_str)
+            table.add_row(*cells)
             
         console.print(table)
         
