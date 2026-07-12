@@ -1,29 +1,74 @@
 import io
-import gzip
+import time
 from typing import Dict, Any
+
 import unilog
+from api.config import (
+    UNILOG_MAX_DECOMPRESSED_SIZE,
+    UNILOG_DECOMPRESS_CHUNK_SIZE,
+    UNILOG_TASK_TTL_SECONDS,
+    UNILOG_MAX_TASKS
+)
+from api.utils.decompression import decompress_gzip_safe, DecompressionLimitExceeded
 
 # In-memory database of tasks
-# Schema: task_id -> {"status": str, "filename": str, "result": Any, "error": str}
+# Schema: task_id -> {"status": str, "filename": str, "result": Any, "error": str, "created_at": float}
 tasks_db: Dict[str, Dict[str, Any]] = {}
 
+def cleanup_tasks() -> None:
+    """Evict task records that are expired or exceed the maximum task storage queue limit."""
+    now = time.time()
+    
+    # 1. Evict tasks exceeding TTL
+    expired_ids = [
+        tid for tid, task in tasks_db.items()
+        if now - task.get("created_at", 0) > UNILOG_TASK_TTL_SECONDS
+    ]
+    for tid in expired_ids:
+        tasks_db.pop(tid, None)
+
+    # 2. Evict oldest tasks if limit is exceeded
+    if len(tasks_db) > UNILOG_MAX_TASKS:
+        sorted_tasks = sorted(
+            tasks_db.items(),
+            key=lambda x: x[1].get("created_at", 0.0)
+        )
+        excess = len(tasks_db) - UNILOG_MAX_TASKS
+        for i in range(excess):
+            tasks_db.pop(sorted_tasks[i][0], None)
+
 def get_task_status(task_id: str) -> Dict[str, Any]:
-    """Retrieve status and results of a background task."""
+    """Retrieve status and results of a background task, after cleaning expired records."""
+    cleanup_tasks()
     return tasks_db.get(task_id, {"status": "not_found", "error": f"Task '{task_id}' does not exist."})
 
 def process_file_task(task_id: str, content: bytes, filename: str, parser_format: str):
-    """Background task processor for log file parsing."""
+    """Background task processor for log file parsing with safe decompression limits."""
     try:
         # Handle gzip decompression
         if filename.endswith(".gz") or content.startswith(b"\x1f\x8b"):
             try:
-                content = gzip.decompress(content)
+                content = decompress_gzip_safe(
+                    content,
+                    max_size=UNILOG_MAX_DECOMPRESSED_SIZE,
+                    chunk_size=UNILOG_DECOMPRESS_CHUNK_SIZE
+                )
+            except DecompressionLimitExceeded as size_ex:
+                tasks_db[task_id] = {
+                    "status": "failed",
+                    "filename": filename,
+                    "result": None,
+                    "error": f"Gzip decompression failed: {size_ex}",
+                    "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
+                }
+                return
             except Exception as ex:
                 tasks_db[task_id] = {
                     "status": "failed",
                     "filename": filename,
                     "result": None,
-                    "error": f"Gzip decompression failed: {ex}"
+                    "error": f"Gzip decompression failed: {ex}",
+                    "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
                 }
                 return
 
@@ -53,7 +98,8 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
                 "total": total_records,
                 "records": records
             },
-            "error": None
+            "error": None,
+            "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
         }
 
     except Exception as e:
@@ -61,5 +107,6 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
             "status": "failed",
             "filename": filename,
             "result": None,
-            "error": str(e)
+            "error": str(e),
+            "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
         }

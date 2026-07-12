@@ -1,5 +1,6 @@
 import csv
-import xml.etree.ElementTree as ET
+import defusedxml  # type: ignore
+import defusedxml.ElementTree as ET  # type: ignore
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from unilog.parsers.base import BaseParser
@@ -133,6 +134,9 @@ class WindowsParser(BaseParser):
                             message_parts.append(val)
                     message = "; ".join(message_parts)
 
+                if timestamp is None and source is None and event_id is None:
+                    return {"_parse_error": True, "raw": line}
+
                 return {
                     "timestamp": timestamp,
                     "level": level,
@@ -142,7 +146,7 @@ class WindowsParser(BaseParser):
                     "message": message or None,
                     "raw": line
                 }
-            except Exception:
+            except (defusedxml.common.DefusedXmlException, Exception):
                 return {"_parse_error": True, "raw": line}
 
         # Handle CSV line

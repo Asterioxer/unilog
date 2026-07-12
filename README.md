@@ -204,6 +204,17 @@ response = requests.post(url, json=payload)
 print(response.json())
 ```
 
+## Security
+
+`unilog` is hardened to securely parse untrusted log sources:
+
+- **Decompression Bomb Protection**: Gzip decompressions are restricted chunk-by-chunk up to `UNILOG_MAX_DECOMPRESSED_SIZE` to prevent memory exhaustion attacks.
+- **XML Entity Hardening**: Windows Event Log XML parser uses `defusedxml` to block DTD entity expansions (billion laughs).
+- **Eviction Queue Tasks**: Ephemeral background parsing tasks are auto-purged based on TTL and count limits.
+- **Payload Constraints**: JSON request string body lengths are validated by Pydantic models.
+
+For more details on configuration parameters and security disclosures, see [security.md](docs/security.md) and [SECURITY.md](SECURITY.md).
+
 ## Contribution Guide
 
 1. Clone the repository and install dependencies with `uv`:

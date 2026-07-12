@@ -1,7 +1,7 @@
-import os
 import io
 import json
 import uuid
+import time
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
 from fastapi.responses import StreamingResponse
 from api.dependencies.rate_limiter import limiter
@@ -16,15 +16,21 @@ from api.schemas.log import (
     FormatsResponse, FormatDetail,
     UploadResponse
 )
-from api.services.background_tasks import process_file_task, tasks_db, get_task_status
+from api.services.background_tasks import process_file_task, tasks_db, get_task_status, cleanup_tasks
+from api.config import (
+    UNILOG_MAX_FILE_SIZE,
+    UNILOG_BACKGROUND_THRESHOLD,
+    UNILOG_RATE_LIMIT,
+    UNILOG_MAX_DECOMPRESSED_SIZE,
+    UNILOG_DECOMPRESS_CHUNK_SIZE
+)
+from api.utils.decompression import decompress_gzip_safe, DecompressionLimitExceeded
 
 router = APIRouter(tags=["Logs"])
 
-# Allowed extensions and maximum file limits loaded from environment
+# Allowed extensions loaded from configuration
 ALLOWED_EXTENSIONS = {".log", ".txt", ".json", ".csv", ".gz"}
-MAX_FILE_SIZE = int(os.environ.get("UNILOG_MAX_FILE_SIZE", str(100 * 1024 * 1024)))
-BACKGROUND_THRESHOLD_SIZE = int(os.environ.get("UNILOG_BACKGROUND_THRESHOLD", str(1 * 1024 * 1024)))
-RATE_LIMIT_VALUE = os.environ.get("UNILOG_RATE_LIMIT", "100/minute")
+RATE_LIMIT_VALUE = UNILOG_RATE_LIMIT
 
 @router.post(
     "/parse",
@@ -181,19 +187,21 @@ async def upload_log_file(
     size = len(content)
     if size == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-    if size > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail=f"Uploaded file exceeds maximum limit of {MAX_FILE_SIZE} bytes.")
+    if size > UNILOG_MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail=f"Uploaded file exceeds maximum limit of {UNILOG_MAX_FILE_SIZE} bytes.")
 
     resolved_format = format or "auto"
 
     # Route to background task if file size exceeds threshold
-    if size > BACKGROUND_THRESHOLD_SIZE:
+    if size > UNILOG_BACKGROUND_THRESHOLD:
+        cleanup_tasks()
         task_id = str(uuid.uuid4())
         tasks_db[task_id] = {
             "status": "processing",
             "filename": filename,
             "result": None,
-            "error": None
+            "error": None,
+            "created_at": time.time()
         }
         background_tasks.add_task(
             process_file_task,
@@ -213,10 +221,18 @@ async def upload_log_file(
 
     # Synchronous processing for smaller files
     try:
-        # Handle gz decompression
+        # Handle gz decompression safely
         if lower_name.endswith(".gz") or content.startswith(b"\x1f\x8b"):
-            import gzip
-            content = gzip.decompress(content)
+            try:
+                content = decompress_gzip_safe(
+                    content,
+                    max_size=UNILOG_MAX_DECOMPRESSED_SIZE,
+                    chunk_size=UNILOG_DECOMPRESS_CHUNK_SIZE
+                )
+            except DecompressionLimitExceeded as limit_ex:
+                raise HTTPException(status_code=413, detail=str(limit_ex))
+            except Exception as dec_ex:
+                raise HTTPException(status_code=400, detail=f"Gzip decompression failed: {dec_ex}")
 
         try:
             text = content.decode("utf-8")
@@ -238,6 +254,8 @@ async def upload_log_file(
             "format": resolved_format,
             "records": records
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Parsing failed: {e}")
 

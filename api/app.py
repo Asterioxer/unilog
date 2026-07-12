@@ -9,6 +9,10 @@ from slowapi.errors import RateLimitExceeded
 
 from api.routers import health, log
 from api.dependencies.rate_limiter import limiter
+from api.config import validate_config
+
+# Run startup configuration validation
+validate_config()
 
 # Setup structured logging
 logging.basicConfig(

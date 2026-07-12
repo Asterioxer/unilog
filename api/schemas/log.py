@@ -1,8 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
+from api.config import (
+    UNILOG_MAX_PARSE_TEXT,
+    UNILOG_MAX_DETECT_TEXT,
+    UNILOG_MAX_STATS_TEXT
+)
 
 class ParseRequest(BaseModel):
-    log_text: str = Field(..., description="Raw log lines to parse")
+    log_text: str = Field(..., max_length=UNILOG_MAX_PARSE_TEXT, description="Raw log lines to parse")
     format: Optional[str] = Field(None, description="Explicit format to parse (auto-detect if omitted)")
 
     model_config = {
@@ -19,7 +24,7 @@ class ParseResponse(BaseModel):
     total: int = Field(..., description="Total count of records parsed")
 
 class DetectRequest(BaseModel):
-    log_text: str = Field(..., description="Raw log lines to analyze for format detection")
+    log_text: str = Field(..., max_length=UNILOG_MAX_DETECT_TEXT, description="Raw log lines to analyze for format detection")
 
     model_config = {
         "json_schema_extra": {
@@ -54,7 +59,7 @@ class DetectResponse(BaseModel):
     }
 
 class StatsRequest(BaseModel):
-    log_text: str = Field(..., description="Raw log lines to compute statistics for")
+    log_text: str = Field(..., max_length=UNILOG_MAX_STATS_TEXT, description="Raw log lines to compute statistics for")
     format: Optional[str] = Field(None, description="Parser format name (auto-detect if omitted)")
 
     model_config = {
