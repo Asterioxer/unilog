@@ -16,6 +16,7 @@ class BaseParser(abc.ABC):
     # to compute extraction completeness without inspecting regex internals.
     required_fields: List[str] = []
     optional_fields: List[str] = []
+    _confidence_breakdown: Dict[str, Any] = {}
 
     @abc.abstractmethod
     def match(self, line: str) -> bool:
