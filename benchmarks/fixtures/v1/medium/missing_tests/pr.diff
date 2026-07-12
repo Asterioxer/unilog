@@ -1,0 +1,21 @@
+diff --git a/unilog/parsers/unilog_mock.py b/unilog/parsers/unilog_mock.py
+new file mode 100644
+index 0000000..c34d8e9
+--- /dev/null
++++ b/unilog/parsers/unilog_mock.py
+@@ -0,0 +1,15 @@
++from unilog.parsers.base import BaseParser
++from unilog.registry import register_parser
++
++@register_parser
++class UnilogMockFormatter(BaseParser):
++    name = "unilog_mock"
++    description = "Mock logs format parser"
++    
++    def parse_line(self, line: str):
++        return {
++            "timestamp": "2026-07-10T12:00:00Z",
++            "level": "INFO",
++            "message": line.strip(),
++            "raw": line
++        }

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.3] - 2026-07-12
+### Added
+- **Benchmarks Abstraction**: Created evaluation runner interfaces (`base_engine.py`, `mock_engine.py`, `gemini_engine.py`) under a dedicated `benchmarks/` directory.
+- **Repeatable Regression Fixtures**: Developed simulated input PR metadata and git patch diffs alongside expected output assertions versioned under `fixtures/v1/`.
+- **Weighted Quality Assertions**: Evaluates and scores AI review accuracy using a weighted model checking risk levels, missing checks, and security keyword hits.
+- **Security Precision & Recall**: Calculates true/false positive and negative metrics for vulnerability alerts.
+- **Execution Telemetry Logger**: Records prompt build, inference, and evaluation latency durations, saving logs under `benchmarks/reports/`.
+- **CI Benchmarks Check**: Wired the local mock benchmarks runner into the pull requests test check suite.
+
 ## [0.3.2] - 2026-07-12
 ### Added
 - **LLM Abstraction Layer**: Built vendor-independent python client model (`base.py`, `gemini.py`) implementing timeout constraints, retries, and backoffs.

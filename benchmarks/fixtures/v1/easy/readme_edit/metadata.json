@@ -1,0 +1,7 @@
+{
+  "title": "docs: fix spelling error in README.md",
+  "body": "Fixes a minor typo in the quickstart instructions of the README.",
+  "changed_files": ["README.md"],
+  "changed_tests": [],
+  "commits": ["docs: fix spelling error in README.md"]
+}

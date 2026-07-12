@@ -1,0 +1,12 @@
+{
+  "title": "feat(parsers): implement custom XML formatter command parser",
+  "body": "Adds custom parser and disabled CI check limits for testing raw runs.",
+  "changed_files": [
+    "unilog/parsers/xml_awful.py",
+    ".github/workflows/ci.yml"
+  ],
+  "changed_tests": [],
+  "commits": [
+    "feat(parsers): implement XML formatter parser"
+  ]
+}

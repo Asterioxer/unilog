@@ -223,6 +223,7 @@ For more details on configuration parameters and security disclosures, see [secu
 - **Automated AI Reviews**: Gemini-powered PR reviews triggered after successful CI checks, evaluating changes against repository architecture, invariants, and coding standards.
 - **Automated Dependabot Reviews**: Security and migration assessment for automated dependency updates.
 - **Comment Caching & Triage Labeling**: Edit-in-place comments indexed by commit SHAs to prevent spam, applying `needs-review`, `tests`, or `documentation` labels automatically.
+- **Maintainer Intelligence Benchmark Suite**: A manifest-driven evaluation framework located under `benchmarks/` to run regression tests and score AI reviewer accuracy.
 
 For more details on operations, configuration, and swapping LLM clients, see [maintainer-intelligence.md](docs/maintainer-intelligence.md).
 

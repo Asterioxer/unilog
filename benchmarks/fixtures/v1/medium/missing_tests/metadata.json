@@ -1,0 +1,11 @@
+{
+  "title": "feat(parsers): add custom mock format parser",
+  "body": "Introduces a new custom format parser to extract mock log records.",
+  "changed_files": [
+    "unilog/parsers/unilog_mock.py"
+  ],
+  "changed_tests": [],
+  "commits": [
+    "feat(parsers): add custom mock format parser"
+  ]
+}

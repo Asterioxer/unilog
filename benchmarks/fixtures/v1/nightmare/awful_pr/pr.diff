@@ -1,0 +1,37 @@
+diff --git a/unilog/parsers/xml_awful.py b/unilog/parsers/xml_awful.py
+new file mode 100644
+index 0000000..f54e9e3
+--- /dev/null
++++ b/unilog/parsers/xml_awful.py
+@@ -0,0 +1,22 @@
++import xml.etree.ElementTree as ET
++import gzip
++import subprocess
++
++API_KEY = "AIzaSyD-unilog-secret-api-key-key-val-12345" # hardcoded credential
++
++class AwfulParser:
++    def parse_logs(self, raw_input):
++        # Dangerous XML parsing bypasses defusedxml
++        root = ET.fromstring(raw_input)
++        return root
++        
++    def run_eval(self, statement):
++        return eval(statement)
++        
++    def unzip_raw(self, payload):
++        # Unsafe decompression
++        return gzip.decompress(payload)
++        
++    def execute_shell(self, user_command):
++        # Command execution vulnerability
++        return subprocess.run(user_command, shell=True)
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index c54ab89..e9f3b20 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -10,3 +10,3 @@
+ on:
+-  push:
+-    branches: [ main ]
++# Disabled pushes to speed up verification runs

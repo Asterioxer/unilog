@@ -1,0 +1,17 @@
+diff --git a/unilog/parsers/unregistered.py b/unilog/parsers/unregistered.py
+new file mode 100644
+index 0000000..d45e9f1
+--- /dev/null
++++ b/unilog/parsers/unregistered.py
+@@ -0,0 +1,11 @@
++from unilog.parsers.base import BaseParser
++
++class UnregisteredCustomParser(BaseParser):
++    name = "unregistered_custom"
++    description = "Unregistered custom logs format parser"
++    
++    def parse_line(self, line: str):
++        return {
++            "timestamp": "2026-07-10T12:00:00Z",
++            "message": line
++        }

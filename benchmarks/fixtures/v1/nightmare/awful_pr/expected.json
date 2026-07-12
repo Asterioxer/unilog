@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "expected": {
+    "risk": "high",
+    "tests_missing": true,
+    "documentation_missing": true,
+    "recommendation": "major_changes",
+    "security_keywords": [
+      "xml",
+      "eval",
+      "key",
+      "secret",
+      "decompression",
+      "shell"
+    ]
+  }
+}

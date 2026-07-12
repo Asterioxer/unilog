@@ -1,0 +1,13 @@
+{
+  "title": "feat(cli): add new format-validate CLI command",
+  "body": "Introduces a validate command to the Click CLI tool to verify file formatting structure.",
+  "changed_files": [
+    "unilog/cli.py"
+  ],
+  "changed_tests": [
+    "tests/test_cli.py"
+  ],
+  "commits": [
+    "feat(cli): add format-validate command"
+  ]
+}

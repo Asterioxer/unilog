@@ -1,0 +1,9 @@
+diff --git a/api/schemas/log.py b/api/schemas/log.py
+index a4f3e82..d9f8e71 100644
+--- a/api/schemas/log.py
++++ b/api/schemas/log.py
+@@ -83,3 +83,3 @@ class StatsResponse(BaseModel):
+     error_rate: float = Field(..., description="Proportion of lines parsing to ERROR")
+-    time_range: Optional[List[str]] = Field(None, description="SystemTime range bounds [min, max]")
++    system_timestamps: Optional[List[str]] = Field(None, description="SystemTime timestamps checklist")
+     top_ips: List[Dict[str, Any]] = Field(..., description="Top client IP addresses with counts")

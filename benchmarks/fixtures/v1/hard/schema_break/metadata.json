@@ -1,0 +1,13 @@
+{
+  "title": "refactor(api): change StatsResponse structure fields",
+  "body": "Updates StatsResponse to replace time_range with system_timestamps list.",
+  "changed_files": [
+    "api/schemas/log.py"
+  ],
+  "changed_tests": [
+    "tests/test_api.py"
+  ],
+  "commits": [
+    "refactor(api): change StatsResponse structure fields"
+  ]
+}

@@ -1,0 +1,15 @@
+diff --git a/unilog/cli.py b/unilog/cli.py
+index a4e7b89..c8f4382 100644
+--- a/unilog/cli.py
++++ b/unilog/cli.py
+@@ -30,2 +30,10 @@
+ 
++@cli.command()
++@click.argument("file_path")
++def validate(file_path):
++    """Validate the format of a log file."""
++    click.echo(f"Validating format for: {file_path}")
++    # Mock validation logic
++    click.echo("Format is valid.")
++
+ if __name__ == "__main__":

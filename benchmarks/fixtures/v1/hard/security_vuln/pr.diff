@@ -1,0 +1,30 @@
+diff --git a/api/utils/unsafe_operations.py b/api/utils/unsafe_operations.py
+new file mode 100644
+index 0000000..f54e8f9
+--- /dev/null
++++ b/api/utils/unsafe_operations.py
+@@ -0,0 +1,24 @@
++import subprocess
++import xml.etree.ElementTree as ET
++import gzip
++
++def execute_user_command(cmd_input):
++    # CRITICAL SECURITY VULNERABILITY: shell=True with user input
++    return subprocess.run(cmd_input, shell=True, capture_output=True)
++
++def evaluate_expression(expr):
++    # CRITICAL SECURITY VULNERABILITY: eval
++    return eval(expr)
++
++def parse_xml_unsafe(xml_data):
++    # CRITICAL SECURITY VULNERABILITY: Unsafe XML parsing (billion laughs risk)
++    return ET.fromstring(xml_data)
++
++def decompress_raw_gzip(content):
++    # SECURITY VULNERABILITY: Decompression bomb risk (no chunk limit check)
++    return gzip.decompress(content)
++
++def read_local_file(filepath):
++    # SECURITY VULNERABILITY: Path traversal risk
++    with open(filepath, "r") as f:
++        return f.read()

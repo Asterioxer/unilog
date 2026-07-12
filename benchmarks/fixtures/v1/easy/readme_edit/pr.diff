@@ -1,0 +1,9 @@
+diff --git a/README.md b/README.md
+index a3f8e79..b4g9f82 100644
+--- a/README.md
++++ b/README.md
+@@ -10,3 +10,3 @@
+ - **Zero Configuration**: Simply call `unilog.parse("any.log")`
+-- **Auto-Detection**: Dynamically detects formats based on heuristics, regex, and confidense validation.
++- **Auto-Detection**: Dynamically detects formats based on heuristics, regex, and confidence validation.
+ - **Streaming Parser**: Stream lines instead of loading everything to memory using `unilog.stream("any.log")`.

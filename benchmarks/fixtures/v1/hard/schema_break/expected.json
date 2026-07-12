@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "expected": {
+    "risk": "high",
+    "tests_missing": false,
+    "documentation_missing": false,
+    "recommendation": "needs_review",
+    "security_keywords": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "title": "feat(parsers): implement unregistered custom format parser",
+  "body": "Adds a parser for a custom format but forgets to register it in the registry.",
+  "changed_files": [
+    "unilog/parsers/unregistered.py"
+  ],
+  "changed_tests": [
+    "tests/test_parsers.py"
+  ],
+  "commits": [
+    "feat(parsers): add unregistered custom format parser"
+  ]
+}

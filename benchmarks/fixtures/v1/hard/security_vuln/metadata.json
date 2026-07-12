@@ -1,0 +1,13 @@
+{
+  "title": "feat(utils): add unsafe parsing helpers and command runners",
+  "body": "Introduces custom command executors and default xml/gzip parsers.",
+  "changed_files": [
+    "api/utils/unsafe_operations.py"
+  ],
+  "changed_tests": [
+    "tests/test_api.py"
+  ],
+  "commits": [
+    "feat(utils): add command execution helpers"
+  ]
+}

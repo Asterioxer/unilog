@@ -1,0 +1,143 @@
+{
+  "timestamp": "2026-07-12T21:04:43.310528",
+  "engine": {
+    "provider": "mock",
+    "model": "static-fixtures",
+    "temperature": 0,
+    "prompt_version": 1
+  },
+  "fixture_version": 1,
+  "schema_version": 1,
+  "scenarios_count": 7,
+  "passed_count": 7,
+  "accuracy_rate": 100.0,
+  "average_latency_seconds": 0.00024411428577358102,
+  "recommendation": "PASS",
+  "results": [
+    {
+      "scenario": "easy/readme_edit",
+      "difficulty": "easy",
+      "tags": [
+        "docs"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.00039999940781854093,
+        "inference": 0.1371000007566181,
+        "evaluation": 0.1477999994676793,
+        "total": 0.28529999963211594
+      }
+    },
+    {
+      "scenario": "medium/missing_tests",
+      "difficulty": "medium",
+      "tags": [
+        "parser",
+        "tests"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.0004000003173132427,
+        "inference": 0.11380000069038942,
+        "evaluation": 0.10320000001229346,
+        "total": 0.21740000101999613
+      }
+    },
+    {
+      "scenario": "medium/missing_docs",
+      "difficulty": "medium",
+      "tags": [
+        "cli",
+        "docs"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.00019999970390927047,
+        "inference": 0.09980000049836235,
+        "evaluation": 0.08890000026440248,
+        "total": 0.1889000004666741
+      }
+    },
+    {
+      "scenario": "medium/unregistered",
+      "difficulty": "medium",
+      "tags": [
+        "parser"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.0004000003173132427,
+        "inference": 0.10879999990720535,
+        "evaluation": 0.0915000000532018,
+        "total": 0.2007000002777204
+      }
+    },
+    {
+      "scenario": "hard/security_vuln",
+      "difficulty": "hard",
+      "tags": [
+        "security"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.00019999970390927047,
+        "inference": 0.09549999958835542,
+        "evaluation": 0.10120000024471665,
+        "total": 0.19689999953698134
+      }
+    },
+    {
+      "scenario": "hard/schema_break",
+      "difficulty": "hard",
+      "tags": [
+        "frontend",
+        "schemas"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.0002999995558639057,
+        "inference": 0.16539999978704145,
+        "evaluation": 0.173700000232202,
+        "total": 0.33939999957510736
+      }
+    },
+    {
+      "scenario": "nightmare/awful_pr",
+      "difficulty": "nightmare",
+      "tags": [
+        "security",
+        "tests",
+        "docs",
+        "parser"
+      ],
+      "passed": true,
+      "score": 100.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latencies_ms": {
+        "prompt_build": 0.0002999995558639057,
+        "inference": 0.14209999972081278,
+        "evaluation": 0.13780000062979525,
+        "total": 0.28019999990647193
+      }
+    }
+  ]
+}

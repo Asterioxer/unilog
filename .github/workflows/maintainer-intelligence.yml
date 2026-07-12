@@ -30,6 +30,9 @@ jobs:
       - name: Run Pytest
         run: uv run pytest
 
+      - name: Run Maintainer Intelligence Benchmarks (Mock Mode)
+        run: python benchmarks/runner.py --engine mock --fixtures v1
+
   ai-review:
     name: AI Pull Request Review
     needs: test

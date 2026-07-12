@@ -1,0 +1,41 @@
+{
+  "fixture_version": 1,
+  "schema_version": 1,
+  "scenarios": [
+    {
+      "path": "easy/readme_edit",
+      "difficulty": "easy",
+      "tags": ["docs"]
+    },
+    {
+      "path": "medium/missing_tests",
+      "difficulty": "medium",
+      "tags": ["parser", "tests"]
+    },
+    {
+      "path": "medium/missing_docs",
+      "difficulty": "medium",
+      "tags": ["cli", "docs"]
+    },
+    {
+      "path": "medium/unregistered",
+      "difficulty": "medium",
+      "tags": ["parser"]
+    },
+    {
+      "path": "hard/security_vuln",
+      "difficulty": "hard",
+      "tags": ["security"]
+    },
+    {
+      "path": "hard/schema_break",
+      "difficulty": "hard",
+      "tags": ["frontend", "schemas"]
+    },
+    {
+      "path": "nightmare/awful_pr",
+      "difficulty": "nightmare",
+      "tags": ["security", "tests", "docs", "parser"]
+    }
+  ]
+}

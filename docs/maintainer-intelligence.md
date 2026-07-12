@@ -1,25 +1,26 @@
 # Maintainer Intelligence Operations Guide
 
-This guide describes the architecture, workflows, configurations, and custom rules of **Maintainer Intelligence** (v0.3.2), a reusable, project-aware CI review automation subsystem for git repositories.
+This guide describes the architecture, workflows, configurations, and custom rules of **Maintainer Intelligence** (v0.3.3), a reusable, project-aware CI review automation and quality benchmarking subsystem.
 
 ---
 
 ## 1. System Architecture
 
-The subsystem consists of three core components:
+The subsystem consists of four core components:
 
 ```
 [GitHub PR Event]
        │
        ├──► [Reviewdog Workflow] ➔ Ruff / Mypy / ESLint / TSC
        │
-       └──► [Maintainer Intelligence Workflow] 
+       ├──► [Maintainer Intelligence Workflow] ➔ Quality Gates (Run Pytest checks)
+       │                                       ➔ Run Benchmarks runner (Mock Mode)
+       │
+       └──► [Maintainer Intelligence AI Review] 
                   │
-                  ├──► 1. Quality Gates (Run Pytest checks)
+                  ├──► 1. SHA Cache check (pr_helper.py)
                   │
-                  ├──► 2. SHA Cache check (pr_helper.py)
-                  │
-                  └──► 3. Compile context & Invoke LLM Client (Gemini API JSON output)
+                  └──► 2. Compile context & Invoke LLM Client (Gemini API JSON output)
                              │
                              └──► Render MD comment, post/edit comment, apply triage labels (pr_helper.py)
 ```
@@ -59,7 +60,14 @@ To switch to a different LLM provider (e.g. OpenAI or a local Llama model):
 
 ---
 
-## 5. Disabling Workflows
+## 5. Benchmarking Platform
 
-To temporarily disable AI reviews or static analyses:
-* Delete or rename the corresponding workflow file (e.g., rename `.github/workflows/maintainer-intelligence.yml` to `maintainer-intelligence.yml.disabled`).
+The system includes a permanent evaluation benchmark platform under [benchmarks/](file:///c:/Users/soham/Desktop/unilog/benchmarks/):
+
+- **Manifest-driven**: Execution paths are explicitly listed under `fixtures/v1/manifest.json`.
+- **Weighted scoring**: Compares generated response outputs against expected properties, calculating scores based on a weighted formula.
+- **Mock runner**: Supports executing mock reviews locally during CI checks to prevent API usage overheads:
+  ```bash
+  python benchmarks/runner.py --engine mock --fixtures v1
+  ```
+- **Historical telemetry**: Archives latencies and correctness metrics under `reports/` on each run.
