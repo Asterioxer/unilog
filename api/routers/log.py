@@ -93,7 +93,8 @@ async def stats_logs(request: Request, req: StatsRequest):
             "top_ips": s.get("top_ips", []),
             "log_levels": s.get("log_levels", {}),
             "top_endpoints": s.get("top_endpoints", []),
-            "bytes_transferred": s.get("bytes_transferred", 0)
+            "bytes_transferred": s.get("bytes_transferred", 0),
+            "status_codes": s.get("status_codes", {})
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to generate log statistics: {e}")

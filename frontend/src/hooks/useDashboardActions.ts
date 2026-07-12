@@ -1,12 +1,16 @@
 import { useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useDashboardContext } from "../context/DashboardContext";
 import { useUploadMutation } from "./useUploadMutation";
 import { useStatsQuery } from "./useStatsQuery";
 import { useDetectionQuery } from "./useDetectionQuery";
+import { queryKeys } from "../services/queryKeys";
+import { apiService } from "../services/apiService";
 import type { DashboardError } from "../types/dashboard";
 
 export const useDashboardActions = () => {
   const { state, setState } = useDashboardContext();
+  const queryClient = useQueryClient();
 
   const uploadMutation = useUploadMutation();
   const statsMutation = useStatsQuery();
@@ -128,8 +132,13 @@ export const useDashboardActions = () => {
         const detectPromise = detectMutation.mutateAsync({
           logText: state.ui.logText,
         });
+        const parsePromise = apiService.parseLog(
+          state.ui.logText,
+          state.ui.selectedFormat === "auto" ? undefined : state.ui.selectedFormat
+        );
 
-        const [stats, detect] = await Promise.all([statsPromise, detectPromise]);
+        const [stats, detect, parseRes] = await Promise.all([statsPromise, detectPromise, parsePromise]);
+        queryClient.setQueryData(queryKeys.records, parseRes.records);
 
         setState((prev) => ({
           ...prev,
@@ -245,6 +254,7 @@ export const useDashboardActions = () => {
                     statsMutation.mutateAsync({ logText: text, format: data.format }),
                     detectMutation.mutateAsync({ logText: text }),
                   ]);
+                  queryClient.setQueryData(queryKeys.records, data.records);
                   setState((prev) => ({
                     ...prev,
                     status: "ready",

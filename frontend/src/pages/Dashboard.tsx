@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
-  FileWarning, CheckCircle2, BarChart2, Clock, Database, AlertCircle, ChevronDown 
+  FileWarning, CheckCircle2, BarChart2, AlertCircle, ChevronDown, Database, Clock 
 } from "lucide-react";
 import { apiService } from "../services/apiService";
 import { queryKeys } from "../services/queryKeys";
@@ -11,40 +11,28 @@ import { useDashboardActions } from "../hooks/useDashboardActions";
 import { selectLogLevelDistribution } from "../transformers/logLevel";
 import { selectTopIps } from "../transformers/topIps";
 import { selectTopEndpoints } from "../transformers/endpoints";
+import { selectStatusCodeDistribution } from "../transformers/statusCodes";
+import { buildTimelineSeries } from "../transformers/timeline";
 import UploadPanel from "../components/UploadPanel";
 import SummaryCard from "../components/SummaryCard";
-import EmptyState from "../components/EmptyState";
 import MetricBadge from "../components/MetricBadge";
 import AnimatedCounter from "../components/AnimatedCounter";
 import MetadataPanel from "../components/MetadataPanel";
-import type { FormatDetail } from "../types/api";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-  PieChart,
-  Pie
-} from "recharts";
 
-const LOG_LEVEL_COLORS: Record<string, string> = {
-  INFO: "#22c55e",
-  DEBUG: "#3b82f6",
-  WARN: "#f59e0b",
-  WARNING: "#f59e0b",
-  ERROR: "#ef4444",
-  CRITICAL: "#a855f7",
-  SUCCESS: "#10b981",
-  unknown: "#9ca3af"
-};
+import ChartCard from "../components/charts/ChartCard";
+import LogLevelChart from "../components/charts/LogLevelChart";
+import StatusCodeChart from "../components/charts/StatusCodeChart";
+import TopIPsChart from "../components/charts/TopIPsChart";
+import TopEndpointsChart from "../components/charts/TopEndpointsChart";
+import TimelineChart from "../components/charts/TimelineChart";
+
+import type { FormatDetail } from "../types/api";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
   
   const { state, setState } = useDashboardContext();
+  const queryClient = useQueryClient();
   const {
     clearDashboard,
     handleCancelUpload,
@@ -63,6 +51,14 @@ function DashboardContent() {
     initialData: { formats: [] }
   });
 
+  const { data: records } = useQuery<Record<string, unknown>[] | null>({
+    queryKey: queryKeys.records,
+    queryFn: () => null,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    initialData: null,
+  });
+
   // Background task poller hook reacting to state.upload.activeTaskId
   useTaskPoller(
     state.upload.activeTaskId,
@@ -77,9 +73,11 @@ function DashboardContent() {
 
       if (taskRes.result) {
         const records = taskRes.result.records;
+        queryClient.setQueryData(queryKeys.records, records);
         const levels: Record<string, number> = {};
         const ips: Record<string, number> = {};
         const endpoints: Record<string, number> = {};
+        const statusCodes: Record<string, number> = {};
         let errors = 0;
         let bytes = 0;
 
@@ -96,6 +94,11 @@ function DashboardContent() {
 
           const path = String(r["request_path"] || r["path"] || r["url"] || "unknown");
           endpoints[path] = (endpoints[path] || 0) + 1;
+
+          const status = String(r["status_code"] || r["status"] || "");
+          if (status) {
+            statusCodes[status] = (statusCodes[status] || 0) + 1;
+          }
 
           if (r["bytes_sent"]) {
             bytes += Number(r["bytes_sent"]);
@@ -127,7 +130,8 @@ function DashboardContent() {
               top_ips: topIps,
               log_levels: levels,
               top_endpoints: topEndpoints,
-              bytes_transferred: bytes
+              bytes_transferred: bytes,
+              status_codes: statusCodes
             },
             lastUpdated: new Date().toISOString()
           },
@@ -180,9 +184,20 @@ function DashboardContent() {
     [state.analysis.stats]
   );
 
+  const chartStatusCodes = useMemo(
+    () => selectStatusCodeDistribution(state.analysis.stats),
+    [state.analysis.stats]
+  );
+
+  const chartTimeline = useMemo(
+    () => buildTimelineSeries(records, "hour"),
+    [records]
+  );
+
   const handleClear = () => {
     setFile(null);
     clearDashboard();
+    queryClient.setQueryData(queryKeys.records, null);
   };
 
   const handleFileSelect = (f: File) => {
@@ -452,116 +467,69 @@ function DashboardContent() {
 
           {state.analysis.stats && (
             <>
-              {/* Detail Recharts Grids */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Detail Visualizations Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Log Level Distribution */}
-                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
-                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Log Level Distribution</h3>
-                  <div className="h-64 flex items-center justify-center">
-                    {chartLogLevels.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={chartLogLevels}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {chartLogLevels.map((entry, idx) => (
-                              <Cell 
-                                key={`cell-${idx}`} 
-                                fill={LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown} 
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <EmptyState
-                        icon={<FileWarning className="h-6 w-6 text-muted-foreground" />}
-                        title="No Levels Detected"
-                        description={`This log format (${state.analysis.stats?.format}) does not map structured logging severity level indicators.`}
-                        className="border-none bg-transparent min-h-0 py-0"
-                      />
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-4">
-                    {chartLogLevels.map((entry) => (
-                      <div key={entry.name} className="flex items-center gap-1.5 text-xs">
-                        <span 
-                          className="h-2.5 w-2.5 rounded-xs" 
-                          style={{ backgroundColor: LOG_LEVEL_COLORS[entry.name] || LOG_LEVEL_COLORS.unknown }} 
-                        />
-                        <span className="font-medium">{entry.name}: {entry.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ChartCard
+                  title="Log Level Distribution"
+                  description="Severities breakdown"
+                  loading={isProcessing}
+                  empty={chartLogLevels.length === 0}
+                  emptyTitle="No Levels Detected"
+                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not map severity indicators.`}
+                >
+                  <LogLevelChart data={chartLogLevels} />
+                </ChartCard>
 
-                {/* Top IP Addresses */}
-                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between lg:col-span-2">
-                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Top Client IP Request Rates</h3>
-                  <div className="h-64">
-                    {chartTopIps.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                           data={chartTopIps}
-                           layout="vertical"
-                           margin={{ left: 20, right: 20, top: 10, bottom: 10 }}
-                         >
-                           <XAxis type="number" />
-                           <YAxis dataKey="ip" type="category" width={100} />
-                           <Tooltip />
-                           <Bar dataKey="count" fill="var(--color-primary)" radius={[0, 4, 4, 0]}>
-                             {chartTopIps.map((_, index) => (
-                               <Cell key={`cell-${index}`} fill="var(--color-primary)" />
-                             ))}
-                           </Bar>
-                         </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <EmptyState
-                        icon={<Database className="h-6 w-6 text-muted-foreground" />}
-                        title="No Client IP Information"
-                        description={`This log format (${state.analysis.stats?.format}) does not contain client or remote host IP address records.`}
-                        className="border-none bg-transparent min-h-0 py-6"
-                      />
-                    )}
-                  </div>
-                </div>
+                {/* HTTP Status Codes */}
+                <ChartCard
+                  title="HTTP Status Codes"
+                  description="Response status frequencies"
+                  loading={isProcessing}
+                  empty={chartStatusCodes.length === 0}
+                  emptyTitle="No Status Codes"
+                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not capture HTTP response statuses.`}
+                >
+                  <StatusCodeChart data={chartStatusCodes} />
+                </ChartCard>
               </div>
 
-              {/* Top Requested Paths */}
-              <div className="grid grid-cols-1 gap-8">
-                <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col">
-                  <h3 className="text-base font-bold tracking-tight mb-4 text-foreground">Top Requested Resources & Endpoints</h3>
-                  <div className="h-64">
-                    {chartTopEndpoints.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={chartTopEndpoints}
-                          margin={{ top: 10, bottom: 10 }}
-                        >
-                          <XAxis dataKey="endpoint" />
-                          <YAxis />
-                          <Tooltip />
-                          <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <EmptyState
-                        icon={<Clock className="h-6 w-6 text-muted-foreground" />}
-                        title="No Path Information"
-                        description={`This log format (${state.analysis.stats?.format}) does not capture requested server resources, paths, or actions.`}
-                        className="border-none bg-transparent min-h-0 py-6"
-                      />
-                    )}
-                  </div>
-                </div>
+              {/* Requests Over Time */}
+              <ChartCard
+                title="Requests Over Time"
+                description="Timeline rate metrics"
+                loading={isProcessing}
+                empty={chartTimeline.length === 0}
+                emptyTitle="No Timeline Available"
+                emptyDescription={`No timestamp data available to construct timeline.`}
+              >
+                <TimelineChart data={chartTimeline} />
+              </ChartCard>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Top IP Addresses */}
+                <ChartCard
+                  title="Top Client IPs"
+                  description="Active request sources"
+                  loading={isProcessing}
+                  empty={chartTopIps.length === 0}
+                  emptyTitle="No Client IP Data"
+                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not contain remote host IP addresses.`}
+                >
+                  <TopIPsChart data={chartTopIps} />
+                </ChartCard>
+
+                {/* Top Requested Paths */}
+                <ChartCard
+                  title="Top Endpoints & Resources"
+                  description="Frequently requested paths"
+                  loading={isProcessing}
+                  empty={chartTopEndpoints.length === 0}
+                  emptyTitle="No Path Data"
+                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not record server resource paths.`}
+                >
+                  <TopEndpointsChart data={chartTopEndpoints} />
+                </ChartCard>
               </div>
             </>
           )}

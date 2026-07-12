@@ -62,6 +62,7 @@ export interface StatsResponse {
   log_levels: Record<string, number>;
   top_endpoints: TopEndpointInfo[];
   bytes_transferred: number;
+  status_codes?: Record<string, number>;
 }
 
 export interface UploadResponse {

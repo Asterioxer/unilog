@@ -75,6 +75,7 @@ class StatsResponse(BaseModel):
     log_levels: Dict[str, int] = Field(..., description="Log level counts")
     top_endpoints: List[List[Any]] = Field(..., description="Top 5 request endpoints and their counts")
     bytes_transferred: int = Field(..., description="Sum of transferred bytes")
+    status_codes: Dict[str, int] = Field(default_factory=dict, description="HTTP status code distribution")
 
     model_config = {
         "json_schema_extra": {

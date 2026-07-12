@@ -4,4 +4,5 @@ export const queryKeys = {
   detect: ["detect"] as const,
   upload: ["upload"] as const,
   task: (id: string) => ["task", id] as const,
+  records: ["records"] as const,
 };

@@ -3,7 +3,7 @@ import os
 import gzip
 import pytest
 import tempfile
-import pandas as pd
+import pandas as pd  # type: ignore
 
 import unilog
 from unilog.parsers.base import BaseParser

@@ -75,6 +75,7 @@ describe("useDashboardActions Hook", () => {
 
     vi.spyOn(apiService, "generateStats").mockResolvedValue(mockStatsResponse);
     vi.spyOn(apiService, "detectFormat").mockResolvedValue(mockDetectResponse);
+    vi.spyOn(apiService, "parseLog").mockResolvedValue({ records: [], total: 0 });
 
     const { result } = renderHook(() => useDashboardActions(), { wrapper });
 

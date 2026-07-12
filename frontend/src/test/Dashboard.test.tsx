@@ -68,6 +68,7 @@ describe("Dashboard page interactive metrics flows", () => {
   it("submits raw text paste for analysis and renders stats widgets", async () => {
     vi.spyOn(apiService, "generateStats").mockResolvedValueOnce(MOCK_STATS_RESPONSE);
     vi.spyOn(apiService, "detectFormat").mockResolvedValueOnce(MOCK_DETECT_RESPONSE);
+    vi.spyOn(apiService, "parseLog").mockResolvedValueOnce({ records: [], total: 0 });
 
     render(<Dashboard />, { wrapper });
 
