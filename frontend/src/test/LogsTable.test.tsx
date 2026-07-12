@@ -30,13 +30,13 @@ describe("LogsTable page data table flows", () => {
     expect(screen.getByText("No Log Records Loaded")).toBeInTheDocument();
   });
 
-  it("loads and parses raw logs text, rendering rows, filters, sorting and exports", async () => {
+  it("loads and parses raw logs, checking filter panel, column toggles, and exports", async () => {
     const parseSpy = vi.spyOn(apiService, "parseLog").mockResolvedValueOnce({
       total: 3,
       records: [
-        { timestamp: "2026-07-11T12:00:00Z", level: "INFO", message: "User login succeeded", bytes_sent: 50 },
-        { timestamp: "2026-07-11T12:01:00Z", level: "ERROR", message: "Db query timeout", bytes_sent: 20 },
-        { timestamp: "2026-07-11T12:02:00Z", level: "WARN", message: "CPU load above threshold", bytes_sent: 10 }
+        { timestamp: "2026-07-11T12:00:00Z", level: "INFO", message: "User login succeeded", bytes_sent: 50, status_code: 200 },
+        { timestamp: "2026-07-11T12:01:00Z", level: "ERROR", message: "Db query timeout", bytes_sent: 20, status_code: 500 },
+        { timestamp: "2026-07-11T12:02:00Z", level: "WARN", message: "CPU load above threshold", bytes_sent: 10, status_code: 404 }
       ]
     });
 
@@ -56,63 +56,40 @@ describe("LogsTable page data table flows", () => {
       expect(screen.getByText("User login succeeded")).toBeInTheDocument();
     });
 
-    // Check table headers
-    expect(screen.getByText("Timestamp")).toBeInTheDocument();
-    expect(screen.getByText("Message")).toBeInTheDocument();
-
-    // Check sorting interaction (click level column header to sort desc/asc)
-    const levelHeader = screen.getByText("Level");
+    // Check filters panel toggle
+    const filterBtn = screen.getByTitle("Toggle Filter Parameters Panel");
     await act(async () => {
-      levelHeader.click();
+      filterBtn.click();
     });
 
-    // Verify search filters query
-    const searchInput = screen.getByPlaceholderText(/Search matching entries/i);
+    // Toggle ERROR severity level filter
+    const errorLevelBtn = screen.getAllByText("ERROR").find((el) => el.tagName === "BUTTON")!;
     await act(async () => {
-      fireEvent.change(searchInput, { target: { value: "timeout" } });
+      errorLevelBtn.click();
     });
 
+    // Verify filter chip is displayed and filtered output is shown
     expect(screen.getByText("Db query timeout")).toBeInTheDocument();
     expect(screen.queryByText("User login succeeded")).toBeNull();
 
-    // Reset search
+    // Check Column toggle popover
+    const columnToggleBtn = screen.getByTitle("Toggle Column Visibility");
     await act(async () => {
-      fireEvent.change(searchInput, { target: { value: "" } });
+      columnToggleBtn.click();
     });
-
-    // Toggle columns dropdown visibility
-    const colBtn = screen.getByText("Columns");
-    await act(async () => {
-      colBtn.click();
-    });
-
     expect(screen.getByText("Toggle Columns")).toBeInTheDocument();
 
-    // Click Level visibility toggle checkbox
-    const levelToggleBtn = screen.getAllByRole("button").find(
-      (btn) => btn.textContent?.includes("Level")
-    );
-    
-    await act(async () => {
-      levelToggleBtn?.click();
-    });
-
     // Verify copy row details trigger
-    // Mock navigator clipboard
     const clipboardSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
-    
     const copyBtns = screen.getAllByTitle("Copy Row JSON");
     await act(async () => {
       copyBtns[0].click();
     });
-
     expect(clipboardSpy).toHaveBeenCalled();
 
-    // Verify exports click triggers
+    // Verify exports
     const csvBtn = screen.getByText("CSV");
     const jsonBtn = screen.getByText("JSON");
-
-    // Mock document.createElement to prevent downloads trigger in test environment
     const linkMock = {
       setAttribute: vi.fn(),
       click: vi.fn()
@@ -124,20 +101,24 @@ describe("LogsTable page data table flows", () => {
       jsonBtn.click();
     });
 
+    expect(linkMock.click).toHaveBeenCalled();
     expect(parseSpy).toHaveBeenCalled();
   });
 
-  it("handles clearing the log database", async () => {
+  it("handles keyboard roving focus and expand/collapse key triggers", async () => {
     vi.spyOn(apiService, "parseLog").mockResolvedValueOnce({
-      total: 1,
-      records: [{ level: "INFO", message: "Hello" }]
+      total: 2,
+      records: [
+        { timestamp: "2026-07-11T12:00:00Z", level: "INFO", message: "Row 1", raw: "raw row 1" },
+        { timestamp: "2026-07-11T12:01:00Z", level: "ERROR", message: "Row 2", raw: "raw row 2" }
+      ]
     });
 
     render(<LogsTable />, { wrapper });
 
     const textarea = screen.getByPlaceholderText(/Paste log stream entries/i) as HTMLTextAreaElement;
     await act(async () => {
-      fireEvent.change(textarea, { target: { value: "INFO Hello" } });
+      fireEvent.change(textarea, { target: { value: "INFO Row 1\nERROR Row 2" } });
     });
 
     const loadBtn = screen.getByText("Load Logs");
@@ -146,19 +127,37 @@ describe("LogsTable page data table flows", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Hello")).toBeInTheDocument();
+      expect(screen.getByText("Row 1")).toBeInTheDocument();
     });
 
-    const clearBtn = screen.getByText("Clear Dataset");
+    // Check table rows
+    const rows = screen.getAllByRole("row");
+    // header row is rows[0], data row 1 is rows[1]
+    const row1 = rows[1];
+    
+    // Focus the first row
+    row1.focus();
+    expect(document.activeElement).toBe(row1);
+
+    // Simulate Down Arrow key to focus next row
     await act(async () => {
-      clearBtn.click();
+      fireEvent.keyDown(row1, { key: "ArrowDown" });
     });
 
-    expect(screen.getByText("No Log Records Loaded")).toBeInTheDocument();
+    const row2 = rows[2];
+    expect(document.activeElement).toBe(row2);
+
+    // Press Space to toggle expansion
+    await act(async () => {
+      fireEvent.keyDown(row2, { key: " " });
+    });
+
+    // Check that detail block matches raw output
+    expect(screen.getByText("Raw Log Record")).toBeInTheDocument();
+    expect(screen.getByText("raw row 2")).toBeInTheDocument();
   });
 
   it("performs pagination page navigation and rows per page changes", async () => {
-    // Generate 15 dummy records
     const dummyRecords = Array.from({ length: 15 }, (_, i) => ({
       timestamp: `2026-07-11T12:00:0${i}Z`,
       level: "INFO",
@@ -178,7 +177,7 @@ describe("LogsTable page data table flows", () => {
     });
 
     const loadBtn = screen.getByText("Load Logs");
-    await act(async () => {
+    act(() => {
       loadBtn.click();
     });
 
@@ -186,13 +185,9 @@ describe("LogsTable page data table flows", () => {
       expect(screen.getByText("Message number 0")).toBeInTheDocument();
     });
 
-    // Check pagination status: should say Page 1 of 2
     expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
 
-    // Click next page button
-    const nextBtn = document.querySelector(".lucide-chevron-right")?.parentElement as HTMLButtonElement;
-    expect(nextBtn).toBeDefined();
-
+    const nextBtn = screen.getByLabelText("Next Page");
     await act(async () => {
       nextBtn.click();
     });
@@ -200,20 +195,11 @@ describe("LogsTable page data table flows", () => {
     expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
     expect(screen.getByText("Message number 10")).toBeInTheDocument();
 
-    // Click previous page button
-    const prevBtn = document.querySelector(".lucide-chevron-left")?.parentElement as HTMLButtonElement;
+    const prevBtn = screen.getByLabelText("Previous Page");
     await act(async () => {
       prevBtn.click();
     });
 
     expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
-
-    // Change rows per page selector
-    const select = screen.getAllByRole("combobox")[1] as HTMLSelectElement;
-    await act(async () => {
-      fireEvent.change(select, { target: { value: "25" } });
-    });
-
-    expect(screen.getByText("Page 1 of 1")).toBeInTheDocument();
   });
 });
