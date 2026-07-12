@@ -1,0 +1,30 @@
+config_version: 1
+
+# API execution settings
+timeout_seconds: 60
+retries: 1
+
+# Label names to apply based on review results
+labels:
+  high_risk: "needs-review"
+  missing_tests: "tests"
+  missing_docs: "documentation"
+
+# Ignored paths in code reviews (e.g. build artifacts, lockfiles, dependency folders)
+ignore_paths:
+  - "dist/**"
+  - "coverage/**"
+  - "node_modules/**"
+  - "package-lock.json"
+  - "uv.lock"
+  - ".agents/**"
+  - ".github/**"
+  - "CHANGELOG.md"
+  - "LICENSE"
+
+# Repository constraints
+minimum_coverage: 92
+python_versions:
+  - "3.10"
+  - "3.11"
+  - "3.12"

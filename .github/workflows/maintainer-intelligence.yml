@@ -1,0 +1,218 @@
+name: Maintainer Intelligence
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv and sync
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv sync --all-extras
+
+      - name: Run Pytest
+        run: uv run pytest
+
+  ai-review:
+    name: AI Pull Request Review
+    needs: test
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv sync --all-extras
+
+      - name: Check Cache
+        id: cache-check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          res=$(python .github/scripts/github/pr_helper.py \
+            --action check-cache \
+            --pr ${{ github.event.pull_request.number }} \
+            --sha ${{ github.event.pull_request.head.sha }} \
+            --review-type maintainer-intelligence)
+          echo "CACHE_RESULT=$res" >> $GITHUB_ENV
+
+      - name: Collect PR Metadata
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr view ${{ github.event.pull_request.number }} --json title,body,commits,files > metadata_raw.json
+          python -c "
+          import json
+          with open('metadata_raw.json') as f:
+              raw = json.load(f)
+          changed_files = [file['path'] for file in raw.get('files', [])]
+          changed_tests = [p for p in changed_files if 'test' in p]
+          commits = [c['message'] for c in raw.get('commits', [])]
+          metadata = {
+              'title': raw.get('title', ''),
+              'body': raw.get('body', ''),
+              'changed_files': changed_files,
+              'changed_tests': changed_tests,
+              'commits': commits
+          }
+          with open('.github/metadata.json', 'w') as out:
+              json.dump(metadata, out)
+          "
+
+      - name: Collect PR Diff
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr diff ${{ github.event.pull_request.number }} > .github/pr.diff
+
+      - name: Run AI Reviewer
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python .github/scripts/review/ai_review.py \
+            --pr ${{ github.event.pull_request.number }} \
+            --diff-file .github/pr.diff \
+            --metadata-file .github/metadata.json \
+            --output-file .github/ai_review_output.json
+
+      - name: Publish Comment
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f .github/ai_review_output.json ]; then
+            python .github/scripts/github/pr_helper.py \
+              --action upsert-comment \
+              --pr ${{ github.event.pull_request.number }} \
+              --sha ${{ github.event.pull_request.head.sha }} \
+              --input-file .github/ai_review_output.json \
+              --review-type maintainer-intelligence
+          fi
+
+      - name: Apply Labels
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f .github/ai_review_output.json ]; then
+            python .github/scripts/github/pr_helper.py \
+              --action apply-labels \
+              --pr ${{ github.event.pull_request.number }} \
+              --sha ${{ github.event.pull_request.head.sha }} \
+              --input-file .github/ai_review_output.json \
+              --review-type maintainer-intelligence
+          fi
+
+  dependabot-review:
+    name: Dependabot Pull Request Analysis
+    needs: test
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check Cache
+        id: cache-check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          res=$(python .github/scripts/github/pr_helper.py \
+            --action check-cache \
+            --pr ${{ github.event.pull_request.number }} \
+            --sha ${{ github.event.pull_request.head.sha }} \
+            --review-type dependabot)
+          echo "CACHE_RESULT=$res" >> $GITHUB_ENV
+
+      - name: Collect Dependabot PR Metadata
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr view ${{ github.event.pull_request.number }} --json title,body,files > metadata_raw.json
+          python -c "
+          import json
+          with open('metadata_raw.json') as f:
+              raw = json.load(f)
+          changed_files = [file['path'] for file in raw.get('files', [])]
+          metadata = {
+              'title': raw.get('title', ''),
+              'body': raw.get('body', ''),
+              'changed_files': changed_files
+          }
+          with open('.github/metadata.json', 'w') as out:
+              json.dump(metadata, out)
+          "
+
+      - name: Run Dependabot Analyst
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python .github/scripts/review/dependabot_review.py \
+            --pr ${{ github.event.pull_request.number }} \
+            --metadata-file .github/metadata.json \
+            --output-file .github/dependabot_output.json
+
+      - name: Publish Comment
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f .github/dependabot_output.json ]; then
+            python .github/scripts/github/pr_helper.py \
+              --action upsert-comment \
+              --pr ${{ github.event.pull_request.number }} \
+              --sha ${{ github.event.pull_request.head.sha }} \
+              --input-file .github/dependabot_output.json \
+              --review-type dependabot
+          fi
+
+      - name: Apply Labels
+        if: env.CACHE_RESULT != 'cache_hit=true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f .github/dependabot_output.json ]; then
+            python .github/scripts/github/pr_helper.py \
+              --action apply-labels \
+              --pr ${{ github.event.pull_request.number }} \
+              --sha ${{ github.event.pull_request.head.sha }} \
+              --input-file .github/dependabot_output.json \
+              --review-type dependabot
+          fi

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.2] - 2026-07-12
+### Added
+- **LLM Abstraction Layer**: Built vendor-independent python client model (`base.py`, `gemini.py`) implementing timeout constraints, retries, and backoffs.
+- **Repository Context & Invariants**: Introduced `.github/context/` library (rules, project description, coding standards, architecture layout) automatically pre-pended to system instruction contexts.
+- **Structured Review Workflows**: Built JSON schemas forcing models to generate parseable telemetry outputs (summaries, risk scales, missing checks, merge safety recomendations).
+- **Single Comment Upsert Caching**: Built `pr_helper.py` which caches PR reviews using head commit SHA tags to prevent duplicate comments.
+- **Triage Automation**: Automatically applies triage labels (`needs-review`, `tests`, `documentation`) based on AI findings.
+- **Reviewdog Static Pipeline**: Integrated ruff, mypy, eslint, and tsc inline checks.
+
 ## [0.3.1] - 2026-07-12
 ### Added
 - **Security Infrastructure**: Added `.github/dependabot.yml` for automated package scanning and updates (pip, npm, and GitHub Actions).

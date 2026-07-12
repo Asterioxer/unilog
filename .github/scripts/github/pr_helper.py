@@ -1,0 +1,335 @@
+import argparse
+import json
+import os
+import sys
+import urllib.request
+import urllib.error
+
+# Ensure parent directory is on sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+def load_yaml_config(file_path):
+    """Simple YAML parser to avoid external PyYAML dependency."""
+    config = {}
+    if not os.path.exists(file_path):
+        return config
+    with open(file_path, "r", encoding="utf-8") as f:
+        current_section = None
+        for line in f:
+            line = line.split("#")[0].strip()
+            if not line:
+                continue
+            if line.endswith(":"):
+                current_section = line[:-1].strip()
+                config[current_section] = {}
+            elif ":" in line:
+                key, val = line.split(":", 1)
+                key = key.strip()
+                val = val.strip().strip('"').strip("'")
+                if val.isdigit():
+                    val = int(val)
+                elif val.lower() == "true":
+                    val = True
+                elif val.lower() == "false":
+                    val = False
+                
+                if current_section:
+                    config[current_section][key] = val
+                else:
+                    config[key] = val
+            elif line.startswith("-") and current_section:
+                val = line[1:].strip().strip('"').strip("'")
+                if not isinstance(config[current_section], list):
+                    if not config[current_section]:
+                        config[current_section] = []
+                    else:
+                        config[current_section] = list(config[current_section].keys())
+                config[current_section].append(val)
+    return config
+
+def make_github_request(url, method="GET", token="", data=None):
+    """Executes a REST request to the GitHub API."""
+    req = urllib.request.Request(url)
+    req.method = method
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    
+    if data is not None:
+        body = json.dumps(data).encode("utf-8")
+        req.add_header("Content-Type", "application/json")
+        req.data = body
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            res_data = response.read()
+            if res_data:
+                return json.loads(res_data.decode("utf-8"))
+            return {}
+    except urllib.error.HTTPError as e:
+        # Read error details if present
+        err_msg = e.read().decode("utf-8")
+        print(f"GitHub API Error [{e.code}] {e.reason}: {err_msg}", file=sys.stderr)
+        raise e
+
+def render_code_review_markdown(data, sha):
+    """Renders the AI review JSON output into a structured Markdown comment."""
+    risk_emojis = {"low": "🟢 Low", "medium": "🟡 Medium", "high": "🔴 High"}
+    risk_val = data.get("risk", "low").lower()
+    risk_display = risk_emojis.get(risk_val, f"🟡 {risk_val.capitalize()}")
+
+    rec_display = {
+        "ready": "✅ Ready to Merge",
+        "minor_changes": "⚠️ Merge After Minor Changes",
+        "needs_review": "🔍 Requires Review",
+        "major_changes": "❌ Major Changes Required"
+    }.get(data.get("recommendation", "needs_review"), "🔍 Requires Review")
+
+    breaking = data.get("breaking_changes", [])
+    breaking_section = ""
+    if breaking:
+        breaking_section = "\n".join(f"- {b}" for b in breaking)
+    else:
+        breaking_section = "*No breaking changes identified.*"
+
+    security = data.get("security", [])
+    security_section = ""
+    if security:
+        security_section = "\n".join(f"- {s}" for s in security)
+    else:
+        security_section = "*No immediate security concerns flagged.*"
+
+    performance = data.get("performance", [])
+    performance_section = ""
+    if performance:
+        performance_section = "\n".join(f"- {p}" for p in performance)
+    else:
+        performance_section = "*No performance issues identified.*"
+
+    maintainability = data.get("maintainability", [])
+    maintainability_section = ""
+    if maintainability:
+        maintainability_section = "\n".join(f"- {m}" for m in maintainability)
+    else:
+        maintainability_section = "*Structure and styling look clean.*"
+
+    markdown = f"""<!-- maintainer-intelligence-review -->
+<!-- sha: {sha} -->
+## 🛠 Maintainer Intelligence — Code Review
+
+### Summary
+{data.get('summary', 'No summary provided.')}
+
+---
+
+### 🚦 Evaluation & Triage
+* **Risk Level**: {risk_display}
+* **Recommendation**: **{rec_display}**
+* **Tests Missing**: {"⚠️ Yes" if data.get("tests_missing") else "✅ No"}
+* **Docs Missing**: {"⚠️ Yes" if data.get("documentation_missing") else "✅ No"}
+
+---
+
+### ⚠️ Breaking Changes
+{breaking_section}
+
+### 🔒 Security Audit
+{security_section}
+
+### ⚡ Performance Review
+{performance_section}
+
+### 📐 Maintainability & Standards
+{maintainability_section}
+
+---
+*Generated by Maintainer Intelligence Assistant (v0.3.2)*
+"""
+    return markdown
+
+def render_dependabot_markdown(data, sha):
+    """Renders the Dependabot review JSON output into a structured Markdown comment."""
+    rec_style = {
+        "YES": "✅ YES (Safe to merge immediately)",
+        "NO": "❌ NO (Postpone or decline update)",
+        "REVIEW": "🔍 REVIEW (Needs maintainer manual check)"
+    }.get(data.get("should_merge_immediately", "REVIEW"), "🔍 REVIEW")
+
+    risk_emojis = {"low": "🟢 Low", "medium": "🟡 Medium", "high": "🔴 High"}
+    risk_val = data.get("risk_level", "low").lower()
+    risk_display = risk_emojis.get(risk_val, f"🟡 {risk_val.capitalize()}")
+
+    markdown = f"""<!-- dependabot-review -->
+<!-- sha: {sha} -->
+## 📦 Dependabot Security & Integration Analysis
+
+### Upgrade Details
+* **Package**: `{data.get('package', 'Unknown')}`
+* **Ecosystem**: `{data.get('category', 'Unknown').capitalize()}`
+* **Upgrade**: `{data.get('old_version', 'Unknown')} ➔ {data.get('new_version', 'Unknown')}`
+* **Risk Level**: {risk_display}
+
+### 📋 Recommendation
+* **Should Merge Immediately**: **{rec_style}**
+
+---
+
+### 🔒 Security Relevance
+{data.get('security_relevance', 'None identified.')}
+
+### ⚠️ Breaking Changes
+{data.get('breaking_changes', 'None identified.')}
+
+### 📝 Migration & Integration Notes
+{data.get('migration_notes', 'Standard minor package update. Check if unit tests pass.')}
+
+---
+*Generated by Maintainer Intelligence Assistant (v0.3.2)*
+"""
+    return markdown
+
+def check_cache(owner_repo, pr, sha, token, review_type):
+    """Checks if a review comment has already been posted for the current commit SHA."""
+    url = f"https://api.github.com/repos/{owner_repo}/issues/{pr}/comments"
+    try:
+        comments = make_github_request(url, token=token)
+        tag = f"<!-- {review_type}-review -->"
+        sha_tag = f"<!-- sha: {sha} -->"
+        
+        for c in comments:
+            body = c.get("body", "")
+            if tag in body and sha_tag in body:
+                print("cache_hit=true")
+                return
+        print("cache_hit=false")
+    except Exception as e:
+        print(f"Error checking cache: {e}", file=sys.stderr)
+        # Default to false to be safe
+        print("cache_hit=false")
+
+def upsert_comment(owner_repo, pr, sha, token, input_file, review_type):
+    """Creates a new comment or updates the existing bot comment for this PR."""
+    try:
+        with open(input_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"Error reading JSON output: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # Render Markdown
+    if review_type == "maintainer-intelligence":
+        body_content = render_code_review_markdown(data, sha)
+    elif review_type == "dependabot":
+        body_content = render_dependabot_markdown(data, sha)
+    else:
+        print(f"Invalid review_type: {review_type}", file=sys.stderr)
+        sys.exit(1)
+
+    # Search for previous comment to edit
+    comments_url = f"https://api.github.com/repos/{owner_repo}/issues/{pr}/comments"
+    tag = f"<!-- {review_type}-review -->"
+    comment_id = None
+    
+    try:
+        comments = make_github_request(comments_url, token=token)
+        for c in comments:
+            if tag in c.get("body", ""):
+                comment_id = c.get("id")
+                break
+    except Exception as e:
+        print(f"Error retrieving comments: {e}", file=sys.stderr)
+
+    if comment_id:
+        # Edit existing comment
+        edit_url = f"https://api.github.com/repos/{owner_repo}/issues/comments/{comment_id}"
+        try:
+            make_github_request(edit_url, method="PATCH", token=token, data={"body": body_content})
+            print(f"Updated existing review comment {comment_id}.")
+        except Exception as e:
+            print(f"Failed to edit comment {comment_id}: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        # Create new comment
+        try:
+            make_github_request(comments_url, method="POST", token=token, data={"body": body_content})
+            print("Created new review comment.")
+        except Exception as e:
+            print(f"Failed to create comment: {e}", file=sys.stderr)
+            sys.exit(1)
+
+def apply_labels(owner_repo, pr, token, input_file, review_type):
+    """Applies triage labels based on risk level and missing checks."""
+    try:
+        with open(input_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"Error reading JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    config_path = os.path.join(os.path.dirname(__file__), "../../maintainer-config.yml")
+    config = load_yaml_config(config_path)
+    label_mapping = config.get("labels", {})
+
+    labels_to_add = []
+    
+    if review_type == "maintainer-intelligence":
+        # Risk assessment
+        risk_val = data.get("risk", "low").lower()
+        if risk_val == "high" and "high_risk" in label_mapping:
+            labels_to_add.append(label_mapping["high_risk"])
+        # Coverage checks
+        if data.get("tests_missing") and "missing_tests" in label_mapping:
+            labels_to_add.append(label_mapping["missing_tests"])
+        # Docs checks
+        if data.get("documentation_missing") and "missing_docs" in label_mapping:
+            labels_to_add.append(label_mapping["missing_docs"])
+            
+    elif review_type == "dependabot":
+        risk_val = data.get("risk_level", "low").lower()
+        if risk_val == "high" and "high_risk" in label_mapping:
+            labels_to_add.append(label_mapping["high_risk"])
+        if data.get("should_merge_immediately") == "REVIEW" and "high_risk" in label_mapping:
+            labels_to_add.append(label_mapping["high_risk"])
+
+    # Post labels to GitHub
+    if labels_to_add:
+        # Deduplicate
+        labels_to_add = list(set(labels_to_add))
+        labels_url = f"https://api.github.com/repos/{owner_repo}/issues/{pr}/labels"
+        try:
+            make_github_request(labels_url, method="POST", token=token, data={"labels": labels_to_add})
+            print(f"Applied triage labels: {labels_to_add}")
+        except Exception as e:
+            print(f"Failed to apply labels: {e}", file=sys.stderr)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--action", required=True, choices=["check-cache", "upsert-comment", "apply-labels"])
+    parser.add_argument("--pr", required=True)
+    parser.add_argument("--sha", required=True)
+    parser.add_argument("--input-file", required=False)
+    parser.add_argument("--review-type", required=True, choices=["maintainer-intelligence", "dependabot"])
+    args = parser.parse_args()
+
+    token = os.environ.get("GITHUB_TOKEN", "")
+    owner_repo = os.environ.get("GITHUB_REPOSITORY", "")
+    
+    if not token or not owner_repo:
+        print("GITHUB_TOKEN or GITHUB_REPOSITORY variables are not set. Skipping helper actions.", file=sys.stderr)
+        sys.exit(0)
+
+    if args.action == "check-cache":
+        check_cache(owner_repo, args.pr, args.sha, token, args.review_type)
+    elif args.action == "upsert-comment":
+        if not args.input_file:
+            print("Missing --input-file argument for upsert-comment.", file=sys.stderr)
+            sys.exit(1)
+        upsert_comment(owner_repo, args.pr, args.sha, token, args.input_file, args.review_type)
+    elif args.action == "apply-labels":
+        if not args.input_file:
+            print("Missing --input-file argument for apply-labels.", file=sys.stderr)
+            sys.exit(1)
+        apply_labels(owner_repo, args.pr, token, args.input_file, args.review_type)
+
+if __name__ == "__main__":
+    main()

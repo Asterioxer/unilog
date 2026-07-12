@@ -215,6 +215,17 @@ print(response.json())
 
 For more details on configuration parameters and security disclosures, see [security.md](docs/security.md) and [SECURITY.md](SECURITY.md).
 
+## Maintainer Intelligence
+
+`unilog` uses an automated **Maintainer Intelligence** subsystem to manage code reviews and repository health:
+
+- **Reviewdog Static Analysis**: Inline check annotations on pull requests for Ruff, Mypy, ESLint, and TypeScript compiler errors.
+- **Automated AI Reviews**: Gemini-powered PR reviews triggered after successful CI checks, evaluating changes against repository architecture, invariants, and coding standards.
+- **Automated Dependabot Reviews**: Security and migration assessment for automated dependency updates.
+- **Comment Caching & Triage Labeling**: Edit-in-place comments indexed by commit SHAs to prevent spam, applying `needs-review`, `tests`, or `documentation` labels automatically.
+
+For more details on operations, configuration, and swapping LLM clients, see [maintainer-intelligence.md](docs/maintainer-intelligence.md).
+
 ## Contribution Guide
 
 1. Clone the repository and install dependencies with `uv`:
