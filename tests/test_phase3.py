@@ -29,6 +29,13 @@ def test_cli_detect():
     assert res_thresh.exit_code == 0
     assert "Could not confidently detect log format" in res_thresh.output
 
+    # Test debug flag
+    res_debug = runner.invoke(cli, ["detect", "tests/sample_logs/minimal/nginx.log", "--debug"])
+    assert res_debug.exit_code == 0
+    assert "Confidence Breakdown Details" in res_debug.output
+    assert "Match Score" in res_debug.output
+    assert "Extraction" in res_debug.output
+
 def test_cli_stats():
     runner = CliRunner()
     res = runner.invoke(cli, ["stats", "tests/sample_logs/minimal/nginx.log"])
@@ -40,7 +47,7 @@ def test_cli_stats():
 
 def test_cli_parse_file():
     runner = CliRunner()
-    res = runner.invoke(cli, ["parse", "tests/sample_logs/minimal/nginx.log"], env={"COLUMNS": "160"})
+    res = runner.invoke(cli, ["parse", "tests/sample_logs/minimal/nginx.log"], env={"COLUMNS": "250"})
     assert res.exit_code == 0
     assert "source_ip" in res.output
     assert "status_code" in res.output

@@ -11,13 +11,19 @@ from rich import box
 import unilog
 from unilog.detector import detect as detect_format
 
-console = Console()
+import os
+columns_env = os.environ.get("COLUMNS")
+console = Console(width=int(columns_env) if columns_env else None)
 
 @click.group()
 @click.version_option(version=unilog.__version__)
 def cli():
     """unilog — Universal Log Parser CLI."""
-    pass
+    if os.environ.get("COLUMNS"):
+        try:
+            console.width = int(os.environ["COLUMNS"])
+        except ValueError:
+            pass
 
 @cli.command(name="parse")
 @click.argument("path", required=False)
@@ -94,7 +100,8 @@ def parse_cmd(
 @cli.command(name="detect")
 @click.argument("path")
 @click.option("--threshold", type=float, default=0.6, help="Confidence threshold")
-def detect_cmd(path: str, threshold: float):
+@click.option("--debug", is_flag=True, default=False, help="Show confidence breakdown details")
+def detect_cmd(path: str, threshold: float, debug: bool):
     """Detect the format of a log file."""
     try:
         res = detect_format(path, threshold=threshold)
@@ -111,10 +118,19 @@ def detect_cmd(path: str, threshold: float):
             # Show ambiguity warning if applicable
             if res.get("ambiguous") and res.get("alternatives"):
                 for alt in res["alternatives"]:
+                    diff = (confidence - alt["confidence"]) * 100
                     console.print(
-                        f"[yellow][!] Ambiguous:[/yellow] {alt['format']} is also a close match "
-                        f"({alt['confidence'] * 100:.1f}%)"
+                        f"[yellow][!] Likely {format_name}.[/yellow] "
+                        f"Alternative candidate: [cyan]{alt['format']}[/cyan]. "
+                        f"Confidence difference: {diff:.2f}%"
                     )
+
+        # Print confidence breakdown if debug flag is active
+        if debug and res.get("confidence_breakdown"):
+            console.print("\n[bold cyan]Confidence Breakdown Details:[/bold cyan]")
+            for k, v in res["confidence_breakdown"].items():
+                title = k.replace("_", " ").title()
+                console.print(f"  {title}: {v}")
 
         # Print rankings table (zero-score parsers already filtered by detector)
         if res.get("rankings"):
@@ -123,7 +139,8 @@ def detect_cmd(path: str, threshold: float):
             table.add_column("Confidence Score", style="magenta")
             
             for rank in res["rankings"]:
-                score_pct = f"{rank['confidence'] * 100:.1f}%"
+                # Print rankings with 2 decimal places for better precision context in the CLI
+                score_pct = f"{rank['confidence'] * 100:.2f}%"
                 table.add_row(rank["format"], score_pct)
             console.print(table)
     except Exception as e:
@@ -248,7 +265,10 @@ def _output_dataframe(
         table = Table(box=box.ROUNDED)
         # Add columns
         for col in df.columns:
-            table.add_column(str(col))
+            if col == "raw":
+                table.add_column(str(col), no_wrap=True, overflow="ellipsis")
+            else:
+                table.add_column(str(col))
             
         # Add up to 50 rows for safety in console
         max_rows = 50

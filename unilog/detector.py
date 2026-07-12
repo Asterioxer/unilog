@@ -65,7 +65,7 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
 
             rankings_list.append({
                 "format": fmt_info["name"],
-                "confidence": round(score, 4),
+                "confidence": score,
                 "parser_class": parser_cls,
                 "priority": fmt_info.get("priority", 0),
                 "confidence_breakdown": breakdown,
