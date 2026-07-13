@@ -1,3 +1,4 @@
+import os
 import time
 import uuid
 import logging
@@ -7,9 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 
-from api.routers import health, log
+from api.routers import health, log, system
 from api.dependencies.rate_limiter import limiter
 from api.config import validate_config
+from api.security.network import resolve_client_ip
+from api.utils.middleware import SecurityHeadersMiddleware
 
 # Run startup configuration validation
 validate_config()
@@ -88,13 +91,24 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
 # Global catch-all handler for unexpected errors
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "request_id", "unknown")
+    client_ip = resolve_client_ip(request)
+    logger.error(
+        "An unexpected server error occurred: %s",
+        str(exc),
+        exc_info=True,
+        extra={
+            "request_id": request_id,
+            "client_ip": client_ip
+        }
+    )
     return JSONResponse(
         status_code=500,
         content={
             "success": False,
             "error": {
                 "code": "INTERNAL_SERVER_ERROR",
-                "message": f"An unexpected server error occurred: {exc}",
+                "message": "An unexpected server error occurred.",
                 "details": {}
             }
         }
@@ -105,6 +119,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def request_id_and_logging_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     request.state.request_id = request_id
+    client_ip = resolve_client_ip(request)
     
     start_time = time.time()
     try:
@@ -112,8 +127,8 @@ async def request_id_and_logging_middleware(request: Request, call_next):
     except Exception as exc:
         # Log failure before crash
         logger.error(
-            "request_method=%s request_path=%s status_code=500 error=%s request_id=%s",
-            request.method, request.url.path, str(exc), request_id
+            "request_method=%s request_path=%s status_code=500 error=%s request_id=%s client_ip=%s",
+            request.method, request.url.path, str(exc), request_id, client_ip
         )
         raise exc
         
@@ -121,24 +136,30 @@ async def request_id_and_logging_middleware(request: Request, call_next):
     
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time"] = f"{process_time:.2f}ms"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     
     # Structured key-value logging (logfmt)
     logger.info(
-        "request_method=%s request_path=%s status_code=%d duration_ms=%.2f request_id=%s",
-        request.method, request.url.path, response.status_code, process_time, request_id
+        "request_method=%s request_path=%s status_code=%d duration_ms=%.2f request_id=%s client_ip=%s",
+        request.method, request.url.path, response.status_code, process_time, request_id, client_ip
     )
     return response
+
+# Enable security headers
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Enable gzip compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Enable CORS for local React development
+# Configurable CORS
+cors_env = os.environ.get("UNILOG_CORS_ORIGINS", "")
+if cors_env:
+    cors_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+else:
+    cors_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -147,6 +168,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router)  # root health checks (/health, /live, /ready)
 app.include_router(log.router, prefix="/api/v1")  # versioned endpoints
+app.include_router(system.router, prefix="/api/v1")  # capability telemetry info
 
 if __name__ == "__main__":
     import uvicorn

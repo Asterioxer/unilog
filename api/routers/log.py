@@ -2,9 +2,12 @@ import io
 import json
 import uuid
 import time
+import logging
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
 from fastapi.responses import StreamingResponse
+
 from api.dependencies.rate_limiter import limiter
+from api.security.network import resolve_client_ip
 from typing import Optional
 
 import unilog
@@ -25,6 +28,8 @@ from api.config import (
     UNILOG_DECOMPRESS_CHUNK_SIZE
 )
 from api.utils.decompression import decompress_gzip_safe, DecompressionLimitExceeded
+
+logger = logging.getLogger("unilog-api")
 
 router = APIRouter(tags=["Logs"])
 
@@ -47,7 +52,16 @@ async def parse_logs(request: Request, req: ParseRequest):
         records = df.to_dict(orient="records")
         return {"records": records, "total": len(records)}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse logs: {e}")
+        logger.error(
+            "Failed to parse logs: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Failed to parse logs.")
 
 
 @router.post(
@@ -73,7 +87,16 @@ async def detect_logs(request: Request, req: DetectRequest):
             "reason": res["reason"]
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Format detection failed: {e}")
+        logger.error(
+            "Format detection failed: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Format detection failed.")
 
 
 @router.post(
@@ -103,7 +126,16 @@ async def stats_logs(request: Request, req: StatsRequest):
             "status_codes": s.get("status_codes", {})
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to generate log statistics: {e}")
+        logger.error(
+            "Failed to generate log statistics: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Failed to generate log statistics.")
 
 
 @router.post(
@@ -126,7 +158,16 @@ async def formats_logs(request: Request):
             ))
         return {"formats": result_formats}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve formats: {e}")
+        logger.error(
+            "Failed to retrieve formats: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve formats.")
 
 
 @router.post(
@@ -146,7 +187,16 @@ async def stream_logs(request: Request, req: ParseRequest):
 
         return StreamingResponse(log_generator(), media_type="application/x-json-stream")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Streaming parsing failed: {e}")
+        logger.error(
+            "Streaming parsing failed: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Streaming parsing failed.")
 
 
 @router.post(
@@ -181,7 +231,16 @@ async def upload_log_file(
     try:
         content = await file.read()
     except Exception as read_ex:
-        raise HTTPException(status_code=400, detail=f"Failed to read file payload: {read_ex}")
+        logger.error(
+            "Failed to read file payload: %s",
+            str(read_ex),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Failed to read file payload.")
 
     # Validate size and empty check
     size = len(content)
@@ -196,12 +255,20 @@ async def upload_log_file(
     if size > UNILOG_BACKGROUND_THRESHOLD:
         cleanup_tasks()
         task_id = str(uuid.uuid4())
+        
+        from api.schemas.task import TaskMetadata
+        metadata = TaskMetadata(
+            created_at=time.time(),
+            client_ip=resolve_client_ip(request),
+            owner_id=None
+        )
+        
         tasks_db[task_id] = {
             "status": "processing",
             "filename": filename,
             "result": None,
             "error": None,
-            "created_at": time.time()
+            "metadata": metadata.model_dump()
         }
         background_tasks.add_task(
             process_file_task,
@@ -232,7 +299,16 @@ async def upload_log_file(
             except DecompressionLimitExceeded as limit_ex:
                 raise HTTPException(status_code=413, detail=str(limit_ex))
             except Exception as dec_ex:
-                raise HTTPException(status_code=400, detail=f"Gzip decompression failed: {dec_ex}")
+                logger.error(
+                    "Gzip decompression failed: %s",
+                    str(dec_ex),
+                    exc_info=True,
+                    extra={
+                        "request_id": getattr(request.state, "request_id", "unknown"),
+                        "client_ip": resolve_client_ip(request)
+                    }
+                )
+                raise HTTPException(status_code=400, detail="Gzip decompression failed.")
 
         try:
             text = content.decode("utf-8")
@@ -257,7 +333,16 @@ async def upload_log_file(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Parsing failed: {e}")
+        logger.error(
+            "Parsing failed: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request)
+            }
+        )
+        raise HTTPException(status_code=400, detail="Parsing failed.")
 
 
 @router.get(

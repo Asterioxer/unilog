@@ -31,6 +31,15 @@ Please do not report security vulnerabilities via public GitHub issues. Instead,
 * **Bounded Queue Storage**: Background tasks are stored in memory up to `UNILOG_MAX_TASKS` with a TTL limit of `UNILOG_TASK_TTL_SECONDS` to prevent infinite memory leaks.
 * **JSON Size Caps**: JSON endpoint string variables (`log_text`) are restricted via Pydantic model length validations.
 
+## Operational Security Controls
+
+`unilog` implements operational security hardening configurations for production deployments:
+
+* **Proxy-Aware Rate Limiting**: Configure `UNILOG_TRUST_PROXY=true` and `UNILOG_TRUSTED_PROXIES=127.0.0.1,10.0.0.1` (comma-separated IP whitelist) to resolve genuine client IP addresses through trusted reverse proxies.
+* **Configurable CORS & CSP**: Dynamic CORS origins are configurable via `UNILOG_CORS_ORIGINS`. Response Content-Security-Policy headers can be configured using the `UNILOG_CSP` environment variable (defaults to `default-src 'self'; frame-ancestors 'none';`).
+* **Safe Error Handling**: Internal tracebacks, raw exceptions, and file system paths are suppressed on client responses and recorded to structured server logs containing `request_id` and `client_ip` contexts.
+* **Dependency Auditing**: Supply chain vulnerability scanning is integrated using `pip-audit` checks in CI.
+
 ## Out-of-Scope Issues
 
 The following concerns are out of scope for the core `unilog` library and should be addressed by your deployment orchestration layer:

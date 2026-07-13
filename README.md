@@ -206,8 +206,11 @@ print(response.json())
 
 ## Security
 
-`unilog` is hardened to securely parse untrusted log sources:
+`unilog` is hardened to securely parse untrusted log sources and handle production environments:
 
+- **Proxy-Aware Rate Limiting**: Centralized client IP resolution supports direct socket, X-Forwarded-For, and X-Real-IP headers via `UNILOG_TRUST_PROXY` and `UNILOG_TRUSTED_PROXIES` settings.
+- **Configurable CORS & CSP**: Supports dynamic domain origins and Content Security Policy custom setups via `UNILOG_CORS_ORIGINS` and `UNILOG_CSP` variables.
+- **Safe Error Suppression**: Hides traceback details from clients, logging exceptions securely with request tracking context.
 - **Decompression Bomb Protection**: Gzip decompressions are restricted chunk-by-chunk up to `UNILOG_MAX_DECOMPRESSED_SIZE` to prevent memory exhaustion attacks.
 - **XML Entity Hardening**: Windows Event Log XML parser uses `defusedxml` to block DTD entity expansions (billion laughs).
 - **Eviction Queue Tasks**: Ephemeral background parsing tasks are auto-purged based on TTL and count limits.

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0-alpha.2] - 2026-07-13
+### Added
+- **Proxy-Aware Network Module**: Introduced `api/security/network.py` providing proxy-aware client IP extraction (`resolve_client_ip`) and private/loopback address checkers.
+- **Security Headers Middleware**: Implemented `SecurityHeadersMiddleware` applying strict HTTP headers (`X-Content-Type-Options`, `X-Frame-Options`, CSP, Permissions, Referrer) configurable via the `UNILOG_CSP` environment variable.
+- **System Capability Diagnostics**: Added `GET /api/v1/system/info` route reporting version, active features, registered parsers, and supported formats.
+- **Pydantic TaskMetadata Schema**: Enforced structured task parameters (`created_at`, `client_ip`, `owner_id`) using `TaskMetadata` models.
+- **Informational CI Auditing**: Integrated `pip-audit` checks inside the Python 3.12 CI job matrix using a `continue-on-error` gate.
+- **Safe Error Suppression**: Suppressed raw traceback leakage in route exceptions, returning clean generic descriptions while routing exceptions to structured logs.
+
 ## [0.4.0-alpha.1] - 2026-07-13
 ### Added
 - **Operational Intelligence Core (Release 1)**: Integrated abstract `BaseAnalyzer`, structured `AnalyzerContext` parameter bounds, and `@register_analyzer` explicit metadata decorators.

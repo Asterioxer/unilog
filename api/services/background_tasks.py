@@ -1,5 +1,6 @@
 import io
 import time
+import logging
 from typing import Dict, Any
 
 import unilog
@@ -10,6 +11,8 @@ from api.config import (
     UNILOG_MAX_TASKS
 )
 from api.utils.decompression import decompress_gzip_safe, DecompressionLimitExceeded
+
+logger = logging.getLogger("unilog-api")
 
 # In-memory database of tasks
 # Schema: task_id -> {"status": str, "filename": str, "result": Any, "error": str, "created_at": float}
@@ -44,6 +47,11 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
 
 def process_file_task(task_id: str, content: bytes, filename: str, parser_format: str):
     """Background task processor for log file parsing with safe decompression limits."""
+    existing_task = tasks_db.get(task_id, {})
+    created_at = existing_task.get("created_at", time.time())
+    metadata = existing_task.get("metadata")
+    client_ip = metadata.get("client_ip", "unknown") if metadata else "unknown"
+
     try:
         # Handle gzip decompression
         if filename.endswith(".gz") or content.startswith(b"\x1f\x8b"):
@@ -54,21 +62,34 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
                     chunk_size=UNILOG_DECOMPRESS_CHUNK_SIZE
                 )
             except DecompressionLimitExceeded as size_ex:
+                logger.error(
+                    "Background tasks decompression limit exceeded: %s",
+                    str(size_ex),
+                    extra={"task_id": task_id, "client_ip": client_ip}
+                )
                 tasks_db[task_id] = {
                     "status": "failed",
                     "filename": filename,
                     "result": None,
-                    "error": f"Gzip decompression failed: {size_ex}",
-                    "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
+                    "error": "Gzip decompression limit exceeded.",
+                    "created_at": created_at,
+                    "metadata": metadata
                 }
                 return
             except Exception as ex:
+                logger.error(
+                    "Background tasks decompression failed: %s",
+                    str(ex),
+                    exc_info=True,
+                    extra={"task_id": task_id, "client_ip": client_ip}
+                )
                 tasks_db[task_id] = {
                     "status": "failed",
                     "filename": filename,
                     "result": None,
-                    "error": f"Gzip decompression failed: {ex}",
-                    "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
+                    "error": "Gzip decompression failed.",
+                    "created_at": created_at,
+                    "metadata": metadata
                 }
                 return
 
@@ -99,14 +120,22 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
                 "records": records
             },
             "error": None,
-            "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
+            "created_at": created_at,
+            "metadata": metadata
         }
 
     except Exception as e:
+        logger.error(
+            "Background task execution failed: %s",
+            str(e),
+            exc_info=True,
+            extra={"task_id": task_id, "client_ip": client_ip}
+        )
         tasks_db[task_id] = {
             "status": "failed",
             "filename": filename,
             "result": None,
-            "error": str(e),
-            "created_at": tasks_db.get(task_id, {}).get("created_at", time.time())
+            "error": "Failed to parse log file.",
+            "created_at": created_at,
+            "metadata": metadata
         }
