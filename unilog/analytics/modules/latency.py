@@ -6,6 +6,8 @@ from unilog.analytics.schemas import LatencyMetrics
 from unilog.analytics.aliases import LATENCY_FIELDS
 from unilog.analytics.math_helpers import calculate_percentile
 
+from unilog.analytics.helpers import extract_numeric_field
+
 @register_analyzer("latency", produces=LatencyMetrics)
 class LatencyAnalyzer(BaseAnalyzer):
     """Extract and analyze request processing duration latency percentiles and averages."""
@@ -17,15 +19,9 @@ class LatencyAnalyzer(BaseAnalyzer):
     ) -> BaseModel:
         latencies = []
         for record in records:
-            for field in LATENCY_FIELDS:
-                if field in record:
-                    val = record[field]
-                    if val is not None and val != "-":
-                        try:
-                            latencies.append(float(val))
-                            break  # Match the first available field name
-                        except ValueError:
-                            pass
+            val = extract_numeric_field(record, LATENCY_FIELDS)
+            if val is not None:
+                latencies.append(val)
         
         if not latencies:
             return LatencyMetrics()

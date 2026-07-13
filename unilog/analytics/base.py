@@ -33,6 +33,11 @@ class AnalyzerContext(BaseModel):
         ge=1,
         description="Bucket size for size/latency histograms.",
     )
+    top_ips_limit: int = Field(
+        default=50,
+        ge=1,
+        description="Maximum number of top IPs to return in distribution metrics.",
+    )
 
 
 class BaseAnalyzer(ABC):

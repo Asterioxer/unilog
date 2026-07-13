@@ -5,6 +5,8 @@ from unilog.analytics.registry import register_analyzer
 from unilog.analytics.schemas import BandwidthMetrics, EndpointBandwidth
 from unilog.analytics.aliases import RESPONSE_SIZE_FIELDS
 
+from unilog.analytics.helpers import extract_numeric_field, normalize_endpoint
+
 @register_analyzer("bandwidth", produces=BandwidthMetrics, dependencies=["traffic"])
 class BandwidthAnalyzer(BaseAnalyzer):
     """Aggregate total bytes transferred, throughput rate, and rank top bandwidth consuming routes."""
@@ -19,22 +21,12 @@ class BandwidthAnalyzer(BaseAnalyzer):
         
         for record in records:
             bytes_sent = 0
-            for field in RESPONSE_SIZE_FIELDS:
-                if field in record:
-                    val = record[field]
-                    if val is not None and val != "-":
-                        try:
-                            bytes_sent = int(float(val))
-                            total_bytes_sent += bytes_sent
-                            break
-                        except (ValueError, TypeError):
-                            pass
+            val = extract_numeric_field(record, RESPONSE_SIZE_FIELDS)
+            if val is not None:
+                bytes_sent = int(val)
+                total_bytes_sent += bytes_sent
                             
-            endpoint = record.get("path") or record.get("request") or "unknown"
-            if endpoint.startswith("GET ") or endpoint.startswith("POST ") or endpoint.startswith("PUT "):
-                parts = endpoint.split()
-                if len(parts) > 1:
-                    endpoint = parts[1]
+            endpoint = normalize_endpoint(record)
             endpoint_bytes[endpoint] = endpoint_bytes.get(endpoint, 0) + bytes_sent
             
         window_seconds = context.window_minutes * 60

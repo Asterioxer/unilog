@@ -123,7 +123,22 @@ class MetricsBundle(BaseModel):
     traffic_burst: Optional[TrafficBurstMetrics] = None
 
 
+class Insight(BaseModel):
+    """Structured operation engine insight event."""
+    id: str
+    category: str  # e.g., "security", "performance", "traffic", "reliability"
+    severity: str  # e.g., "low", "medium", "high", "critical"
+    confidence: float
+    timestamp: datetime
+    description: str
+    recommendation: str
+    evidence: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
 class AnalysisResult(BaseModel):
-    """Canonical analysis result containing the metrics bundle and execution telemetry."""
+    """Canonical analysis result containing the metrics bundle, insights list, and execution telemetry."""
     metrics: MetricsBundle
+    insights: List[Insight] = Field(default_factory=list)
     metadata: PerformanceMetadata
+    ruleset_version: str = "1.0"

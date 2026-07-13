@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Any, Mapping, Sequence
 from pydantic import BaseModel
-from dateutil import parser as date_parser
 
 from unilog.analytics.base import BaseAnalyzer, AnalyzerContext
 from unilog.analytics.registry import register_analyzer
 from unilog.analytics.schemas import TrafficBurstMetrics, BurstWindow
+
+from unilog.analytics.helpers import extract_timestamp
 
 @register_analyzer("traffic_burst", produces=TrafficBurstMetrics, dependencies=["traffic"])
 class TrafficBurstAnalyzer(BaseAnalyzer):
@@ -29,15 +30,9 @@ class TrafficBurstAnalyzer(BaseAnalyzer):
         # Group by second timestamp
         rps_counts: dict[datetime, int] = {}
         for record in records:
-            ts_val = record.get("timestamp")
-            if ts_val:
+            dt = extract_timestamp(record)
+            if dt:
                 try:
-                    if isinstance(ts_val, str):
-                        dt = date_parser.isoparse(ts_val)
-                    elif isinstance(ts_val, datetime):
-                        dt = ts_val
-                    else:
-                        continue
                     second_bucket = dt.replace(microsecond=0)
                     rps_counts[second_bucket] = rps_counts.get(second_bucket, 0) + 1
                 except Exception:
