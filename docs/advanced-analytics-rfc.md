@@ -158,10 +158,14 @@ To keep frontend components composable and simple, backend routes are split:
 
 ## 6. Versioned Roadmap
 
-- **Release 1: Core Subsystem Architecture** (Engine, Registry, MetricsBundle, AnalyzerContext). MetricsBundle is intentionally an empty aggregate contract; analyzer-specific fields are added incrementally beginning in Release 2.
-- **Release 2: Core Metrics** (Traffic, Error, Status, Endpoint metric models).
-- **Release 3: Performance Metrics** (Latency and IP distribution models).
-- **Release 4: Decoupled Rule Engine** (Deterministic evaluation logic, RuleSets, Insight schema).
-- **Release 5: React Dashboard Integration** (React selectors, transformers, custom charts hooks).
-- **Release 6: Session Analytics** (Session reconstruction and user journeys).
-- **Release 7: Security Analytics** (Brute force, scan signatures, traversals, and bot signatures).
+- **Release 1: Core Subsystem Architecture** (Engine, Registry, MetricsBundle, AnalyzerContext). (Done)
+- **Release 2: Core Metrics** (Traffic, Error, Status, Endpoint metric models). (Done)
+- **Operational Hardening**: Safe exceptions, CORS, proxy rate limiting. (Done)
+- **Release 3: Performance Analytics** (Latency, IP/size distribution, Bandwidth, Traffic Burst timeline).
+- **Release 4: Rule Engine** (evaluates thresholds, generates alerts).
+- **Release 5: Insight Cards** (UI representation of rule alerts).
+- **Release 6: Session Analytics** (reconstruction of user journeys).
+- **Release 7: Security Analytics** (attack signatures: brute force, SQLi, scans, DDoS).
+- **Release 8: AI Operational Intelligence** (explanations & recommendations via LLM).
+- **Release 9: Live Monitoring Mode** (`tail -f` realtime observability).
+- **Release 10: Correlation Engine** (cross-log correlation & root cause analysis).

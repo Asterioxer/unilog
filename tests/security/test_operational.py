@@ -10,7 +10,7 @@ from api.schemas.task import TaskMetadata
 
 client = TestClient(app, raise_server_exceptions=False)
 
-def make_mock_request(client_host: str, headers: dict = None) -> Request:
+def make_mock_request(client_host: str, headers: dict | None = None) -> Request:
     """Helper to construct a Starlette Request with custom client IP and headers."""
     scope = {
         "type": "http",

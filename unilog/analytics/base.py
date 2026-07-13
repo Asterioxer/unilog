@@ -28,6 +28,11 @@ class AnalyzerContext(BaseModel):
         default_factory=dict,
         description="Metadata from the parsed log format.",
     )
+    histogram_bucket_size: int = Field(
+        default=100,
+        ge=1,
+        description="Bucket size for size/latency histograms.",
+    )
 
 
 class BaseAnalyzer(ABC):

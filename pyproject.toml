@@ -28,8 +28,14 @@ dev = [
     "mypy>=1.0.0",
     "httpx>=0.24.0",
     "pip-audit>=2.0.0",
+    "types-python-dateutil",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+markers = [
+    "performance: benchmark tests assessing execution budgets",
+]
