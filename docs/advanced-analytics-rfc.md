@@ -158,7 +158,7 @@ To keep frontend components composable and simple, backend routes are split:
 
 ## 6. Versioned Roadmap
 
-- **Release 1: Core Subsystem Architecture** (Engine, Registry, MetricsBundle, AnalyzerContext).
+- **Release 1: Core Subsystem Architecture** (Engine, Registry, MetricsBundle, AnalyzerContext). MetricsBundle is intentionally an empty aggregate contract; analyzer-specific fields are added incrementally beginning in Release 2.
 - **Release 2: Core Metrics** (Traffic, Error, Status, Endpoint metric models).
 - **Release 3: Performance Metrics** (Latency and IP distribution models).
 - **Release 4: Decoupled Rule Engine** (Deterministic evaluation logic, RuleSets, Insight schema).

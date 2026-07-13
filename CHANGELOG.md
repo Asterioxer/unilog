@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0-alpha.1] - 2026-07-13
+### Added
+- **Operational Intelligence Core (Release 1)**: Integrated abstract `BaseAnalyzer`, structured `AnalyzerContext` parameter bounds, and `@register_analyzer` explicit metadata decorators.
+- **Core Metrics Collection (Release 2)**: Developed core operational analyzers under `unilog/analytics/modules/`:
+  - `TrafficAnalyzer`: Computes log volume and byte size aggregates.
+  - `ErrorAnalyzer`: Isolates level classifications and computes error-to-info ratios.
+  - `StatusAnalyzer`: Aggregates response status distributions and categories (2xx, 4xx, etc.).
+  - `EndpointAnalyzer`: Ranks requested HTTP routes by frequency.
+- **Auto-Discovery Loader**: Registry automatically maps and resolves analyzer plugins at package load time.
+- **Pipeline Integration Tests**: Verified full compilation pipeline loops.
+
 ## [0.3.4] - 2026-07-12
 ### Added
 - **Release Drafter**: Integrated `.github/release-drafter.yml` and release workflow to automatically catalog draft releases by PR labels.
