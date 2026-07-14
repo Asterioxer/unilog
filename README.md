@@ -42,6 +42,8 @@ flowchart TD
 
 ## Installation
 
+Requires **Python 3.10 or higher**.
+
 ```bash
 pip install unilog
 ```

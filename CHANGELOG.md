@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.5] - 2026-07-14
+### Changed
+- **Minimum Python Version**: Raised the minimum supported Python version constraint to `>=3.10` in `pyproject.toml` and regenerated the locks, dropping compatibility with Python 3.9.
+- **Dependency Security Refresh**: Upgraded `python-multipart`, `starlette`, `urllib3`, `msgpack`, `requests`, `filelock`, `pytest`, and `pip` to safe release constraints, clearing all security advisories.
+
+### Added
+- **Path Traversal Sandboxing**: Enforced directory-isolation container rules via the `UNILOG_SANDBOX_ROOT` environment variable checks inside file gateway utilities.
+
 ## [0.4.0-alpha.2] - 2026-07-13
 ### Added
 - **Proxy-Aware Network Module**: Introduced `api/security/network.py` providing proxy-aware client IP extraction (`resolve_client_ip`) and private/loopback address checkers.

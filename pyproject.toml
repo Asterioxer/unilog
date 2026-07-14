@@ -3,7 +3,7 @@ name = "unilog"
 version = "0.1.0"
 description = "Universal log parser — auto-detects format and returns a pandas DataFrame"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.0.0",
     "click>=8.0.0",
