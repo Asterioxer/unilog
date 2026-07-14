@@ -2,6 +2,7 @@ import gzip
 import io
 import os
 import sys
+from pathlib import Path
 from typing import Generator, List, Optional, Union, Any
 from datetime import datetime
 from dateutil import parser as date_parser  # type: ignore
@@ -53,21 +54,32 @@ def normalize_timestamp(raw: str, fmt: Optional[str] = None) -> Optional[datetim
 
 def validate_path_safety(path: str) -> str:
     """
-    Normalizes the path using realpath. If UNILOG_SANDBOX_ROOT environment variable
-    is defined, validates that the path resolves to a location within the sandbox.
+    Validates that a path string is safe, doesn't contain path traversal or invalid
+    characters, and resides within UNILOG_SANDBOX_ROOT if configured.
     """
-    resolved = os.path.realpath(path)
+    # 1. Block invalid file path patterns (e.g. raw logs containing newlines or null bytes)
+    if "\n" in path or "\r" in path or "\0" in path:
+        raise ValueError("Invalid characters in file path.")
+
+    # 2. Resolve target path
+    path_obj = Path(path)
+    try:
+        resolved = path_obj.resolve(strict=False)
+    except OSError as exc:
+        raise ValueError(f"Invalid path: {path}") from exc
+
+    # 3. Enforce sandbox root containment if set
     sandbox_root = os.getenv("UNILOG_SANDBOX_ROOT")
     if sandbox_root:
-        allowed_dir = os.path.realpath(sandbox_root)
+        root_path = Path(sandbox_root).resolve(strict=False)
         try:
-            common = os.path.commonpath([resolved, allowed_dir])
-            if os.path.realpath(common) != allowed_dir:
+            if not resolved.is_relative_to(root_path):
                 raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
         except ValueError:
-            # Different drives on Windows mean it's definitely not inside the sandbox
+            # Raised if paths are on different drives on Windows or not relative
             raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
-    return resolved
+
+    return str(resolved)
 
 
 def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
