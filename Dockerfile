@@ -1,4 +1,4 @@
-FROM python:3.12.1-slim
+FROM python:3.12.1-slim@sha256:ee9a59cfdad294560241c9a8c8e40034f165feb4af7088c1479c2cdd84aafbed
 
 # Install astral/uv from official registry
 COPY --from=ghcr.io/astral-sh/uv:0.3.3 /uv /uvx /bin/
