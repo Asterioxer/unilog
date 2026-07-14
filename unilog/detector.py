@@ -24,7 +24,8 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
     """
     if isinstance(path_or_stream, str) and path_or_stream != "-":
         import os
-        clean_path = os.path.realpath(path_or_stream)
+        from unilog.utils import validate_path_safety
+        clean_path = validate_path_safety(path_or_stream)
         if not os.path.exists(clean_path):
             raise FileNotFoundError(f"[Errno 2] No such file or directory: '{path_or_stream}'")
         path_or_stream = clean_path

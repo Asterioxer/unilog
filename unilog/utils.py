@@ -51,6 +51,25 @@ def normalize_timestamp(raw: str, fmt: Optional[str] = None) -> Optional[datetim
             pass
         return None
 
+def validate_path_safety(path: str) -> str:
+    """
+    Normalizes the path using realpath. If UNILOG_SANDBOX_ROOT environment variable
+    is defined, validates that the path resolves to a location within the sandbox.
+    """
+    resolved = os.path.realpath(path)
+    sandbox_root = os.getenv("UNILOG_SANDBOX_ROOT")
+    if sandbox_root:
+        allowed_dir = os.path.realpath(sandbox_root)
+        try:
+            common = os.path.commonpath([resolved, allowed_dir])
+            if os.path.realpath(common) != allowed_dir:
+                raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
+        except ValueError:
+            # Different drives on Windows mean it's definitely not inside the sandbox
+            raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
+    return resolved
+
+
 def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
     """
     Reads a file handle or path line-by-line, handling gzip compression,
@@ -66,8 +85,8 @@ def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
             yield line
         return
 
-    # Resolve real path to sanitize path traversal
-    clean_path = os.path.realpath(path)
+    # Resolve real path and enforce sandbox security constraints
+    clean_path = validate_path_safety(path)
     is_gzip = str(clean_path).endswith(".gz")
     open_func = gzip.open if is_gzip else open
 
@@ -102,7 +121,7 @@ def sample_lines(path: Union[str, io.TextIOBase, List[str]], n: int = 50) -> Lis
                     break
                 lines.append(line)
         else:
-            clean_path = os.path.realpath(path)
+            clean_path = validate_path_safety(path)
             is_gzip = str(clean_path).endswith(".gz")
             open_func = gzip.open if is_gzip else open
             try:
