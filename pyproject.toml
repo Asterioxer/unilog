@@ -11,7 +11,7 @@ dependencies = [
     "rich>=13.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
-    "python-multipart>=0.0.6",
+    "python-multipart>=0.0.19",
     "slowapi>=0.1.9",
     "defusedxml>=0.7.1",
 ]
@@ -22,7 +22,7 @@ unilog = "unilog.cli:cli"
 [project.optional-dependencies]
 anomaly = ["scipy>=1.10.0"]
 dev = [
-    "pytest>=7.0.0",
+    "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
