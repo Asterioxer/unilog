@@ -2,7 +2,6 @@ import gzip
 import io
 import os
 import sys
-from pathlib import Path
 from typing import Generator, List, Optional, Union, Any
 from datetime import datetime
 from dateutil import parser as date_parser  # type: ignore
@@ -61,25 +60,18 @@ def validate_path_safety(path: str) -> str:
     if "\n" in path or "\r" in path or "\0" in path:
         raise ValueError("Invalid characters in file path.")
 
-    # 2. Resolve target path
-    path_obj = Path(path)
-    try:
-        resolved = path_obj.resolve(strict=False)
-    except OSError as exc:
-        raise ValueError(f"Invalid path: {path}") from exc
+    # 2. Resolve target path using os.path.realpath
+    resolved = os.path.realpath(path)
 
     # 3. Enforce sandbox root containment if set
     sandbox_root = os.getenv("UNILOG_SANDBOX_ROOT")
     if sandbox_root:
-        root_path = Path(sandbox_root).resolve(strict=False)
-        try:
-            if not resolved.is_relative_to(root_path):
-                raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
-        except ValueError:
-            # Raised if paths are on different drives on Windows or not relative
+        root_path = os.path.realpath(sandbox_root)
+        prefix = root_path if root_path.endswith(os.sep) else root_path + os.sep
+        if not (resolved == root_path or resolved.startswith(prefix)):
             raise PermissionError(f"Access denied: path '{path}' escapes the sandbox root '{sandbox_root}'.")
 
-    return str(resolved)
+    return resolved
 
 
 def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
