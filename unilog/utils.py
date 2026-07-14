@@ -1,5 +1,6 @@
 import gzip
 import io
+import os
 import sys
 from typing import Generator, List, Optional, Union, Any
 from datetime import datetime
@@ -65,16 +66,17 @@ def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
             yield line
         return
 
-    # Check if gzip
-    is_gzip = str(path).endswith(".gz")
+    # Resolve real path to sanitize path traversal
+    clean_path = os.path.realpath(path)
+    is_gzip = str(clean_path).endswith(".gz")
     open_func = gzip.open if is_gzip else open
 
     try:
-        with open_func(path, "rt", encoding="utf-8") as f:
+        with open_func(clean_path, "rt", encoding="utf-8") as f:
             for line in f:
                 yield line
     except UnicodeDecodeError:
-        with open_func(path, "rt", encoding="latin-1") as f:
+        with open_func(clean_path, "rt", encoding="latin-1") as f:
             for line in f:
                 yield line
 
@@ -100,17 +102,18 @@ def sample_lines(path: Union[str, io.TextIOBase, List[str]], n: int = 50) -> Lis
                     break
                 lines.append(line)
         else:
-            is_gzip = str(path).endswith(".gz")
+            clean_path = os.path.realpath(path)
+            is_gzip = str(clean_path).endswith(".gz")
             open_func = gzip.open if is_gzip else open
             try:
-                with open_func(path, "rt", encoding="utf-8") as f:
+                with open_func(clean_path, "rt", encoding="utf-8") as f:
                     for _ in range(n):
                         line = f.readline()
                         if not line:
                             break
                         lines.append(line)
             except UnicodeDecodeError:
-                with open_func(path, "rt", encoding="latin-1") as f:
+                with open_func(clean_path, "rt", encoding="latin-1") as f:
                     for _ in range(n):
                         line = f.readline()
                         if not line:

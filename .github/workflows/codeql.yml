@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '30 18 * * 0' # Weekly run on Sundays at 18:30 UTC
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
