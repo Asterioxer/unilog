@@ -21,10 +21,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install uv and dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv sync --all-extras
+      - name: Set up astral/uv
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.1.2
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
 
       # Ruff Reviewdog Check
       - name: Run Ruff Check
