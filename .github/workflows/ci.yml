@@ -78,7 +78,7 @@ jobs:
       - name: Install Frontend Dependencies
         run: |
           cd frontend
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
 
       - name: Run Frontend Lint (ESLint)
         run: |
