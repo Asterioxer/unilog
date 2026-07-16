@@ -204,6 +204,7 @@ def test_status_analyzer_calculates_categories() -> None:
     metrics = cast(StatusMetrics, analyzer.analyze(records, AnalyzerContext()))
     assert metrics.status_codes == {"200": 2, "404": 1, "500": 1}
     assert metrics.status_categories == {"1xx": 0, "2xx": 2, "3xx": 0, "4xx": 1, "5xx": 1}
+    assert metrics.http_5xx_rate == 0.25
 
 
 def test_endpoint_analyzer_extracts_and_sorts_endpoints() -> None:
@@ -219,6 +220,7 @@ def test_endpoint_analyzer_extracts_and_sorts_endpoints() -> None:
     assert metrics.top_endpoints[0] == {"path": "/index.html", "count": 2}
     assert any(e == {"path": "/api/v1/auth", "count": 1} for e in metrics.top_endpoints)
     assert any(e == {"path": "/login", "count": 1} for e in metrics.top_endpoints)
+    assert metrics.top_endpoint_share == 50.0
 
 
 def test_metrics_engine_compiles_bundle_with_all_metrics() -> None:
@@ -263,9 +265,11 @@ def test_latency_analyzer() -> None:
     metrics = cast(LatencyMetrics, analyzer.analyze(records, AnalyzerContext()))
     
     assert metrics.avg_ms == pytest.approx(200.23, 0.01)
+    assert metrics.min_ms == 100.5
     assert metrics.max_ms == 300.2
     assert metrics.p50_ms == 200.0
     assert metrics.p90_ms == pytest.approx(280.16, 0.01)
+    assert metrics.p95_ms == pytest.approx(290.18, 0.01)
     assert metrics.p99_ms == pytest.approx(298.02, 0.01)
 
 

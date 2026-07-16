@@ -22,11 +22,13 @@ class StatusMetrics(BaseModel):
     """HTTP status code distributions."""
     status_codes: Dict[str, int]
     status_categories: Dict[str, int]
+    http_5xx_rate: Optional[float] = None
 
 
 class EndpointMetrics(BaseModel):
     """Request endpoint metrics mapping frequencies."""
     top_endpoints: List[Dict[str, Any]]
+    top_endpoint_share: Optional[float] = None
 
 
 # --- Release 3 Performance Schemas ---
@@ -81,8 +83,10 @@ class LatencyMetrics(BaseModel):
     """Detailed percentiles and averages of request processing duration latency."""
     p50_ms: Optional[float] = None
     p90_ms: Optional[float] = None
+    p95_ms: Optional[float] = None
     p99_ms: Optional[float] = None
     avg_ms: Optional[float] = None
+    min_ms: Optional[float] = None
     max_ms: Optional[float] = None
 
 

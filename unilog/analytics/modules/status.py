@@ -34,4 +34,14 @@ class StatusAnalyzer(BaseAnalyzer):
                         categories[cat_key] += 1
                 except (ValueError, TypeError):
                     pass
-        return StatusMetrics(status_codes=codes, status_categories=categories)
+
+        total = len(records)
+        http_5xx_rate: float | None = None
+        if total > 0:
+            http_5xx_rate = float(categories["5xx"] / total)
+
+        return StatusMetrics(
+            status_codes=codes,
+            status_categories=categories,
+            http_5xx_rate=http_5xx_rate,
+        )

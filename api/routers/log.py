@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from api.dependencies.rate_limiter import limiter
 from api.security.network import resolve_client_ip
-from typing import Optional
+from typing import Any, Optional
 
 import unilog
 from unilog.registry import get_parser
@@ -19,6 +19,7 @@ from api.schemas.log import (
     FormatsResponse, FormatDetail,
     UploadResponse
 )
+from api.schemas.analyze import AnalyzeRequest, AnalyzeResponse
 from api.services.background_tasks import process_file_task, tasks_db, get_task_status, cleanup_tasks
 from api.config import (
     UNILOG_MAX_FILE_SIZE,
@@ -136,6 +137,90 @@ async def stats_logs(request: Request, req: StatsRequest):
             }
         )
         raise HTTPException(status_code=400, detail="Failed to generate log statistics.")
+
+
+@router.post(
+    "/analyze",
+    response_model=AnalyzeResponse,
+    summary="Run full analytics pipeline",
+    description="Parse log text, compile the MetricsBundle via all registered analyzers, "
+                "optionally evaluate the built-in rule set, and return the complete AnalysisResult.",
+)
+@limiter.limit(RATE_LIMIT_VALUE)
+async def analyze_logs(request: Request, req: AnalyzeRequest):
+    if req.format and req.format != "auto" and not get_parser(req.format):
+        raise HTTPException(status_code=400, detail=f"Invalid format requested: {req.format}")
+    try:
+        # Parse log text into records
+        stream_obj = io.StringIO(req.log_text)
+        records = list(unilog.stream(stream_obj, format=req.format))
+
+        # Compile metrics
+        from unilog.analytics import MetricsEngine, AnalyzerContext
+        context = AnalyzerContext(window_minutes=req.window_minutes)
+        engine = MetricsEngine()
+        result = engine.compile(records, context=context)
+
+        # Optionally evaluate rules
+        insights_response: list[dict[str, Any]] = []
+        if req.enable_rules:
+            from unilog.analytics.rules import RuleEngine as InsightRuleEngine
+            from unilog.analytics.rules.builtin import collect_all_rules
+            from unilog.analytics.rules.models import RuleSet, RuleContext
+            from datetime import datetime, timezone
+
+            ruleset = RuleSet(rules=collect_all_rules())
+            rule_context = RuleContext(
+                timestamp=datetime.now(timezone.utc),
+                window_minutes=req.window_minutes,
+                analyzed_records=result.metadata.analyzed_records,
+                skipped_records=result.metadata.skipped_records,
+            )
+            rule_engine = InsightRuleEngine()
+            triggered_insights = rule_engine.evaluate(
+                bundle=result.metrics,
+                ruleset=ruleset,
+                context=rule_context,
+            )
+            insights_response = [
+                {
+                    "id": ins.id,
+                    "category": ins.category,
+                    "severity": ins.severity,
+                    "confidence": ins.confidence,
+                    "description": ins.description,
+                    "recommendation": ins.recommendation,
+                    "evidence": ins.evidence,
+                }
+                for ins in triggered_insights
+            ]
+
+        return {
+            "metrics": result.metrics.model_dump(exclude_none=True),
+            "insights": insights_response,
+            "metadata": {
+                "analyzed_records": result.metadata.analyzed_records,
+                "skipped_records": result.metadata.skipped_records,
+                "missing_latency_fields": result.metadata.missing_latency_fields,
+                "execution_time_ms": result.metadata.execution_time_ms,
+                "analyzers": [
+                    {"name": a.name, "version": a.version}
+                    for a in result.metadata.analyzers
+                ],
+            },
+            "ruleset_version": result.ruleset_version,
+        }
+    except Exception as e:
+        logger.error(
+            "Analytics pipeline failed: %s",
+            str(e),
+            exc_info=True,
+            extra={
+                "request_id": getattr(request.state, "request_id", "unknown"),
+                "client_ip": resolve_client_ip(request),
+            },
+        )
+        raise HTTPException(status_code=400, detail="Analytics pipeline failed.")
 
 
 @router.post(

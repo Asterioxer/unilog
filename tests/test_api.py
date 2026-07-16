@@ -255,3 +255,45 @@ def test_api_ready_check_failure(monkeypatch):
     assert data["success"] is False
     assert "no parsers registered" in data["error"]["message"]
 
+
+def test_api_analyze():
+    log_text = (
+        '127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] "GET /index.html HTTP/1.1" 500 1043\n'
+        '127.0.0.1 - - [10/Jul/2026:20:54:00 +0530] "GET /index.html HTTP/1.1" 500 1043\n'
+        '127.0.0.1 - - [10/Jul/2026:20:54:01 +0530] "GET /index.html HTTP/1.1" 500 1043\n'
+    )
+    response = client.post(
+        "/api/v1/analyze",
+        json={"log_text": log_text, "format": "nginx", "window_minutes": 5, "enable_rules": True}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "metrics" in data
+    assert "insights" in data
+    assert "metadata" in data
+    assert data["metrics"]["status"]["http_5xx_rate"] == 1.0
+    
+    # Insights should contain the critical HTTP 5xx rate and high error ratio rules triggered
+    triggered_categories = {ins["category"] for ins in data["insights"]}
+    assert "reliability" in triggered_categories
+
+
+def test_api_analyze_invalid_format():
+    log_text = '127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] "GET /index.html HTTP/1.1" 200 1043'
+    response = client.post(
+        "/api/v1/analyze",
+        json={"log_text": log_text, "format": "invalid_format"}
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert data["success"] is False
+    assert "Invalid format requested" in data["error"]["message"]
+
+
+def test_api_openapi_schema_contains_analyze():
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+    assert "/api/v1/analyze" in schema["paths"]
+
+

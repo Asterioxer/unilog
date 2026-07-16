@@ -27,15 +27,19 @@ class LatencyAnalyzer(BaseAnalyzer):
             return LatencyMetrics()
             
         avg_ms = float(sum(latencies) / len(latencies))
+        min_ms = float(min(latencies))
         max_ms = float(max(latencies))
         p50_ms = calculate_percentile(latencies, 50.0)
         p90_ms = calculate_percentile(latencies, 90.0)
+        p95_ms = calculate_percentile(latencies, 95.0)
         p99_ms = calculate_percentile(latencies, 99.0)
         
         return LatencyMetrics(
             p50_ms=p50_ms,
             p90_ms=p90_ms,
+            p95_ms=p95_ms,
             p99_ms=p99_ms,
             avg_ms=avg_ms,
+            min_ms=min_ms,
             max_ms=max_ms
         )

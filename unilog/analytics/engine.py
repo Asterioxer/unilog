@@ -9,6 +9,7 @@ from unilog.analytics.base import AnalyzerContext
 from unilog.analytics.registry import resolve_analyzers, validate_analyzer_registry
 from unilog.analytics.schemas import AnalysisResult, MetricsBundle, PerformanceMetadata, AnalyzerInfo
 from unilog.analytics.aliases import LATENCY_FIELDS
+from unilog.analytics.rules.models import RuleSet
 
 
 class MetricsEngine:
@@ -21,6 +22,7 @@ class MetricsEngine:
         self,
         records: Sequence[Mapping[str, Any]],
         context: Optional[AnalyzerContext] = None,
+        ruleset: Optional[RuleSet] = None,
     ) -> AnalysisResult:
         """Run analyzers in dependency order and validate their bundle fields."""
         analysis_context = context or AnalyzerContext()
@@ -55,7 +57,22 @@ class MetricsEngine:
         )
 
         bundle = MetricsBundle.model_validate(metric_values)
-        return AnalysisResult(metrics=bundle, metadata=metadata)
+
+        insights = []
+        if ruleset:
+            from unilog.analytics.rules import RuleEngine, RuleContext
+            from datetime import datetime, timezone
+            rule_context = RuleContext(
+                timestamp=datetime.now(timezone.utc),
+                window_minutes=analysis_context.window_minutes,
+                analyzed_records=analyzed_records,
+                skipped_records=skipped_records,
+                parser_metadata=analysis_context.parser_metadata,
+            )
+            rule_engine = RuleEngine()
+            insights = rule_engine.evaluate(bundle, ruleset, rule_context)
+
+        return AnalysisResult(metrics=bundle, insights=insights, metadata=metadata)
 
     @staticmethod
     def _validate_metric(
