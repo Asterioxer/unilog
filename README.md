@@ -131,6 +131,35 @@ unilog parse access.log --output table --head 10
 unilog parse access.log --output json --chunksize 1000
 ```
 
+## Analytics Pipeline & Observability
+
+`unilog` features a structured log intelligence pipeline to compile metrics, reconstruct user sessions, map journeys, and detect security threats:
+
+```mermaid
+flowchart TD
+    A[Raw Logs] --> B[Log Parser]
+    B --> C[Metrics Engine]
+    C --> D[Session Analyzer]
+    D --> E[Journey Analyzer]
+    E --> F[Security Analyzer]
+    F --> G[Rule Engine]
+    G --> H[Operational & Security Insights]
+```
+
+### Log Intelligence Maturity Curve
+- **v0.1 — Parse**: Extract raw structured fields with zero configuration.
+- **v0.2 — Understand**: Compute metrics for status codes, latency percentiles, and traffic bursts.
+- **v0.3 — Secure Pipeline**: Harden decompression, rate limits, and sanitize error disclosures.
+- **v0.4 — Operational Intelligence**: Group timeline requests into chronological sessions, trace user conversion stages, evaluate code injection vulnerabilities, and surface threat mitigation insights.
+
+### Built-in Analyzers
+1. **Session Reconstruction (`SessionAnalyzer`)**: Groups logs by client IP and groups requests into sessions using a 30-minute inactivity timeout. Tracks bounce rate and average session duration.
+2. **User Journey Funnel (`JourneyAnalyzer`)**: Maps requests to user stages (`Landing -> Products -> Product -> Cart -> Checkout`) and computes funnel conversion rates.
+3. **Security Intelligence (`SecurityAnalyzer`)**: Scan requests for threat profiles:
+   - **Brute Force**: High login failures ratio and lockout candidates.
+   - **Probes**: Vulnerability scans for backups/admin panels (`.env`, `wp-admin`, `.git`).
+   - **Injections**: Code injection payloads including SQLi, XSS, Path Traversal, and RCE.
+
 ## REST API Platform
 
 `unilog` includes a complete FastAPI-based REST API backend to power web clients and remote scripts.

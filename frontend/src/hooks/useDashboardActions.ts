@@ -35,6 +35,7 @@ export const useDashboardActions = () => {
         insights: null,
         session: null,
         journey: null,
+        security: null,
         derivedData: {},
         lastUpdated: null,
       },
@@ -98,6 +99,7 @@ export const useDashboardActions = () => {
         insights: null,
         session: null,
         journey: null,
+        security: null,
         derivedData: {},
         lastUpdated: null,
       },
@@ -159,6 +161,7 @@ export const useDashboardActions = () => {
             insights: stats.insights || [],
             session: stats.session || null,
             journey: stats.journey || null,
+            security: stats.security || null,
             lastUpdated: new Date().toISOString(),
           },
           metadata: {
@@ -280,6 +283,7 @@ export const useDashboardActions = () => {
                       insights: stats.insights || [],
                       session: stats.session || null,
                       journey: stats.journey || null,
+                      security: stats.security || null,
                       lastUpdated: new Date().toISOString(),
                     },
                     metadata: {

@@ -144,6 +144,44 @@ export interface JourneyMetrics {
   funnel: Record<string, number>;
 }
 
+export interface BruteForceMetrics {
+  failed_logins_per_ip: Record<string, number>;
+  failure_ratio: number;
+  lockout_candidates: string[];
+  lockout_candidates_count: number;
+}
+
+export interface EnumerationMetrics {
+  distinct_endpoints_per_ip: Record<string, number>;
+  error_404_ratio: number;
+}
+
+export interface BotMetrics {
+  requests_per_minute: Record<string, number>;
+  missing_user_agent_count: number;
+  headless_fingerprints_count: number;
+}
+
+export interface ScannerMetrics {
+  scanned_ips: Record<string, number>;
+  scanner_hits_count: number;
+}
+
+export interface InjectionMetrics {
+  sql_injection_count: number;
+  xss_injection_count: number;
+  path_traversal_count: number;
+  rce_cmd_injection_count: number;
+}
+
+export interface SecurityMetrics {
+  brute_force: BruteForceMetrics;
+  enumeration: EnumerationMetrics;
+  bot_metrics: BotMetrics;
+  scanner_metrics: ScannerMetrics;
+  injection_metrics: InjectionMetrics;
+}
+
 export interface AnalyzeResponse {
   metrics: Record<string, unknown>;
   insights: InsightResponse[];
@@ -152,6 +190,7 @@ export interface AnalyzeResponse {
   format?: string;
   session?: SessionMetrics;
   journey?: JourneyMetrics;
+  security?: SecurityMetrics;
 }
 
 export interface ApiErrorDetail {

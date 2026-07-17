@@ -26,14 +26,15 @@ import TopIPsChart from "../components/charts/TopIPsChart";
 import TopEndpointsChart from "../components/charts/TopEndpointsChart";
 import TimelineChart from "../components/charts/TimelineChart";
 
-import type { FormatDetail, SessionMetrics, JourneyMetrics } from "../types/api";
+import type { FormatDetail, SessionMetrics, JourneyMetrics, SecurityMetrics } from "../types/api";
 import { transformMetricsToStats } from "../utils/metricsTransformer";
 import InsightCardsList from "../components/InsightCardsList";
 import SessionObserver from "../components/SessionObserver";
+import SecurityObserver from "../components/SecurityObserver";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
-  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions">("overview");
+  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security">("overview");
   
   const { state, setState } = useDashboardContext();
   const queryClient = useQueryClient();
@@ -149,6 +150,7 @@ function DashboardContent() {
               insights: taskRes.result?.insights || [],
               session: (taskRes.result?.metrics?.session as SessionMetrics) || null,
               journey: (taskRes.result?.metrics?.journey as JourneyMetrics) || null,
+              security: (taskRes.result?.metrics?.security as SecurityMetrics) || null,
               lastUpdated: new Date().toISOString()
             },
             metadata: {
@@ -509,6 +511,16 @@ function DashboardContent() {
                 >
                   Session Observability & Journeys
                 </button>
+                <button
+                  onClick={() => setActiveResultTab("security")}
+                  className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
+                    activeResultTab === "security" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Security Intelligence
+                </button>
               </div>
 
               {activeResultTab === "overview" ? (
@@ -578,10 +590,15 @@ function DashboardContent() {
                     </ChartCard>
                   </div>
                 </>
-              ) : (
+              ) : activeResultTab === "sessions" ? (
                 <SessionObserver 
                   sessionMetrics={state.analysis.session} 
                   journeyMetrics={state.analysis.journey}
+                  isProcessing={isProcessing}
+                />
+              ) : (
+                <SecurityObserver 
+                  securityMetrics={state.analysis.security} 
                   isProcessing={isProcessing}
                 />
               )}

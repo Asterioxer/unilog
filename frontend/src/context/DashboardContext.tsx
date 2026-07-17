@@ -14,6 +14,7 @@ const DEFAULT_STATE: DashboardState = {
     insights: null,
     session: null,
     journey: null,
+    security: null,
     derivedData: {},
     lastUpdated: null,
   },

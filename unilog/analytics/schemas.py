@@ -156,6 +156,50 @@ class JourneyMetrics(BaseModel):
     funnel: Dict[str, int] = Field(default_factory=dict)
 
 
+class BruteForceMetrics(BaseModel):
+    """Brute force authentication attempt indicators."""
+    failed_logins_per_ip: Dict[str, int] = Field(default_factory=dict)
+    failure_ratio: float = 0.0
+    lockout_candidates: List[str] = Field(default_factory=list)
+    lockout_candidates_count: int = 0
+
+
+class EnumerationMetrics(BaseModel):
+    """directory and path scanning indicators."""
+    distinct_endpoints_per_ip: Dict[str, int] = Field(default_factory=dict)
+    error_404_ratio: float = 0.0
+
+
+class BotMetrics(BaseModel):
+    """Automated traffic and bot activity metrics."""
+    requests_per_minute: Dict[str, float] = Field(default_factory=dict)
+    missing_user_agent_count: int = 0
+    headless_fingerprints_count: int = 0
+
+
+class ScannerMetrics(BaseModel):
+    """Security probes and standard vulnerabilities scanner hits."""
+    scanned_ips: Dict[str, int] = Field(default_factory=dict)
+    scanner_hits_count: int = 0
+
+
+class InjectionMetrics(BaseModel):
+    """Structured code injection attempt counts."""
+    sql_injection_count: int = 0
+    xss_injection_count: int = 0
+    path_traversal_count: int = 0
+    rce_cmd_injection_count: int = 0
+
+
+class SecurityMetrics(BaseModel):
+    """Canonical security analytics indicators summary."""
+    brute_force: BruteForceMetrics
+    enumeration: EnumerationMetrics
+    bot_metrics: BotMetrics
+    scanner_metrics: ScannerMetrics
+    injection_metrics: InjectionMetrics
+
+
 class MetricsBundle(BaseModel):
     """Canonical aggregate produced by the Metrics Engine."""
     model_config = ConfigDict(extra="forbid")
@@ -170,6 +214,7 @@ class MetricsBundle(BaseModel):
     traffic_burst: Optional[TrafficBurstMetrics] = None
     session: Optional[SessionMetrics] = None
     journey: Optional[JourneyMetrics] = None
+    security: Optional[SecurityMetrics] = None
 
 
 class Insight(BaseModel):
