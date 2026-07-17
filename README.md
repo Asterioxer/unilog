@@ -1,17 +1,23 @@
-# unilog — Universal Log Parser
+# unilog — Universal Log Parser & Analytics Platform
 
-Parse any log file into a clean pandas DataFrame with zero configuration.
+Parse any log file into a clean pandas DataFrame, compile rich operational metrics, reconstruct user sessions, map conversion funnels, and detect security threats — all with zero configuration.
 
 [![CI](https://github.com/Asterioxer/unilog/actions/workflows/ci.yml/badge.svg)](https://github.com/Asterioxer/unilog/actions/workflows/ci.yml)
 
 ## Features
 
-- **Zero Configuration**: Simply call `unilog.parse("any.log")`
-- **Auto-Detection**: Dynamically detects formats based on heuristics, regex, and confidence validation.
-- **Streaming Parser**: Stream lines instead of loading everything to memory using `unilog.stream("any.log")`.
-- **Pluggable Architecture**: Easily register custom formats and statistics analyzers.
+- **Zero Configuration**: Simply call `unilog.parse("any.log")`.
+- **Auto-Detection**: Dynamically detects formats based on heuristics, regex, and confidence scoring.
+- **Streaming Parser**: Stream lines lazily without loading everything into memory via `unilog.stream("any.log")`.
+- **Pluggable Architecture**: Register custom formats and statistics analyzers at runtime.
+- **Analytics Pipeline**: Parse → Metrics → Sessions → Journeys → Security Analyzer → Rule Engine → Insights.
+- **Rule Engine**: 12 built-in rules across 4 categories — performance, reliability, traffic, and security.
+- **Insight Cards**: Browser-rendered insight cards with severity, description, confidence, and recommendations.
+- **Session & Security Observer**: Interactive frontend panels for behavioral session analytics and security threat detection.
 - **Rich CLI**: Pretty output format choices including JSON, CSV, and Tables.
-- **Fully Typed & Tested**: High test coverage, complete type hinting, and robust CI checking.
+- **REST API**: FastAPI backend with full Swagger docs, background task support, and rate limiting.
+- **React Dashboard**: Upload logs via drag-and-drop, inspect metrics, view insight cards, session analytics, and security intelligence in a modern SPA.
+- **Fully Typed & Tested**: High test coverage (≥92%), complete type hinting, and robust CI/CD.
 
 ## Architecture
 
@@ -24,8 +30,81 @@ flowchart TD
     D -- No --> F[Unknown / Fallback Parser]
     E --> G[DataFrame / Record Generator]
     F --> G
-    G --> H[unilog.stats / Plugins]
+    G --> H[MetricsEngine]
+    H --> I[Rule Engine]
+    I --> J[Insight Cards / REST API / Dashboard]
 ```
+
+## Analytics Pipeline
+
+`unilog` features a full log intelligence pipeline from raw bytes to actionable security insights:
+
+```mermaid
+flowchart TD
+    A[Raw Logs] --> B[Log Parser]
+    B --> C[Metrics Engine]
+    C --> D[Session Analyzer]
+    D --> E[Journey Analyzer]
+    E --> F[Security Analyzer]
+    F --> G[Rule Engine]
+    G --> H[Operational & Security Insights]
+```
+
+### Log Intelligence Maturity
+
+| Release | Capability | What It Adds |
+| :---: | :--- | :--- |
+| v0.1 | Parse | Zero-config format detection and DataFrame extraction |
+| v0.2 | Understand | Latency percentiles, status distribution, traffic burst metrics |
+| v0.3 | Secure Pipeline | Decompression bomb protection, rate limiting, proxy-aware IP resolution |
+| v0.4 | Rule Engine | 12 built-in rules across 4 categories, triggered Insight objects |
+| v0.5 | Insight Cards | Frontend Insight Card components, backend-driven analytics, `POST /api/v1/analyze` |
+| v0.6 | Session Analytics | Session reconstruction, bounce rate, journey funnel conversion, SessionObserver UI |
+| v0.7 | Security Intelligence | Dedicated SecurityAnalyzer, SecurityObserver UI panel with threat profiles |
+
+### Built-in Analyzers
+
+All analyzers are auto-registered and run in dependency order by the `MetricsEngine`:
+
+| Analyzer | Module | What It Produces |
+| :--- | :--- | :--- |
+| `StatusAnalyzer` | `modules/status.py` | HTTP status code distribution, 2xx/4xx/5xx rates |
+| `LatencyAnalyzer` | `modules/latency.py` | p50, p95, p99 latency in milliseconds |
+| `TrafficAnalyzer` | `modules/traffic.py` | Requests per minute, hourly breakdown |
+| `EndpointAnalyzer` | `modules/endpoint.py` | Top endpoints by request count, top endpoint share |
+| `BandwidthAnalyzer` | `modules/bandwidth.py` | Total bytes, bytes per second throughput |
+| `BurstAnalyzer` | `modules/burst.py` | Traffic burst detection, peak window |
+| `ErrorAnalyzer` | `modules/error.py` | Error ratio, top error-generating IPs |
+| `DistributionAnalyzer` | `modules/distribution.py` | Method and status code breakdown |
+| `SessionAnalyzer` | `modules/session.py` | Session reconstruction, bounce rate, avg session duration |
+| `JourneyAnalyzer` | `modules/journey.py` | Landing → Products → Product → Cart → Checkout funnel conversion |
+| `SecurityAnalyzer` | `modules/security_analyzer.py` | Brute force, enumeration, bot fingerprints, probes, injections |
+
+### Built-in Rule Engine
+
+Rules are evaluated against the `MetricsBundle` output and generate typed `Insight` objects:
+
+**Performance Rules**
+- `high-latency-p99` — P99 latency > 500ms (`high`)
+- `high-latency-p95` — P95 latency > 300ms (`medium`)
+
+**Reliability Rules**
+- `high-error-ratio` — Error ratio > 5% (`high`)
+- `high-5xx-rate` — HTTP 5xx rate > 2% (`critical`)
+
+**Traffic Rules**
+- `traffic-burst` — Traffic burst anomaly detected (`medium`)
+- `bandwidth-spike` — Bandwidth throughput > 10 KB/s (`medium`)
+- `endpoint-overload` — Single endpoint > 50% of total traffic (`medium`)
+
+**Security Rules**
+- `sec-bot-01` — Headless browser fingerprints detected (`high`)
+- `sec-cs-02` — Credential stuffing / lockout candidates identified (`critical`)
+- `sec-enum-03` — 404 error ratio > 10% (directory enumeration) (`high`)
+- `sec-scan-04` — Probe hits on `.env`, `wp-admin`, `.git`, etc. (`high`)
+- `sec-inj-05` — SQL injection payload signatures in request URIs (`critical`)
+- `sec-inj-06` — XSS payload signatures in request URIs (`critical`)
+- `sec-inj-07` — Path traversal escape sequences detected (`critical`)
 
 ## Supported Formats
 
@@ -70,6 +149,45 @@ for record in unilog.stream("huge_production.log"):
         print(f"Malformed: {record['raw']}")
     else:
         print(f"Valid log from: {record.get('source_ip')}")
+```
+
+## Analytics Pipeline Example
+
+Run the full analytics + rule engine pipeline programmatically:
+
+```python
+import unilog
+from unilog.analytics import MetricsEngine, AnalyzerContext
+from unilog.analytics.rules import RuleEngine
+from unilog.analytics.rules.builtin import collect_all_rules
+from unilog.analytics.rules.models import RuleSet, RuleContext
+from datetime import datetime, timezone
+
+# Parse into records
+records = list(unilog.stream("access.log"))
+
+# Compile all metrics (sessions, journeys, security included)
+context = AnalyzerContext(window_minutes=60)
+engine = MetricsEngine()
+result = engine.compile(records, context=context)
+
+# Evaluate built-in rules to generate insights
+ruleset = RuleSet(rules=collect_all_rules())
+rule_context = RuleContext(
+    timestamp=datetime.now(timezone.utc),
+    window_minutes=60,
+    analyzed_records=result.metadata.analyzed_records,
+    skipped_records=result.metadata.skipped_records,
+)
+insights = RuleEngine().evaluate(
+    bundle=result.metrics,
+    ruleset=ruleset,
+    context=rule_context,
+)
+
+for insight in insights:
+    print(f"[{insight.severity.upper()}] {insight.description}")
+    print(f"  → {insight.recommendation}")
 ```
 
 ## Statistics Plugin Example
@@ -131,35 +249,6 @@ unilog parse access.log --output table --head 10
 unilog parse access.log --output json --chunksize 1000
 ```
 
-## Analytics Pipeline & Observability
-
-`unilog` features a structured log intelligence pipeline to compile metrics, reconstruct user sessions, map journeys, and detect security threats:
-
-```mermaid
-flowchart TD
-    A[Raw Logs] --> B[Log Parser]
-    B --> C[Metrics Engine]
-    C --> D[Session Analyzer]
-    D --> E[Journey Analyzer]
-    E --> F[Security Analyzer]
-    F --> G[Rule Engine]
-    G --> H[Operational & Security Insights]
-```
-
-### Log Intelligence Maturity Curve
-- **v0.1 — Parse**: Extract raw structured fields with zero configuration.
-- **v0.2 — Understand**: Compute metrics for status codes, latency percentiles, and traffic bursts.
-- **v0.3 — Secure Pipeline**: Harden decompression, rate limits, and sanitize error disclosures.
-- **v0.4 — Operational Intelligence**: Group timeline requests into chronological sessions, trace user conversion stages, evaluate code injection vulnerabilities, and surface threat mitigation insights.
-
-### Built-in Analyzers
-1. **Session Reconstruction (`SessionAnalyzer`)**: Groups logs by client IP and groups requests into sessions using a 30-minute inactivity timeout. Tracks bounce rate and average session duration.
-2. **User Journey Funnel (`JourneyAnalyzer`)**: Maps requests to user stages (`Landing -> Products -> Product -> Cart -> Checkout`) and computes funnel conversion rates.
-3. **Security Intelligence (`SecurityAnalyzer`)**: Scan requests for threat profiles:
-   - **Brute Force**: High login failures ratio and lockout candidates.
-   - **Probes**: Vulnerability scans for backups/admin panels (`.env`, `wp-admin`, `.git`).
-   - **Injections**: Code injection payloads including SQLi, XSS, Path Traversal, and RCE.
-
 ## REST API Platform
 
 `unilog` includes a complete FastAPI-based REST API backend to power web clients and remote scripts.
@@ -182,16 +271,20 @@ Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
 
 ### API Endpoints
 
+**Health**
 - `GET /health` - General status of the REST service.
 - `GET /live` - Liveness health check status (Kubernetes standard).
 - `GET /ready` - Readiness health check status (Kubernetes standard).
-- `POST /api/v1/parse` - Parse raw log text payload.
-- `POST /api/v1/detect` - Detect format with confidence score list.
-- `POST /api/v1/stats` - Generate metrics (Top IPs, levels, endpoints, bytes).
+
+**Log Analysis**
+- `POST /api/v1/parse` - Parse raw log text payload into structured records.
+- `POST /api/v1/detect` - Detect format with ranked confidence scores.
+- `POST /api/v1/stats` - Generate summary statistics (top IPs, log levels, endpoints, bytes).
+- `POST /api/v1/analyze` - **Full analytics pipeline**: parse → metrics → sessions → journeys → security → rule engine → insights. Returns `MetricsBundle` + `Insight[]`.
 - `POST /api/v1/formats` - List all registered parser configurations.
 - `POST /api/v1/stream` - Parse logs and stream JSON records line-by-line.
-- `POST /api/v1/upload` - Upload file for parsing. Large files (>1MB) parse asynchronously in background tasks and return a `task_id`.
-- `GET /api/v1/tasks/{task_id}` - Retrieve progress or result of background upload parsing.
+- `POST /api/v1/upload` - Upload file for parsing. Large files (>1MB) parse asynchronously and return a `task_id`.
+- `GET /api/v1/tasks/{task_id}` - Retrieve progress or result of a background upload task.
 
 ### API Architecture
 
@@ -200,8 +293,9 @@ flowchart LR
     Client([HTTP Client]) --> |HTTP requests| API[FastAPI Engine]
     API --> |Health Check| Health[health router]
     API --> |Log Analysis| Log[log router]
-    Log --> |Upload size > 1MB| BG[BackgroundTasks service]
-    Log --> |Upload size <= 1MB| Core[unilog core]
+    Log --> |/analyze| Pipeline[MetricsEngine + RuleEngine]
+    Log --> |Upload > 1MB| BG[BackgroundTasks service]
+    Log --> |Upload <= 1MB| Core[unilog core]
     BG --> |Asynchronous processing| Core
 ```
 
@@ -212,6 +306,13 @@ flowchart LR
 curl -X POST http://localhost:8000/api/v1/parse \
   -H "Content-Type: application/json" \
   -d '{"log_text": "127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] \"GET /index.html HTTP/1.1\" 200 1043", "format": "nginx"}'
+```
+
+**Run full analytics pipeline:**
+```bash
+curl -X POST http://localhost:8000/api/v1/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"log_text": "...", "format": "auto", "enable_rules": true, "window_minutes": 60}'
 ```
 
 **Upload log file:**
@@ -226,14 +327,45 @@ curl -X POST http://localhost:8000/api/v1/upload \
 ```python
 import requests
 
-url = "http://localhost:8000/api/v1/parse"
+# Run the full analytics pipeline with rules enabled
+url = "http://localhost:8000/api/v1/analyze"
 payload = {
-    "log_text": '127.0.0.1 - - [10/Jul/2026:20:53:59 +0530] "GET /index.html HTTP/1.1" 200 1043',
-    "format": "auto"
+    "log_text": open("access.log").read(),
+    "format": "auto",
+    "enable_rules": True,
+    "window_minutes": 60,
 }
 response = requests.post(url, json=payload)
-print(response.json())
+data = response.json()
+
+print(f"Analyzed: {data['metadata']['analyzed_records']} records")
+for insight in data["insights"]:
+    print(f"[{insight['severity'].upper()}] {insight['description']}")
 ```
+
+## React Dashboard
+
+`unilog` ships with a fully-featured React + TypeScript SPA dashboard.
+
+### Running the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev   # starts at http://localhost:5173
+```
+
+### Dashboard Features
+
+- **Upload Panel**: Drag-and-drop or paste raw log text directly for instant analysis.
+- **Summary Cards**: Animated metric cards for total requests, error rate, P99 latency, and bandwidth.
+- **Charts**: Status code distribution, latency timeline, top endpoints, and method breakdown.
+- **Logs Table**: Filterable, sortable, and keyboard-navigable log record table with column visibility toggles and CSV/JSON export.
+- **Insight Cards** (`InsightCard`, `InsightCardsList`): Render rule-generated insights with severity badge, confidence meter, description, category tag, and recommendations.
+- **Session Observer** (`SessionObserver`): Visualizes reconstructed user sessions, bounce rate, average session duration, and journey funnel conversion steps.
+- **Security Observer** (`SecurityObserver`): Displays threat profiles for brute force, bot fingerprints, directory enumeration, vulnerability probes, and injection attempts with expandable IP-level drill-downs.
+- **Dark / Light Theme**: Persistent theme preference via `ThemeProvider`.
+- **Keyboard Shortcuts**: Global keyboard shortcuts for navigation and actions.
 
 ## Security
 
@@ -279,4 +411,11 @@ For more details on operations, configuration, and swapping LLM clients, see [ma
    uv run mypy unilog api
    uv run pytest --cov=unilog --cov=api --cov-report=term-missing
    ```
-3. Ensure coverage remains at or above 92%.
+3. For frontend development:
+   ```bash
+   cd frontend
+   npm ci
+   npm run test
+   npm run build
+   ```
+4. Ensure backend coverage remains at or above 92%.
