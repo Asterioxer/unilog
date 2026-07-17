@@ -81,7 +81,7 @@ export interface TaskResponse {
     records: Record<string, unknown>[];
     total: number;
     format: string;
-    metrics?: Record<string, any>;
+    metrics?: Record<string, unknown>;
     insights?: InsightResponse[];
   } | null;
   error: string | null;
@@ -94,7 +94,7 @@ export interface InsightResponse {
   confidence: number;
   description: string;
   recommendation: string;
-  evidence: Record<string, any>;
+  evidence: Record<string, unknown>;
 }
 
 export interface AnalyzeMetadata {
@@ -106,7 +106,7 @@ export interface AnalyzeMetadata {
 }
 
 export interface AnalyzeResponse {
-  metrics: Record<string, any>;
+  metrics: Record<string, unknown>;
   insights: InsightResponse[];
   metadata: AnalyzeMetadata;
   ruleset_version: string;
