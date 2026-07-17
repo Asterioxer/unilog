@@ -105,12 +105,53 @@ export interface AnalyzeMetadata {
   analyzers: { name: string; version: string }[];
 }
 
+export interface SessionRequest {
+  timestamp: string;
+  method: string;
+  path: string;
+  status_code: number;
+  size: number;
+  journey_stage: string;
+}
+
+export interface Session {
+  session_id: string;
+  client_ip: string;
+  start_time: string;
+  end_time: string;
+  duration_seconds: number;
+  request_count: number;
+  requests: SessionRequest[];
+  journey: string[];
+}
+
+export interface SessionMetrics {
+  average_session_duration_seconds: number;
+  bounce_rate: number;
+  pages_per_session: number;
+  requests_per_session: number;
+  active_sessions_count: number;
+  longest_session_duration_seconds: number;
+  sessions: Session[];
+  possible_bot_count: number;
+  credential_stuffing_count: number;
+  endpoint_enumeration_count: number;
+}
+
+export interface JourneyMetrics {
+  journeys: string[][];
+  stage_counts: Record<string, number>;
+  funnel: Record<string, number>;
+}
+
 export interface AnalyzeResponse {
   metrics: Record<string, unknown>;
   insights: InsightResponse[];
   metadata: AnalyzeMetadata;
   ruleset_version: string;
   format?: string;
+  session?: SessionMetrics;
+  journey?: JourneyMetrics;
 }
 
 export interface ApiErrorDetail {

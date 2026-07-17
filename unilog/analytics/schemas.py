@@ -113,6 +113,49 @@ class TrafficBurstMetrics(BaseModel):
     is_bursting: bool
 
 
+class SessionRequest(BaseModel):
+    """Normalized request item inside a reconstructed session."""
+    timestamp: datetime
+    method: str
+    path: str
+    status_code: int
+    size: int
+    journey_stage: str = "Other"
+
+
+class Session(BaseModel):
+    """Reconstructed user request session details."""
+    session_id: str
+    client_ip: str
+    start_time: datetime
+    end_time: datetime
+    duration_seconds: float
+    request_count: int
+    requests: List[SessionRequest]
+    journey: List[str] = Field(default_factory=list)
+
+
+class SessionMetrics(BaseModel):
+    """Aggregate statistics representing user session behaviors."""
+    average_session_duration_seconds: float
+    bounce_rate: float
+    pages_per_session: float
+    requests_per_session: float
+    active_sessions_count: int
+    longest_session_duration_seconds: float
+    sessions: List[Session] = Field(default_factory=list)
+    possible_bot_count: int = 0
+    credential_stuffing_count: int = 0
+    endpoint_enumeration_count: int = 0
+
+
+class JourneyMetrics(BaseModel):
+    """funnel and page progression flow metrics."""
+    journeys: List[List[str]] = Field(default_factory=list)
+    stage_counts: Dict[str, int] = Field(default_factory=dict)
+    funnel: Dict[str, int] = Field(default_factory=dict)
+
+
 class MetricsBundle(BaseModel):
     """Canonical aggregate produced by the Metrics Engine."""
     model_config = ConfigDict(extra="forbid")
@@ -125,6 +168,8 @@ class MetricsBundle(BaseModel):
     distribution: Optional[DistributionMetrics] = None
     bandwidth: Optional[BandwidthMetrics] = None
     traffic_burst: Optional[TrafficBurstMetrics] = None
+    session: Optional[SessionMetrics] = None
+    journey: Optional[JourneyMetrics] = None
 
 
 class Insight(BaseModel):

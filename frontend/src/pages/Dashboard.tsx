@@ -26,12 +26,14 @@ import TopIPsChart from "../components/charts/TopIPsChart";
 import TopEndpointsChart from "../components/charts/TopEndpointsChart";
 import TimelineChart from "../components/charts/TimelineChart";
 
-import type { FormatDetail } from "../types/api";
+import type { FormatDetail, SessionMetrics, JourneyMetrics } from "../types/api";
 import { transformMetricsToStats } from "../utils/metricsTransformer";
 import InsightCardsList from "../components/InsightCardsList";
+import SessionObserver from "../components/SessionObserver";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
+  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions">("overview");
   
   const { state, setState } = useDashboardContext();
   const queryClient = useQueryClient();
@@ -145,6 +147,8 @@ function DashboardContent() {
               ...prev.analysis,
               stats: statsResponse,
               insights: taskRes.result?.insights || [],
+              session: (taskRes.result?.metrics?.session as SessionMetrics) || null,
+              journey: (taskRes.result?.metrics?.journey as JourneyMetrics) || null,
               lastUpdated: new Date().toISOString()
             },
             metadata: {
@@ -483,70 +487,104 @@ function DashboardContent() {
 
           {state.analysis.stats && (
             <>
-              {/* Detail Visualizations Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Log Level Distribution */}
-                <ChartCard
-                  title="Log Level Distribution"
-                  description="Severities breakdown"
-                  loading={isProcessing}
-                  empty={chartLogLevels.length === 0}
-                  emptyTitle="No Levels Detected"
-                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not map severity indicators.`}
+              {/* Tab Switcher for Analytics Results */}
+              <div className="flex border-b border-border mb-6">
+                <button
+                  onClick={() => setActiveResultTab("overview")}
+                  className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
+                    activeResultTab === "overview" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  <LogLevelChart data={chartLogLevels} />
-                </ChartCard>
-
-                {/* HTTP Status Codes */}
-                <ChartCard
-                  title="HTTP Status Codes"
-                  description="Response status frequencies"
-                  loading={isProcessing}
-                  empty={chartStatusCodes.length === 0}
-                  emptyTitle="No Status Codes"
-                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not capture HTTP response statuses.`}
+                  Metrics Overview
+                </button>
+                <button
+                  onClick={() => setActiveResultTab("sessions")}
+                  className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
+                    activeResultTab === "sessions" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  <StatusCodeChart data={chartStatusCodes} />
-                </ChartCard>
+                  Session Observability & Journeys
+                </button>
               </div>
 
-              {/* Requests Over Time */}
-              <ChartCard
-                title="Requests Over Time"
-                description="Timeline rate metrics"
-                loading={isProcessing}
-                empty={chartTimeline.length === 0}
-                emptyTitle="No Timeline Available"
-                emptyDescription={`No timestamp data available to construct timeline.`}
-              >
-                <TimelineChart data={chartTimeline} />
-              </ChartCard>
+              {activeResultTab === "overview" ? (
+                <>
+                  {/* Detail Visualizations Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Log Level Distribution */}
+                    <ChartCard
+                      title="Log Level Distribution"
+                      description="Severities breakdown"
+                      loading={isProcessing}
+                      empty={chartLogLevels.length === 0}
+                      emptyTitle="No Levels Detected"
+                      emptyDescription={`This log format (${state.analysis.stats?.format}) does not map severity indicators.`}
+                    >
+                      <LogLevelChart data={chartLogLevels} />
+                    </ChartCard>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Top IP Addresses */}
-                <ChartCard
-                  title="Top Client IPs"
-                  description="Active request sources"
-                  loading={isProcessing}
-                  empty={chartTopIps.length === 0}
-                  emptyTitle="No Client IP Data"
-                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not contain remote host IP addresses.`}
-                >
-                  <TopIPsChart data={chartTopIps} />
-                </ChartCard>
+                    {/* HTTP Status Codes */}
+                    <ChartCard
+                      title="HTTP Status Codes"
+                      description="Response status frequencies"
+                      loading={isProcessing}
+                      empty={chartStatusCodes.length === 0}
+                      emptyTitle="No Status Codes"
+                      emptyDescription={`This log format (${state.analysis.stats?.format}) does not capture HTTP response statuses.`}
+                    >
+                      <StatusCodeChart data={chartStatusCodes} />
+                    </ChartCard>
+                  </div>
 
-                {/* Top Requested Paths */}
-                <ChartCard
-                  title="Top Endpoints & Resources"
-                  description="Frequently requested paths"
-                  loading={isProcessing}
-                  empty={chartTopEndpoints.length === 0}
-                  emptyTitle="No Path Data"
-                  emptyDescription={`This log format (${state.analysis.stats?.format}) does not record server resource paths.`}
-                >
-                  <TopEndpointsChart data={chartTopEndpoints} />
-                </ChartCard>
-              </div>
+                  {/* Requests Over Time */}
+                  <ChartCard
+                    title="Requests Over Time"
+                    description="Timeline rate metrics"
+                    loading={isProcessing}
+                    empty={chartTimeline.length === 0}
+                    emptyTitle="No Timeline Available"
+                    emptyDescription={`No timestamp data available to construct timeline.`}
+                  >
+                    <TimelineChart data={chartTimeline} />
+                  </ChartCard>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Top IP Addresses */}
+                    <ChartCard
+                      title="Top Client IPs"
+                      description="Active request sources"
+                      loading={isProcessing}
+                      empty={chartTopIps.length === 0}
+                      emptyTitle="No Client IP Data"
+                      emptyDescription={`This log format (${state.analysis.stats?.format}) does not contain remote host IP addresses.`}
+                    >
+                      <TopIPsChart data={chartTopIps} />
+                    </ChartCard>
+
+                    {/* Top Requested Paths */}
+                    <ChartCard
+                      title="Top Endpoints & Resources"
+                      description="Frequently requested paths"
+                      loading={isProcessing}
+                      empty={chartTopEndpoints.length === 0}
+                      emptyTitle="No Path Data"
+                      emptyDescription={`This log format (${state.analysis.stats?.format}) does not record server resource paths.`}
+                    >
+                      <TopEndpointsChart data={chartTopEndpoints} />
+                    </ChartCard>
+                  </div>
+                </>
+              ) : (
+                <SessionObserver 
+                  sessionMetrics={state.analysis.session} 
+                  journeyMetrics={state.analysis.journey}
+                  isProcessing={isProcessing}
+                />
+              )}
             </>
           )}
         </div>
