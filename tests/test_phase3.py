@@ -288,19 +288,7 @@ def test_windows_parser_xml_fallbacks():
     assert res_err.get("_parse_error") is True
 
 def test_registry_load_entry_points_exceptions():
-    from unittest.mock import patch, MagicMock
-    from unilog.registry import load_entry_points, register_parser
-    
-    # Mock entry_points to raise an exception
-    with patch("importlib.metadata.entry_points", side_effect=Exception("Failed to load group")):
-        load_entry_points() # should handle exception and pass
-        
-    # Mock entry_points to return a broken entry point
-    mock_ep = MagicMock()
-    mock_ep.load.side_effect = Exception("Broken ep")
-    
-    with patch("importlib.metadata.entry_points", return_value=[mock_ep]):
-        load_entry_points() # should handle exception in ep.load() and pass
+    from unilog.registry import register_parser
 
     # TypeError on invalid class
     import pytest

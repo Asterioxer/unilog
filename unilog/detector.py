@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-from unilog.registry import list_formats, load_entry_points
+from unilog.registry import list_formats
 from unilog.utils import sample_lines
 
 # Configurable threshold for ambiguity detection.
@@ -42,9 +42,6 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
             "confidence_breakdown": None,
             "reason": "Input is empty or could not be read."
         }
-
-    # Load registry plugins
-    load_entry_points()
 
     formats = list_formats()
     rankings_list: List[Dict[str, Any]] = []
