@@ -52,13 +52,13 @@ describe("apiService integration wrappers", () => {
     expect(postSpy).toHaveBeenCalledWith("/api/v1/parse", { log_text: "log lines", format: "nginx" });
   });
 
-  it("calls generateStats metrics processor", async () => {
-    const mockRes = { total_lines: 0 };
+  it("calls analyzeLogs pipeline processor", async () => {
+    const mockRes = { metrics: {}, insights: [] };
     const postSpy = vi.spyOn(apiClient, "post").mockResolvedValueOnce({ data: mockRes } as unknown as never);
 
-    const data = await apiService.generateStats("log lines", "nginx");
+    const data = await apiService.analyzeLogs("log lines", "nginx", 5, true);
     expect(data).toEqual(mockRes);
-    expect(postSpy).toHaveBeenCalledWith("/api/v1/stats", { log_text: "log lines", format: "nginx" });
+    expect(postSpy).toHaveBeenCalledWith("/api/v1/analyze", { log_text: "log lines", format: "nginx", window_minutes: 5, enable_rules: true });
   });
 
   it("calls uploadFile file upload utility", async () => {

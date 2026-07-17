@@ -11,7 +11,7 @@ export const useStatsQuery = () => {
   return useMutation({
     mutationKey: queryKeys.stats,
     mutationFn: async ({ logText, format }: StatsPayload) => {
-      return apiService.generateStats(logText, format === "auto" ? undefined : format);
+      return apiService.analyzeLogs(logText, format === "auto" ? undefined : format);
     },
   });
 };

@@ -15,21 +15,32 @@ const MOCK_DETECT_RESPONSE = {
   reason: "Pattern match heuristic"
 };
 
-const MOCK_STATS_RESPONSE = {
-  format: "nginx",
-  total_lines: 500,
-  error_rate: 2.5,
-  http_5xx_rate: null,
-  time_range: ["2026-07-11T12:00:00Z", "2026-07-11T13:00:00Z"],
-  top_ips: [
-    { ip: "192.168.1.100", count: 350, percentage: 70 },
-    { ip: "10.0.0.5", count: 150, percentage: 30 }
-  ],
-  log_levels: { INFO: 480, ERROR: 20 },
-  top_endpoints: [
-    { endpoint: "/api/v1/user", count: 400, percentage: 80 }
-  ],
-  bytes_transferred: 512000
+const MOCK_ANALYZE_RESPONSE = {
+  metrics: {
+    traffic: { total_requests: 500, volume_bytes: 512000 },
+    error: { total_errors: 20, error_ratio: 0.025, errors_by_level: { INFO: 480, ERROR: 20 } },
+    status: { status_codes: {}, status_categories: {}, http_5xx_rate: null },
+    endpoint: { top_endpoints: [{ endpoint: "/api/v1/user", count: 400, percentage: 80 }], top_endpoint_share: 80.0 },
+    latency: { p50_ms: null, p90_ms: null, p95_ms: null, p99_ms: null, avg_ms: null, min_ms: null, max_ms: null },
+    distribution: { 
+      top_ips: [
+        { ip: "192.168.1.100", requests: 350 },
+        { ip: "10.0.0.5", requests: 150 }
+      ] 
+    },
+    bandwidth: { total_bytes_sent: 512000, bytes_per_second: 0.0, top_bandwidth_endpoints: [] },
+    traffic_burst: { average_rps: 0.0, peak_rps: 0.0, burst_ratio: 0.0, burst_windows: [], is_bursting: false }
+  },
+  insights: [],
+  metadata: {
+    analyzed_records: 500,
+    skipped_records: 0,
+    missing_latency_fields: 0,
+    execution_time_ms: 10.0,
+    analyzers: []
+  },
+  ruleset_version: "1.0",
+  format: "nginx"
 };
 
 describe("Dashboard page interactive metrics flows", () => {
@@ -66,7 +77,7 @@ describe("Dashboard page interactive metrics flows", () => {
   });
 
   it("submits raw text paste for analysis and renders stats widgets", async () => {
-    vi.spyOn(apiService, "generateStats").mockResolvedValueOnce(MOCK_STATS_RESPONSE);
+    vi.spyOn(apiService, "analyzeLogs").mockResolvedValueOnce(MOCK_ANALYZE_RESPONSE);
     vi.spyOn(apiService, "detectFormat").mockResolvedValueOnce(MOCK_DETECT_RESPONSE);
     vi.spyOn(apiService, "parseLog").mockResolvedValueOnce({ records: [], total: 0 });
 
@@ -114,7 +125,7 @@ describe("Dashboard page interactive metrics flows", () => {
       records: []
     });
 
-    vi.spyOn(apiService, "generateStats").mockResolvedValueOnce(MOCK_STATS_RESPONSE);
+    vi.spyOn(apiService, "analyzeLogs").mockResolvedValueOnce(MOCK_ANALYZE_RESPONSE);
     vi.spyOn(apiService, "detectFormat").mockResolvedValueOnce(MOCK_DETECT_RESPONSE);
 
     render(<Dashboard />, { wrapper });
@@ -158,6 +169,7 @@ describe("Dashboard page interactive metrics flows", () => {
       filename: "large.log",
       result: {
         total: 10,
+        format: "nginx",
         records: [
           { level: "ERROR", client_ip: "127.0.0.1", path: "/admin", bytes_sent: 500 },
           { level: "INFO", client_ip: "127.0.0.1", path: "/index", bytes_sent: 200 }

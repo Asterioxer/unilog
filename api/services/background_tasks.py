@@ -109,6 +109,44 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
         df = unilog.parse_string(text, format=resolved_format)
         records = df.to_dict(orient="records")
 
+        # Compile metrics via MetricsEngine
+        from unilog.analytics import MetricsEngine, AnalyzerContext
+        context = AnalyzerContext(window_minutes=5)
+        engine = MetricsEngine()
+        result = engine.compile(records, context=context)
+
+        # Evaluate rules
+        from unilog.analytics.rules import RuleEngine as InsightRuleEngine
+        from unilog.analytics.rules.builtin import collect_all_rules
+        from unilog.analytics.rules.models import RuleSet, RuleContext
+        from datetime import datetime, timezone
+
+        ruleset = RuleSet(rules=collect_all_rules())
+        rule_context = RuleContext(
+            timestamp=datetime.now(timezone.utc),
+            window_minutes=5,
+            analyzed_records=result.metadata.analyzed_records,
+            skipped_records=result.metadata.skipped_records,
+        )
+        rule_engine = InsightRuleEngine()
+        triggered_insights = rule_engine.evaluate(
+            bundle=result.metrics,
+            ruleset=ruleset,
+            context=rule_context,
+        )
+        insights_response = [
+            {
+                "id": ins.id,
+                "category": ins.category,
+                "severity": ins.severity,
+                "confidence": ins.confidence,
+                "description": ins.description,
+                "recommendation": ins.recommendation,
+                "evidence": ins.evidence,
+            }
+            for ins in triggered_insights
+        ]
+
         # Extract basic statistics to return alongside records
         total_records = len(records)
         tasks_db[task_id] = {
@@ -117,7 +155,9 @@ def process_file_task(task_id: str, content: bytes, filename: str, parser_format
             "result": {
                 "format": resolved_format,
                 "total": total_records,
-                "records": records
+                "records": records,
+                "metrics": result.metrics.model_dump(exclude_none=True),
+                "insights": insights_response
             },
             "error": None,
             "created_at": created_at,

@@ -7,6 +7,7 @@ import { useDetectionQuery } from "./useDetectionQuery";
 import { queryKeys } from "../services/queryKeys";
 import { apiService } from "../services/apiService";
 import type { DashboardError } from "../types/dashboard";
+import { transformMetricsToStats } from "../utils/metricsTransformer";
 
 export const useDashboardActions = () => {
   const { state, setState } = useDashboardContext();
@@ -31,6 +32,7 @@ export const useDashboardActions = () => {
       analysis: {
         stats: null,
         detect: null,
+        insights: null,
         derivedData: {},
         lastUpdated: null,
       },
@@ -91,6 +93,7 @@ export const useDashboardActions = () => {
       analysis: {
         stats: null,
         detect: null,
+        insights: null,
         derivedData: {},
         lastUpdated: null,
       },
@@ -140,13 +143,16 @@ export const useDashboardActions = () => {
         const [stats, detect, parseRes] = await Promise.all([statsPromise, detectPromise, parsePromise]);
         queryClient.setQueryData(queryKeys.records, parseRes.records);
 
+        const statsResponse = transformMetricsToStats(stats.metrics, stats.format || detect.format || "unknown");
+
         setState((prev) => ({
           ...prev,
           status: "ready",
           analysis: {
             ...prev.analysis,
-            stats,
+            stats: statsResponse,
             detect,
+            insights: stats.insights || [],
             lastUpdated: new Date().toISOString(),
           },
           metadata: {
@@ -255,13 +261,17 @@ export const useDashboardActions = () => {
                     detectMutation.mutateAsync({ logText: text }),
                   ]);
                   queryClient.setQueryData(queryKeys.records, data.records);
+
+                  const statsResponse = transformMetricsToStats(stats.metrics, stats.format || data.format || detect.format || "unknown");
+
                   setState((prev) => ({
                     ...prev,
                     status: "ready",
                     analysis: {
                       ...prev.analysis,
-                      stats,
+                      stats: statsResponse,
                       detect,
+                      insights: stats.insights || [],
                       lastUpdated: new Date().toISOString(),
                     },
                     metadata: {

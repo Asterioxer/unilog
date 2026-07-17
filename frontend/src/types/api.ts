@@ -80,8 +80,37 @@ export interface TaskResponse {
   result: {
     records: Record<string, unknown>[];
     total: number;
+    format: string;
+    metrics?: Record<string, any>;
+    insights?: InsightResponse[];
   } | null;
   error: string | null;
+}
+
+export interface InsightResponse {
+  id: string;
+  category: string;
+  severity: string;
+  confidence: number;
+  description: string;
+  recommendation: string;
+  evidence: Record<string, any>;
+}
+
+export interface AnalyzeMetadata {
+  analyzed_records: number;
+  skipped_records: number;
+  missing_latency_fields: number;
+  execution_time_ms: number;
+  analyzers: { name: string; version: string }[];
+}
+
+export interface AnalyzeResponse {
+  metrics: Record<string, any>;
+  insights: InsightResponse[];
+  metadata: AnalyzeMetadata;
+  ruleset_version: string;
+  format?: string;
 }
 
 export interface ApiErrorDetail {

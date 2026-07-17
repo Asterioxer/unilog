@@ -11,6 +11,7 @@ const DEFAULT_STATE: DashboardState = {
   analysis: {
     stats: null,
     detect: null,
+    insights: null,
     derivedData: {},
     lastUpdated: null,
   },

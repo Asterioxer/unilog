@@ -27,6 +27,8 @@ import TopEndpointsChart from "../components/charts/TopEndpointsChart";
 import TimelineChart from "../components/charts/TimelineChart";
 
 import type { FormatDetail } from "../types/api";
+import { transformMetricsToStats } from "../utils/metricsTransformer";
+import InsightCardsList from "../components/InsightCardsList";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
@@ -74,56 +76,57 @@ function DashboardContent() {
       if (taskRes.result) {
         const records = taskRes.result.records;
         queryClient.setQueryData(queryKeys.records, records);
-        const levels: Record<string, number> = {};
-        const ips: Record<string, number> = {};
-        const endpoints: Record<string, number> = {};
-        const statusCodes: Record<string, number> = {};
-        let errors = 0;
-        let bytes = 0;
 
-        records.forEach((r) => {
-          const lvl = String(r["level"] || r["log_level"] || "unknown").toUpperCase();
-          levels[lvl] = (levels[lvl] || 0) + 1;
+        setState((prev) => {
+          let statsResponse;
+          if (taskRes.result?.metrics) {
+            statsResponse = transformMetricsToStats(taskRes.result.metrics, taskRes.result.format || prev.analysis.stats?.format || prev.ui.selectedFormat);
+          } else {
+            const levels: Record<string, number> = {};
+            const ips: Record<string, number> = {};
+            const endpoints: Record<string, number> = {};
+            const statusCodes: Record<string, number> = {};
+            let errors = 0;
+            let bytes = 0;
 
-          if (lvl.includes("ERR") || lvl.includes("FAIL")) {
-            errors++;
-          }
+            records.forEach((r) => {
+              const lvl = String(r["level"] || r["log_level"] || "unknown").toUpperCase();
+              levels[lvl] = (levels[lvl] || 0) + 1;
 
-          const ip = String(r["client_ip"] || r["source_ip"] || r["ip"] || "unknown");
-          ips[ip] = (ips[ip] || 0) + 1;
+              if (lvl.includes("ERR") || lvl.includes("FAIL")) {
+                errors++;
+              }
 
-          const path = String(r["request_path"] || r["path"] || r["url"] || "unknown");
-          endpoints[path] = (endpoints[path] || 0) + 1;
+              const ip = String(r["client_ip"] || r["source_ip"] || r["ip"] || "unknown");
+              ips[ip] = (ips[ip] || 0) + 1;
 
-          const status = String(r["status_code"] || r["status"] || "");
-          if (status) {
-            statusCodes[status] = (statusCodes[status] || 0) + 1;
-          }
+              const path = String(r["request_path"] || r["path"] || r["url"] || "unknown");
+              endpoints[path] = (endpoints[path] || 0) + 1;
 
-          if (r["bytes_sent"]) {
-            bytes += Number(r["bytes_sent"]);
-          }
-        });
+              const status = String(r["status_code"] || r["status"] || "");
+              if (status) {
+                statusCodes[status] = (statusCodes[status] || 0) + 1;
+              }
 
-        const total = records.length || 1;
-        const topIps = Object.entries(ips)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([ip, val]) => ({ ip, count: val, percentage: (val / total) * 100 }));
+              if (r["bytes_sent"]) {
+                bytes += Number(r["bytes_sent"]);
+              }
+            });
 
-        const topEndpoints = Object.entries(endpoints)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([endpoint, val]) => ({ endpoint, count: val, percentage: (val / total) * 100 }));
+            const total = records.length || 1;
+            const topIps = Object.entries(ips)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5)
+              .map(([ip, val]) => ({ ip, count: val, percentage: (val / total) * 100 }));
 
-        setState((prev) => ({
-          ...prev,
-          status: "ready",
-          analysis: {
-            ...prev.analysis,
-            stats: {
-              format: prev.analysis.stats?.format || prev.ui.selectedFormat,
-              total_lines: taskRes.result!.total,
+            const topEndpoints = Object.entries(endpoints)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5)
+              .map(([endpoint, val]) => ({ endpoint, count: val, percentage: (val / total) * 100 }));
+
+            statsResponse = {
+              format: taskRes.result?.format || prev.analysis.stats?.format || prev.ui.selectedFormat,
+              total_lines: taskRes.result?.total || 0,
               error_rate: (errors / total) * 100,
               http_5xx_rate: 0.0,
               time_range: null,
@@ -132,15 +135,25 @@ function DashboardContent() {
               top_endpoints: topEndpoints,
               bytes_transferred: bytes,
               status_codes: statusCodes
-            },
-            lastUpdated: new Date().toISOString()
-          },
-          metadata: {
-            ...prev.metadata,
-            completedAt: new Date().toISOString(),
-            processingDurationMs: performance.now() - startTimeRef.current
+            };
           }
-        }));
+
+          return {
+            ...prev,
+            status: "ready",
+            analysis: {
+              ...prev.analysis,
+              stats: statsResponse,
+              insights: taskRes.result?.insights || [],
+              lastUpdated: new Date().toISOString()
+            },
+            metadata: {
+              ...prev.metadata,
+              completedAt: new Date().toISOString(),
+              processingDurationMs: performance.now() - startTimeRef.current
+            }
+          };
+        });
       }
     },
     (err) => {
@@ -391,6 +404,9 @@ function DashboardContent() {
       {/* Analytics Visualizations Panels */}
       {(state.analysis.stats || isProcessing) && (
         <div className="space-y-8 animate-fade-in">
+          {/* Rule Engine Insights */}
+          <InsightCardsList insights={state.analysis.insights} />
+
           {/* Card Metrics Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <SummaryCard

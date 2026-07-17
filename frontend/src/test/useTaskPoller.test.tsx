@@ -39,7 +39,7 @@ describe("useTaskPoller react query poller hook", () => {
       .mockResolvedValueOnce({
         status: "completed",
         filename: "test.log",
-        result: { records: [], total: 0 },
+        result: { records: [], total: 0, format: "nginx" },
         error: null,
       });
 

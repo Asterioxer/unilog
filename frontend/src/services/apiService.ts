@@ -6,6 +6,7 @@ import type {
   StatsResponse,
   UploadResponse,
   TaskResponse,
+  AnalyzeResponse,
 } from "../types/api";
 
 export const apiService = {
@@ -49,6 +50,17 @@ export const apiService = {
     const { data } = await apiClient.post<StatsResponse>("/api/v1/stats", {
       log_text: logText,
       format,
+    });
+    return data;
+  },
+
+  // Run full analytics pipeline
+  async analyzeLogs(logText: string, format?: string, windowMinutes: number = 5, enableRules: boolean = true): Promise<AnalyzeResponse> {
+    const { data } = await apiClient.post<AnalyzeResponse>("/api/v1/analyze", {
+      log_text: logText,
+      format: format === "auto" ? undefined : format,
+      window_minutes: windowMinutes,
+      enable_rules: enableRules,
     });
     return data;
   },

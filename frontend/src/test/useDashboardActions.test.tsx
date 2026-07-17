@@ -54,6 +54,27 @@ describe("useDashboardActions Hook", () => {
   });
 
   it("should perform optimistic reset and run stats & detect mutations in paste mode", async () => {
+    const mockAnalyzeResponse = {
+      metrics: {
+        traffic: { total_requests: 1, volume_bytes: 0 },
+        error: { total_errors: 0, error_ratio: 0.0, errors_by_level: {} },
+        status: { status_codes: {}, status_categories: {}, http_5xx_rate: 0.0 },
+        endpoint: { top_endpoints: [] },
+        distribution: { top_ips: [] },
+        bandwidth: { total_bytes_sent: 0 }
+      },
+      insights: [],
+      metadata: {
+        analyzed_records: 1,
+        skipped_records: 0,
+        missing_latency_fields: 0,
+        execution_time_ms: 1.0,
+        analyzers: []
+      },
+      ruleset_version: "1.0",
+      format: "nginx"
+    };
+
     const mockStatsResponse = {
       format: "nginx",
       total_lines: 1,
@@ -64,6 +85,7 @@ describe("useDashboardActions Hook", () => {
       log_levels: {},
       top_endpoints: [],
       bytes_transferred: 0,
+      status_codes: {}
     };
 
     const mockDetectResponse = {
@@ -73,7 +95,7 @@ describe("useDashboardActions Hook", () => {
       reason: "Matched Nginx format",
     };
 
-    vi.spyOn(apiService, "generateStats").mockResolvedValue(mockStatsResponse);
+    vi.spyOn(apiService, "analyzeLogs").mockResolvedValue(mockAnalyzeResponse);
     vi.spyOn(apiService, "detectFormat").mockResolvedValue(mockDetectResponse);
     vi.spyOn(apiService, "parseLog").mockResolvedValue({ records: [], total: 0 });
 

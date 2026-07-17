@@ -1,4 +1,4 @@
-import type { StatsResponse, DetectResponse } from "./api";
+import type { StatsResponse, DetectResponse, InsightResponse } from "./api";
 
 export type DashboardStatus =
   | "idle"
@@ -38,6 +38,7 @@ export interface DerivedData {
 export interface AnalysisState {
   stats: StatsResponse | null;
   detect: DetectResponse | null;
+  insights: InsightResponse[] | null;
   derivedData: DerivedData;
   lastUpdated: string | null;    // ISO Timestamp
 }
