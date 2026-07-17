@@ -2,10 +2,9 @@
 
 import pytest
 from datetime import datetime, timedelta
-from unilog.analytics import AnalyzerContext, MetricsEngine
+from unilog.analytics import AnalyzerContext
 from unilog.analytics.modules.session import SessionAnalyzer
 from unilog.analytics.modules.journey import JourneyAnalyzer, map_path_to_stage
-from unilog.analytics.schemas import MetricsBundle
 
 
 def test_session_reconstruction_and_timeout() -> None:

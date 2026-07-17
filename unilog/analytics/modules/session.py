@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Any, Dict, List, Mapping, Sequence
-from pydantic import BaseModel
 
 from unilog.analytics.base import AnalyzerContext, BaseAnalyzer
 from unilog.analytics.registry import register_analyzer
