@@ -1,6 +1,5 @@
 """Unit tests for the SecurityAnalyzer and simplified rules."""
 
-import pytest
 from datetime import datetime, timedelta
 from unilog.analytics import AnalyzerContext
 from unilog.analytics.modules.session import SessionAnalyzer

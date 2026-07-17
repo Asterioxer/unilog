@@ -2,9 +2,7 @@
 
 import re
 import urllib.parse
-from typing import Any, Dict, List, Mapping, Sequence
-from pydantic import BaseModel
-
+from typing import Any, Dict, Mapping, Sequence
 from unilog.analytics.base import AnalyzerContext, BaseAnalyzer
 from unilog.analytics.registry import register_analyzer
 from unilog.analytics.schemas import (
@@ -28,7 +26,7 @@ class SecurityAnalyzer(BaseAnalyzer):
         context: AnalyzerContext,
     ) -> SecurityMetrics:
         # Retrieve computed sessions from shared parser_metadata cache
-        sessions: List[Session] = context.parser_metadata.get("reconstructed_sessions", [])
+        sessions: list[Session] = context.parser_metadata.get("reconstructed_sessions", [])
 
         # 1. Brute Force variables
         failed_logins_per_ip: Dict[str, int] = {}
@@ -44,9 +42,6 @@ class SecurityAnalyzer(BaseAnalyzer):
         # 3. Bot metrics variables
         missing_user_agent_count = 0
         headless_fingerprints_count = 0
-        # Timing repeat / frequency check: IP -> list of timestamps
-        ip_timestamps: Dict[str, List[float]] = {}
-
         # 4. Scanner probing variables
         scanned_ips: Dict[str, int] = {}
         scanner_hits_count = 0
@@ -85,7 +80,7 @@ class SecurityAnalyzer(BaseAnalyzer):
 
             ip = r.get("source_ip") or r.get("client_ip") or r.get("ip") or r.get("remote_addr") or "-"
             path = r.get("path") or ""
-            method = str(r.get("method") or "GET").upper()
+            _ = str(r.get("method") or "GET").upper()
             status_code = int(r.get("status_code") or 200)
             user_agent = r.get("user_agent") or ""
 
@@ -128,13 +123,10 @@ class SecurityAnalyzer(BaseAnalyzer):
                 continue
 
             failed_logins = 0
-            is_login_session = False
-
             for req in s.requests:
                 is_login_path = any(x in req.path.lower() for x in ["login", "auth", "signin"])
                 if req.method == "POST" and is_login_path:
                     total_logins += 1
-                    is_login_session = True
 
                 is_fail = req.status_code in [401, 403] or (req.method == "POST" and is_login_path and req.status_code >= 400)
                 if is_fail:
