@@ -288,17 +288,31 @@ async def stream_logs(request: Request, req: ParseRequest):
     "/upload",
     response_model=UploadResponse,
     summary="Upload log file for parsing",
-    description="Upload a log file (.log, .txt, .json, .csv, or .gz). Large files (>1MB) are parsed asynchronously."
+    description=(
+        "Upload a log file (.log, .txt, .json, .csv, or .gz). "
+        "Large files (>1MB) are parsed asynchronously and return a task_id. "
+        "Leave **format** empty (or set to 'auto') to let unilog auto-detect the format. "
+        "Valid explicit values: nginx, apache, syslog, syslog5424, json, django, windows_event."
+    )
 )
 @limiter.limit(RATE_LIMIT_VALUE)
 async def upload_log_file(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Log file payload"),
-    format: Optional[str] = Form(None, description="Explicit parser format (optional)")
+    format: Optional[str] = Form(
+        None,
+        description="Parser format: leave blank or use 'auto' to auto-detect. Valid values: nginx, apache, syslog, syslog5424, json, django, windows_event."
+    )
 ):
-    if format and format != "auto" and not get_parser(format):
-        raise HTTPException(status_code=400, detail=f"Invalid format requested: {format}")
+    # Treat Swagger UI placeholder sentinel and 'auto' as no explicit format
+    if format in ("string", "auto", ""):
+        format = None
+    if format and not get_parser(format):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown format '{format}'. Leave blank for auto-detect, or use: nginx, apache, syslog, syslog5424, json, django, windows_event."
+        )
     # Validate extension
     filename = file.filename or ""
     # Extract extension supporting .gz suffix
@@ -403,8 +417,17 @@ async def upload_log_file(
         if resolved_format == "auto":
             det = unilog.detect(io.StringIO(text))
             resolved_format = det["format"]
+            # Event Viewer CSV has multi-line quoted fields — line-sampling returns 'unknown'.
+            # Explicitly try 'windows' parser when we have a .csv that didn't resolve.
+            if resolved_format == "unknown" and lower_name.endswith(".csv"):
+                from unilog.parsers.windows import WindowsParser
+                wp = WindowsParser()
+                if wp._is_event_viewer_csv(text):
+                    resolved_format = "windows"
 
-        df = unilog.parse_string(text, format=resolved_format)
+        # parse_string uses parser.parse() directly for parsers that override it (e.g. windows)
+        parse_format = None if resolved_format == "unknown" else resolved_format
+        df = unilog.parse_string(text, format=parse_format)
         records = df.to_dict(orient="records")
 
         return {

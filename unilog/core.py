@@ -147,14 +147,59 @@ def parse(
 def parse_string(log_text: str, format: Optional[str] = None) -> pd.DataFrame:
     """
     Parse a string of log text (multiple lines) and return a DataFrame.
+
+    If the selected parser overrides parse() (e.g. WindowsParser for multi-line
+    Event Viewer CSV), it is called directly so the parser can reassemble
+    records that span multiple physical lines.  Otherwise falls back to the
+    standard stream() / parse_line() path.
     """
+    # Resolve parser
+    parser_inst: Optional[BaseParser] = None
+    if format and format not in ("auto", "unknown", ""):
+        parser_cls = get_parser(format)
+        if parser_cls:
+            parser_inst = parser_cls()
+
+    if parser_inst is None:
+        # Auto-detect: first try document-level detection on the full text
+        det = detect_format(io.StringIO(log_text))
+        if det["format"] != "unknown" and det["parser"]:
+            parser_inst = det["parser"]()
+        else:
+            # Fallback: try each parser's parse() directly to find one that succeeds
+            from unilog.registry import list_parsers
+            for parser_cls in list_parsers():
+                candidate = parser_cls()
+                # Check if this parser has a document-level parse() that can handle it
+                if type(candidate).parse is not BaseParser.parse if hasattr(BaseParser, 'parse') else False:
+                    pass
+                # Use the candidate with best confidence on a small sample
+                sample = log_text[:4096]
+                sample_lines = [l for l in sample.splitlines() if l.strip()][:50]
+                if sample_lines and candidate.confidence_score(sample_lines) > 0:
+                    parser_inst = candidate
+                    break
+
+    if parser_inst is not None:
+        # Use parser.parse() if the subclass overrides it
+        base_parse = getattr(BaseParser, 'parse', None)
+        inst_parse = type(parser_inst).parse
+        parser_overrides_parse = base_parse is None or inst_parse is not base_parse
+        if parser_overrides_parse and hasattr(parser_inst, 'parse'):
+            try:
+                records = list(parser_inst.parse(log_text))
+                if records:
+                    return pd.DataFrame.from_records(records)
+            except Exception:
+                pass  # fall through to stream() path
+
+    # Standard line-by-line path
     stream_obj = io.StringIO(log_text)
-    # Never return a generator for parse_string
     df = parse(stream_obj, format=format)
     if isinstance(df, pd.DataFrame):
         return df
-    # Fallback/unexpected generator type conversion
     return pd.concat(list(df), ignore_index=True)
+
 
 def detect(path_or_stream: Any) -> Dict[str, Any]:
     """
