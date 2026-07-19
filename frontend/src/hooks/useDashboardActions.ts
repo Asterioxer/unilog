@@ -350,7 +350,7 @@ export const useDashboardActions = () => {
     }));
   };
 
-  const setActiveTab = (activeTab: "file" | "paste") => {
+  const setActiveTab = (activeTab: "file" | "paste" | "live") => {
     setState((prev) => ({
       ...prev,
       ui: { ...prev.ui, activeTab },

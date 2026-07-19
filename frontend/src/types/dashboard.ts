@@ -48,7 +48,7 @@ export interface AnalysisState {
 }
 
 export interface UIState {
-  activeTab: "file" | "paste";
+  activeTab: "file" | "paste" | "live";
   selectedFormat: string;
   logText: string;
   error: DashboardError | null;

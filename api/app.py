@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 
-from api.routers import health, log, system, ai
+from api.routers import health, log, system, ai, live
 from api.dependencies.rate_limiter import limiter
 from api.config import validate_config
 from api.security.network import resolve_client_ip
@@ -170,6 +170,7 @@ app.include_router(health.router)  # root health checks (/health, /live, /ready)
 app.include_router(log.router, prefix="/api/v1")  # versioned endpoints
 app.include_router(system.router, prefix="/api/v1")  # capability telemetry info
 app.include_router(ai.router, prefix="/api/v1")  # AI diagnostics endpoints
+app.include_router(live.router, prefix="/api/v1")  # Live WebSocket stream endpoint
 
 if __name__ == "__main__":
     import uvicorn

@@ -32,6 +32,7 @@ import InsightCardsList from "../components/InsightCardsList";
 import SessionObserver from "../components/SessionObserver";
 import SecurityObserver from "../components/SecurityObserver";
 import AIAssistant from "../components/AIAssistant";
+import LiveMonitor from "../components/LiveMonitor";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
@@ -235,34 +236,47 @@ function DashboardContent() {
         </p>
       </div>
 
-      {/* Control Pane & Uploaders */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
-          <div className="space-y-6">
-            {/* Tabs */}
-            <div className="flex border-b border-border">
-              <button
-                onClick={() => setActiveTab("file")}
-                className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
-                  state.ui.activeTab === "file" 
-                    ? "border-primary text-primary" 
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                File Uploader
-              </button>
-              <button
-                onClick={() => setActiveTab("paste")}
-                className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
-                  state.ui.activeTab === "paste" 
-                    ? "border-primary text-primary" 
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Raw Text Dump
-              </button>
-            </div>
+      {/* Main Tab Switcher */}
+      <div className="flex border-b border-border mb-2 max-w-sm">
+        <button
+          onClick={() => setActiveTab("file")}
+          className={`pb-2.5 text-sm font-semibold border-b-2 px-4 transition-colors ${
+            state.ui.activeTab === "file" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          File Uploader
+        </button>
+        <button
+          onClick={() => setActiveTab("paste")}
+          className={`pb-2.5 text-sm font-semibold border-b-2 px-4 transition-colors ${
+            state.ui.activeTab === "paste" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Raw Text Dump
+        </button>
+        <button
+          onClick={() => setActiveTab("live")}
+          className={`pb-2.5 text-sm font-semibold border-b-2 px-4 transition-colors ${
+            state.ui.activeTab === "live" 
+              ? "border-primary text-primary" 
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Live Monitor
+        </button>
+      </div>
 
+      {state.ui.activeTab === "live" ? (
+        <LiveMonitor />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col justify-between">
+          <div className="space-y-6">
             {/* Tab Contents */}
             {state.ui.activeTab === "file" ? (
               <UploadPanel
@@ -624,7 +638,9 @@ function DashboardContent() {
           )}
         </div>
       )}
-    </div>
+    </>
+  )}
+</div>
   );
 }
 
