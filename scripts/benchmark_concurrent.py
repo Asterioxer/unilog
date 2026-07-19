@@ -12,7 +12,7 @@ if not log_path.exists():
 
 log_text = log_path.read_text(encoding="utf-8")
 
-async def test_endpoint(client, name, url, payload):
+async def send_endpoint_request(client, name, url, payload):
     try:
         print(f"Sending to {name}...")
         resp = await client.post(url, json=payload, timeout=30.0)
@@ -25,16 +25,16 @@ async def test_endpoint(client, name, url, payload):
 async def main():
     async with httpx.AsyncClient() as client:
         tasks = [
-            test_endpoint(client, "analyze", f"{API_BASE}/analyze", {
+            send_endpoint_request(client, "analyze", f"{API_BASE}/analyze", {
                 "log_text": log_text,
                 "format": "windows",
                 "enable_rules": True,
                 "window_minutes": 60
             }),
-            test_endpoint(client, "detect", f"{API_BASE}/detect", {
+            send_endpoint_request(client, "detect", f"{API_BASE}/detect", {
                 "log_text": log_text
             }),
-            test_endpoint(client, "parse", f"{API_BASE}/parse", {
+            send_endpoint_request(client, "parse", f"{API_BASE}/parse", {
                 "log_text": log_text,
                 "format": "windows"
             })

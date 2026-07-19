@@ -239,6 +239,32 @@ class WindowsParser(BaseParser):
     def confidence_score(self, sample_lines: List[str]) -> float:
         if not sample_lines:
             return 0.0
+
+        # Check if the first line is a Windows Event Viewer CSV header
+        first_line = sample_lines[0]
+        if self._is_event_viewer_csv(first_line):
+            return 0.95
+
+        # Try to parse the sample lines as a CSV block to see if it yields Windows Event rows
+        try:
+            sample_text = "\n".join(sample_lines)
+            reader = csv.reader(io.StringIO(sample_text))
+            rows = list(reader)
+            if rows:
+                valid_rows = 0
+                for row in rows[:5]:  # check first few rows
+                    if len(row) >= 4:
+                        raw_lvl = row[0].strip().upper()
+                        event_id = row[3].strip()
+                        known_levels = {"INFORMATION", "WARNING", "ERROR", "CRITICAL", "AUDIT SUCCESS", "AUDIT FAILURE"}
+                        if raw_lvl in known_levels and (event_id.isdigit() or not event_id):
+                            valid_rows += 1
+                if valid_rows > 0:
+                    return 0.90
+        except Exception:
+            pass
+
+        # Fallback to line-by-line matching (e.g. for XML)
         matches = 0
         total = 0
         for line in sample_lines:
