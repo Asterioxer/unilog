@@ -14,6 +14,8 @@ Parse any log file into a clean pandas DataFrame, compile rich operational metri
 - **Rule Engine**: 12 built-in rules across 4 categories — performance, reliability, traffic, and security.
 - **Insight Cards**: Browser-rendered insight cards with severity, description, confidence, and recommendations.
 - **Session & Security Observer**: Interactive frontend panels for behavioral session analytics and security threat detection.
+- **AI SRE Assistant**: Interactive LLM diagnostic engine explaining anomalies and presenting copyable remediation configs.
+- **Live Monitor**: Direct WebSocket log streaming for real-time terminal output with interval speed control.
 - **Rich CLI**: Pretty output format choices including JSON, CSV, and Tables.
 - **REST API**: FastAPI backend with full Swagger docs, background task support, and rate limiting.
 - **React Dashboard**: Upload logs via drag-and-drop, inspect metrics, view insight cards, session analytics, and security intelligence in a modern SPA.
@@ -61,6 +63,8 @@ flowchart TD
 | v0.5 | Insight Cards | Frontend Insight Card components, backend-driven analytics, `POST /api/v1/analyze` |
 | v0.6 | Session Analytics | Session reconstruction, bounce rate, journey funnel conversion, SessionObserver UI |
 | v0.7 | Security Intelligence | Dedicated SecurityAnalyzer, SecurityObserver UI panel with threat profiles |
+| v0.8 | AI Diagnostics | AI SRE Assistant generating root-cause reports and remediation configs |
+| v0.9 | Live Stream | Real-time WebSocket log streaming and interactive terminal monitor |
 
 ### Built-in Analyzers
 
@@ -286,6 +290,12 @@ Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
 - `POST /api/v1/upload` - Upload file for parsing. Large files (>1MB) parse asynchronously and return a `task_id`.
 - `GET /api/v1/tasks/{task_id}` - Retrieve progress or result of a background upload task.
 
+**AI & Diagnostics**
+- `POST /api/v1/ai/explain` - Run AI diagnostics report containing explanations and copyable configuration remediations.
+
+**Live Stream**
+- `WebSocket /api/v1/ws/live` - Start a WebSocket connection for real-time log streaming.
+
 ### API Architecture
 
 ```mermaid
@@ -364,6 +374,8 @@ npm run dev   # starts at http://localhost:5173
 - **Insight Cards** (`InsightCard`, `InsightCardsList`): Render rule-generated insights with severity badge, confidence meter, description, category tag, and recommendations.
 - **Session Observer** (`SessionObserver`): Visualizes reconstructed user sessions, bounce rate, average session duration, and journey funnel conversion steps.
 - **Security Observer** (`SecurityObserver`): Displays threat profiles for brute force, bot fingerprints, directory enumeration, vulnerability probes, and injection attempts with expandable IP-level drill-downs.
+- **AI SRE Assistant** (`AIAssistant`): Generates diagnostic reports and copyable configuration remediation code blocks.
+- **Live Monitor** (`LiveMonitor`): WebSocket terminal stream tracing log events in real-time.
 - **Dark / Light Theme**: Persistent theme preference via `ThemeProvider`.
 - **Keyboard Shortcuts**: Global keyboard shortcuts for navigation and actions.
 
