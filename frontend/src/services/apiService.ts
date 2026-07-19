@@ -8,7 +8,6 @@ import type {
   TaskResponse,
   AnalyzeResponse,
   AIExplainResponse,
-  AIExplainRequest,
 } from "../types/api";
 
 export const apiService = {

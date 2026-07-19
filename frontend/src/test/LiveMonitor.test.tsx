@@ -33,13 +33,13 @@ describe("LiveMonitor Component", () => {
   let originalWebSocket: any;
 
   beforeEach(() => {
-    originalWebSocket = global.WebSocket;
-    global.WebSocket = MockWebSocket as any;
+    originalWebSocket = (window as any).WebSocket;
+    (window as any).WebSocket = MockWebSocket as any;
     MockWebSocket.mockInstances = [];
   });
 
   afterEach(() => {
-    global.WebSocket = originalWebSocket;
+    (window as any).WebSocket = originalWebSocket;
   });
 
   it("renders connection status, stats cards, and action controls", async () => {

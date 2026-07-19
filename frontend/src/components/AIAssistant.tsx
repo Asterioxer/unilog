@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Terminal, Copy, Check, AlertCircle, Cpu, ShieldAlert, Zap } from "lucide-react";
+import { Sparkles, Terminal, Copy, Check, AlertCircle, Cpu, Zap } from "lucide-react";
 import { apiService } from "../services/apiService";
 import type { AIExplainResponse, InsightResponse } from "../types/api";
 
