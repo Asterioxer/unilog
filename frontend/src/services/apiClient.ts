@@ -1,9 +1,6 @@
 import axios from "axios";
 
-let API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8002";
-if (API_BASE_URL.includes(":8000")) {
-  API_BASE_URL = API_BASE_URL.replace(":8000", ":8002");
-}
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8002").replace(":8000", ":8002");
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
