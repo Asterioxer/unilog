@@ -162,6 +162,7 @@ export const useDashboardActions = () => {
             session: stats.session || null,
             journey: stats.journey || null,
             security: stats.security || null,
+            rawMetrics: stats.metrics || null,
             lastUpdated: new Date().toISOString(),
           },
           metadata: {
@@ -284,6 +285,7 @@ export const useDashboardActions = () => {
                       session: stats.session || null,
                       journey: stats.journey || null,
                       security: stats.security || null,
+                      rawMetrics: stats.metrics || null,
                       lastUpdated: new Date().toISOString(),
                     },
                     metadata: {

@@ -44,6 +44,7 @@ export interface AnalysisState {
   security: SecurityMetrics | null;
   derivedData: DerivedData;
   lastUpdated: string | null;    // ISO Timestamp
+  rawMetrics?: Record<string, unknown> | null;
 }
 
 export interface UIState {

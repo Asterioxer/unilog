@@ -7,6 +7,8 @@ import type {
   UploadResponse,
   TaskResponse,
   AnalyzeResponse,
+  AIExplainResponse,
+  AIExplainRequest,
 } from "../types/api";
 
 export const apiService = {
@@ -101,6 +103,15 @@ export const apiService = {
     const { data } = await apiClient.get<TaskResponse>(
       `/api/v1/tasks/${taskId}`
     );
+    return data;
+  },
+
+  // Explain logs using AI
+  async explainLogs(metrics: Record<string, unknown>, insights: any[]): Promise<AIExplainResponse> {
+    const { data } = await apiClient.post<AIExplainResponse>("/api/v1/ai/explain", {
+      metrics,
+      insights,
+    });
     return data;
   },
 };

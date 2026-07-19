@@ -31,10 +31,11 @@ import { transformMetricsToStats } from "../utils/metricsTransformer";
 import InsightCardsList from "../components/InsightCardsList";
 import SessionObserver from "../components/SessionObserver";
 import SecurityObserver from "../components/SecurityObserver";
+import AIAssistant from "../components/AIAssistant";
 
 function DashboardContent() {
   const [file, setFile] = useState<File | null>(null);
-  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security">("overview");
+  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security" | "ai">("overview");
   
   const { state, setState } = useDashboardContext();
   const queryClient = useQueryClient();
@@ -151,6 +152,7 @@ function DashboardContent() {
               session: (taskRes.result?.metrics?.session as SessionMetrics) || null,
               journey: (taskRes.result?.metrics?.journey as JourneyMetrics) || null,
               security: (taskRes.result?.metrics?.security as SecurityMetrics) || null,
+              rawMetrics: taskRes.result?.metrics || null,
               lastUpdated: new Date().toISOString()
             },
             metadata: {
@@ -521,6 +523,16 @@ function DashboardContent() {
                 >
                   Security Intelligence
                 </button>
+                <button
+                  onClick={() => setActiveResultTab("ai")}
+                  className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
+                    activeResultTab === "ai" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  AI SRE Assistant
+                </button>
               </div>
 
               {activeResultTab === "overview" ? (
@@ -596,9 +608,15 @@ function DashboardContent() {
                   journeyMetrics={state.analysis.journey}
                   isProcessing={isProcessing}
                 />
-              ) : (
+              ) : activeResultTab === "security" ? (
                 <SecurityObserver 
                   securityMetrics={state.analysis.security} 
+                  isProcessing={isProcessing}
+                />
+              ) : (
+                <AIAssistant
+                  metrics={state.analysis.rawMetrics || null}
+                  insights={state.analysis.insights || []}
                   isProcessing={isProcessing}
                 />
               )}

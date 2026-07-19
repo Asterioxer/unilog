@@ -203,3 +203,21 @@ export interface ApiErrorResponse {
   success: boolean;
   error: ApiErrorDetail;
 }
+
+export interface AIRemediationCard {
+  title: string;
+  description: string;
+  code: string;
+  language: string;
+}
+
+export interface AIExplainResponse {
+  summary: string;
+  explanation: string;
+  remediations: AIRemediationCard[];
+}
+
+export interface AIExplainRequest {
+  metrics: Record<string, unknown>;
+  insights: InsightResponse[];
+}

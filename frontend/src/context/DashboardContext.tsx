@@ -17,6 +17,7 @@ const DEFAULT_STATE: DashboardState = {
     security: null,
     derivedData: {},
     lastUpdated: null,
+    rawMetrics: null,
   },
   metadata: {
     filename: null,
