@@ -217,9 +217,9 @@ def test_endpoint_analyzer_extracts_and_sorts_endpoints() -> None:
     ]
     analyzer = EndpointAnalyzer()
     metrics = cast(EndpointMetrics, analyzer.analyze(records, AnalyzerContext()))
-    assert metrics.top_endpoints[0] == {"path": "/index.html", "count": 2}
-    assert any(e == {"path": "/api/v1/auth", "count": 1} for e in metrics.top_endpoints)
-    assert any(e == {"path": "/login", "count": 1} for e in metrics.top_endpoints)
+    assert metrics.top_endpoints[0] == {"path": "/index.html", "count": 2, "share_pct": 50.0}
+    assert any(e == {"path": "/api/v1/auth", "count": 1, "share_pct": 25.0} for e in metrics.top_endpoints)
+    assert any(e == {"path": "/login", "count": 1, "share_pct": 25.0} for e in metrics.top_endpoints)
     assert metrics.top_endpoint_share == 50.0
 
 
@@ -248,7 +248,7 @@ def test_metrics_engine_compiles_bundle_with_all_metrics() -> None:
     assert bundle.status.status_categories == {"1xx": 0, "2xx": 2, "3xx": 0, "4xx": 1, "5xx": 1}
 
     assert bundle.endpoint is not None
-    assert bundle.endpoint.top_endpoints[0] == {"path": "/index.html", "count": 2}
+    assert bundle.endpoint.top_endpoints[0] == {"path": "/index.html", "count": 2, "share_pct": 50.0}
 
 
 # --- Release 3 Performance Analyzers Tests ---

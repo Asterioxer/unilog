@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-API = "http://127.0.0.1:8001/api/v1"
+API = "http://127.0.0.1:8002/api/v1"
 
 def nginx_line(ip, ts, method, path, status, size, ua):
     """Clean standard nginx combined log format (no extra fields)."""
@@ -78,11 +78,11 @@ def analyze(log_text: str, label: str):
 
     # Bandwidth
     bw = metrics.get("bandwidth", {})
-    if bw.get("bytes_per_second", 0) > 0:
-        bps = bw["bytes_per_second"]
+    if bw.get("bytes_per_second", 0) > 0 or bw.get("total_bytes_sent", 0) > 0:
+        bps = bw.get("bytes_per_second", 0)
         unit = "MB/s" if bps > 1_048_576 else ("KB/s" if bps > 1024 else "B/s")
         val = bps / (1_048_576 if bps > 1_048_576 else (1024 if bps > 1024 else 1))
-        print(f"  ✦ Bandwidth: {val:.1f} {unit}  |  Total: {bw.get('total_bytes',0)/1024:.0f} KB")
+        print(f"  ✦ Bandwidth: {val:.1f} {unit}  |  Total: {bw.get('total_bytes_sent', 0)/1024:.0f} KB")
 
     # Top endpoints
     ep = metrics.get("endpoint", {})

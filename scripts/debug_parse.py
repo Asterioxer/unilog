@@ -17,7 +17,7 @@ print("DETECT:  ", det)
 
 # Check journey schema
 import requests
-resp = requests.post("http://127.0.0.1:8001/api/v1/analyze", json={
+resp = requests.post("http://127.0.0.1:8002/api/v1/analyze", json={
     "log_text": line2 + "\n" + line2,
     "format": "nginx",
     "enable_rules": False,

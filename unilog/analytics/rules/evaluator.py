@@ -39,9 +39,9 @@ class RuleEvaluator:
         if not compare(value, rule.threshold):
             return None
 
-        # Compute confidence: sample_factor × rule_weight
+        # Compute confidence: sample_factor × rule_weight (clamped to [0.0, 1.0])
         sample_factor = min(1.0, context.analyzed_records / 100.0) if context.analyzed_records > 0 else 0.0
-        confidence = round(sample_factor * rule.weight, 4)
+        confidence = max(0.0, min(1.0, round(sample_factor * rule.weight, 4)))
 
         # Generate description from template
         description = rule.description_template.format(

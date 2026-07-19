@@ -1,6 +1,6 @@
 import abc
 import re
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Iterator
 from unilog.utils import normalize_timestamp, safe_int
 
 class BaseParser(abc.ABC):
@@ -140,6 +140,14 @@ class BaseParser(abc.ABC):
 
         score = match_score + parse_quality + extraction_score + timestamp_score + numeric_score
         return min(1.0, score)
+
+    def parse(self, text: str) -> Iterator[Dict[str, Any]]:
+        """Parse a full block/document of text, yielding parsed records."""
+        for line in text.splitlines():
+            line = line.strip()
+            if line:
+                yield self.parse_line(line)
+
 
 
 class RegexParser(BaseParser):

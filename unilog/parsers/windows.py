@@ -149,6 +149,15 @@ class WindowsParser(BaseParser):
 
         return False
 
+    def _find_el(self, parent: Any, tag: str, ns: dict[str, str]) -> Optional[Any]:
+        """Helper to find element with namespace prefix or fallback to plain tag.
+        Avoids boolean evaluation of Element objects since empty elements evaluate to False.
+        """
+        el = parent.find(f"ns:{tag}", ns)
+        if el is None:
+            el = parent.find(tag)
+        return el
+
     def parse_line(self, line: str) -> Dict[str, Any]:
         """Parse a single physical log line (XML event or single-line CSV row)."""
         line = line.strip()
@@ -168,32 +177,36 @@ class WindowsParser(BaseParser):
                 root = ET.fromstring(line)
                 ns = {"ns": "http://schemas.microsoft.com/win/2004/08/events/event"}
 
-                system = root.find("ns:System", ns) or root.find("System")
+                system = self._find_el(root, "System", ns)
                 if system is None:
                     return {"_parse_error": True, "raw": line}
 
-                provider = system.find("ns:Provider", ns) or system.find("Provider")
+                provider = self._find_el(system, "Provider", ns)
                 source = provider.get("Name") if provider is not None else None
 
-                eid_el = system.find("ns:EventID", ns) or system.find("EventID")
+                eid_el = self._find_el(system, "EventID", ns)
                 event_id = safe_int(eid_el.text) if eid_el is not None else None
 
-                time_el = system.find("ns:TimeCreated", ns) or system.find("TimeCreated")
+                time_el = self._find_el(system, "TimeCreated", ns)
                 raw_ts = time_el.get("SystemTime") if time_el is not None else None
                 timestamp = normalize_timestamp(raw_ts) if raw_ts else None
 
-                lvl_el = system.find("ns:Level", ns) or system.find("Level")
+                lvl_el = self._find_el(system, "Level", ns)
                 raw_lvl = safe_int(lvl_el.text) if lvl_el is not None else None
                 level = {1: "CRITICAL", 2: "ERROR", 3: "WARNING", 4: "INFO"}.get(raw_lvl or 0, "INFO")
 
-                task_el = system.find("ns:Task", ns) or system.find("Task")
+                task_el = self._find_el(system, "Task", ns)
                 category = task_el.text if task_el is not None else None
 
-                event_data = root.find("ns:EventData", ns) or root.find("EventData")
+                event_data = self._find_el(root, "EventData", ns)
                 message = ""
                 if event_data is not None:
                     parts = []
-                    for data in (event_data.findall("ns:Data", ns) or event_data.findall("Data")):
+                    # Find all Data elements with ns prefix or fallback
+                    data_elements = event_data.findall("ns:Data", ns)
+                    if not data_elements:
+                        data_elements = event_data.findall("Data")
+                    for data in data_elements:
                         name = data.get("Name")
                         val = data.text or ""
                         parts.append(f"{name}={val}" if name else val)

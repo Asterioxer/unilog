@@ -24,16 +24,20 @@ class EndpointAnalyzer(BaseAnalyzer):
             path_str = normalize_endpoint(r)
             counts[path_str] = counts.get(path_str, 0) + 1
 
-        sorted_endpoints = [
-            {"path": k, "count": v}
-            for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)
-        ]
-
         total = len(records)
         top_share: float | None = None
         if counts and total > 0:
             top_count = max(counts.values())
             top_share = float(top_count / total * 100.0)
+
+        sorted_endpoints = [
+            {
+                "path": k,
+                "count": v,
+                "share_pct": float(v / total * 100.0) if total > 0 else 0.0
+            }
+            for k, v in sorted(counts.items(), key=lambda item: item[1], reverse=True)
+        ]
 
         return EndpointMetrics(
             top_endpoints=sorted_endpoints,

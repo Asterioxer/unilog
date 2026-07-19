@@ -164,15 +164,13 @@ def parse_string(log_text: str, format: Optional[str] = None) -> pd.DataFrame:
         # Auto-detect: first try document-level detection on the full text
         det = detect_format(io.StringIO(log_text))
         if det["format"] != "unknown" and det["parser"]:
-            parser_inst = det["parser"]()
+            parser_inst = det["parser"]
         else:
             # Fallback: try each parser's parse() directly to find one that succeeds
-            from unilog.registry import list_parsers
-            for parser_cls in list_parsers():
+            from unilog.registry import list_formats
+            for fmt in list_formats():
+                parser_cls = fmt["class"]
                 candidate = parser_cls()
-                # Check if this parser has a document-level parse() that can handle it
-                if type(candidate).parse is not BaseParser.parse if hasattr(BaseParser, 'parse') else False:
-                    pass
                 # Use the candidate with best confidence on a small sample
                 sample = log_text[:4096]
                 sample_lines = [l for l in sample.splitlines() if l.strip()][:50]
@@ -183,9 +181,8 @@ def parse_string(log_text: str, format: Optional[str] = None) -> pd.DataFrame:
     if parser_inst is not None:
         # Use parser.parse() if the subclass overrides it
         base_parse = getattr(BaseParser, 'parse', None)
-        inst_parse = type(parser_inst).parse
-        parser_overrides_parse = base_parse is None or inst_parse is not base_parse
-        if parser_overrides_parse and hasattr(parser_inst, 'parse'):
+        inst_parse = getattr(parser_inst, 'parse', None)
+        if inst_parse and inst_parse != base_parse:
             try:
                 records = list(parser_inst.parse(log_text))
                 if records:
