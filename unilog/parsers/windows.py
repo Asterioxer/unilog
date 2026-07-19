@@ -265,15 +265,4 @@ class WindowsParser(BaseParser):
             pass
 
         # Fallback to line-by-line matching (e.g. for XML)
-        matches = 0
-        total = 0
-        for line in sample_lines:
-            s = line.strip()
-            if not s:
-                continue
-            total += 1
-            if self.match(s):
-                matches += 1
-        if total == 0:
-            return 0.0
-        return (matches / total) * 0.80
+        return super().confidence_score(sample_lines)
