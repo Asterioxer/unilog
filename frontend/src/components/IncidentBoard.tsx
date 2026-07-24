@@ -82,9 +82,10 @@ export const IncidentBoard: React.FC<IncidentBoardProps> = ({ incidents }) => {
                       {inc.confidence_evidence.map((ev, idx) => (
                         <li key={idx} className="text-xs text-slate-300 font-mono flex items-center space-x-2">
                           <span className="text-emerald-400">✓</span>
-                          <span>{ev}</span>
+                          <span>{ev.replace(/^\[\+\]\s*/, '')}</span>
                         </li>
                       ))}
+
                     </ul>
                   </div>
 
