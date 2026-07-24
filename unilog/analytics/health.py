@@ -1,6 +1,6 @@
 """System health score matrix calculator."""
 
-from typing import List, Sequence, Tuple
+from typing import Sequence, Tuple
 from unilog.analytics.schemas import (
     HealthSubScore,
     Incident,

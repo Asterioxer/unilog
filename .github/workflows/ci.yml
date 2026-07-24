@@ -38,7 +38,8 @@ jobs:
 
       - name: Install Project and Dependencies
         run: |
-          uv sync --all-extras
+          uv sync --all-extras --dev
+
 
       - name: Run Linting Checks (Ruff)
         run: |

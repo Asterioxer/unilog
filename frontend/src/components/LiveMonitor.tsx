@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
 import { Play, Pause, Terminal, Trash2, Wifi, WifiOff, Activity, ShieldAlert, Cpu } from "lucide-react";
 
 interface LiveLogRecord {
@@ -22,11 +23,11 @@ export default function LiveMonitor() {
   const [errorCount, setErrorCount] = useState(0);
 
   const socketRef = useRef<WebSocket | null>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
-  const autoScrollRef = useRef(true);
 
   // Connect to WebSocket
-  const connectWebSocket = () => {
+  const connectWebSocket = useCallback(() => {
     if (socketRef.current) {
       if (
         socketRef.current.readyState === WebSocket.OPEN ||
@@ -47,7 +48,6 @@ export default function LiveMonitor() {
     const wsHost = window.location.hostname || "127.0.0.1";
     const wsUrl = `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
 
-    
     try {
       const ws = new WebSocket(wsUrl);
       socketRef.current = ws;
@@ -91,9 +91,9 @@ export default function LiveMonitor() {
       setStatus("disconnected");
       socketRef.current = null;
     }
-  };
+  }, [rate]);
 
-  const disconnectWebSocket = () => {
+  const disconnectWebSocket = useCallback(() => {
     if (socketRef.current) {
       try {
         socketRef.current.close();
@@ -103,8 +103,7 @@ export default function LiveMonitor() {
       socketRef.current = null;
     }
     setStatus("disconnected");
-  };
-
+  }, []);
 
   // Handle Play/Pause
   const toggleStreaming = () => {
@@ -133,18 +132,23 @@ export default function LiveMonitor() {
 
   // Manage connection lifecycle
   useEffect(() => {
-    connectWebSocket();
+    const timer = setTimeout(() => {
+      connectWebSocket();
+    }, 0);
+
     return () => {
+      clearTimeout(timer);
       disconnectWebSocket();
     };
-  }, []);
+  }, [connectWebSocket, disconnectWebSocket]);
 
   // Scroll to bottom helper
   useEffect(() => {
-    if (autoScrollRef.current && terminalEndRef.current && typeof terminalEndRef.current.scrollIntoView === "function") {
+    if (autoScroll && terminalEndRef.current && typeof terminalEndRef.current.scrollIntoView === "function") {
       terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [logs]);
+  }, [logs, autoScroll]);
+
 
   // Determine Level Colors
   const getLevelBadgeClass = (level: string) => {
@@ -288,10 +292,11 @@ export default function LiveMonitor() {
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={autoScrollRef.current}
-              onChange={(e) => { autoScrollRef.current = e.target.checked; }}
+              checked={autoScroll}
+              onChange={(e) => setAutoScroll(e.target.checked)}
               className="accent-primary h-3.5 w-3.5 rounded-sm"
             />
+
             <span className="text-xs font-mono text-zinc-400">Auto-Scroll</span>
           </label>
         </div>

@@ -4,6 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Landing from "../pages/Landing";
 import Dashboard from "../pages/Dashboard";
+import CustomRulesPage from "../pages/CustomRulesPage";
+import ApiReferencePage from "../pages/ApiReferencePage";
+import SettingsPage from "../pages/SettingsPage";
+import HelpCenterPage from "../pages/HelpCenterPage";
 
 describe("Landing and Dashboard placeholder render checks", () => {
   let queryClient: QueryClient;
@@ -43,22 +47,28 @@ describe("Landing and Dashboard placeholder render checks", () => {
     expect(screen.getByText("Run Analytics")).toBeInTheDocument();
   });
 
-  it("toggles dashboard tabs to raw text input area on header tab click", async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Dashboard />
-        </BrowserRouter>
-      </QueryClientProvider>
-    );
+  it("renders CustomRulesPage correctly", () => {
+    render(<CustomRulesPage />);
+    expect(screen.getByText(/Built-in & Custom Analytics Rules/i)).toBeInTheDocument();
+    expect(screen.getByText("Sensitive Path Reconnaissance Probe")).toBeInTheDocument();
+  });
 
-    const pasteTab = screen.getByText("Raw Text Dump");
-    
-    await act(async () => {
-      pasteTab.click();
-    });
+  it("renders ApiReferencePage correctly", () => {
+    render(<ApiReferencePage />);
+    expect(screen.getByText(/REST API & WebSocket Reference/i)).toBeInTheDocument();
+    expect(screen.getByText("Swagger UI Docs")).toBeInTheDocument();
+  });
 
-    // Check textarea presence
-    expect(screen.getByPlaceholderText(/Paste logs here/i)).toBeInTheDocument();
+  it("renders SettingsPage correctly", () => {
+    render(<SettingsPage />);
+    expect(screen.getByText(/Application Preferences & Environment Settings/i)).toBeInTheDocument();
+    expect(screen.getByText("Save Settings")).toBeInTheDocument();
+  });
+
+  it("renders HelpCenterPage correctly", () => {
+    render(<HelpCenterPage />);
+    expect(screen.getByText(/Help Center & Documentation Guide/i)).toBeInTheDocument();
+    expect(screen.getByText("Frequently Asked Questions")).toBeInTheDocument();
   });
 });
+

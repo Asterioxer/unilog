@@ -1,7 +1,6 @@
 """Incident correlator for aggregating related insights into incident objects."""
 
 import hashlib
-import uuid
 from datetime import datetime, timezone
 from typing import Any, List, Mapping, Optional, Sequence
 
@@ -10,8 +9,7 @@ from unilog.analytics.schemas import (
     Incident,
     Insight,
     MetricsBundle,
-    ThreatProfile,
-    TimelineEvent
+    ThreatProfile
 )
 
 
@@ -219,10 +217,14 @@ class IncidentCorrelator:
         severity = "CRITICAL" if "critical" in severities else ("HIGH" if "high" in severities else "MEDIUM")
 
         evidence_checkpoints: List[str] = []
-        if getattr(metrics, "latency", None) and metrics.latency.p99_ms:
-            evidence_checkpoints.append(f"[+] High P99 Latency ({metrics.latency.p99_ms:.1f}ms)")
-        if getattr(metrics, "error", None) and metrics.error.total_errors > 0:
-            evidence_checkpoints.append(f"[+] Elevated error rate ({metrics.error.error_ratio * 100:.1f}%)")
+        lat = getattr(metrics, "latency", None)
+        if lat is not None and getattr(lat, "p99_ms", None):
+            evidence_checkpoints.append(f"[+] High P99 Latency ({lat.p99_ms:.1f}ms)")
+        err = getattr(metrics, "error", None)
+        if err is not None and getattr(err, "total_errors", 0) > 0:
+            evidence_checkpoints.append(f"[+] Elevated error rate ({err.error_ratio * 100:.1f}%)")
+
+
 
         if not evidence_checkpoints:
             evidence_checkpoints = [f"[+] {len(combined_insights)} performance/reliability SLA threshold breaches"]

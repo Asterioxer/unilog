@@ -173,7 +173,8 @@ def parse_string(log_text: str, format: Optional[str] = None) -> pd.DataFrame:
                 candidate = parser_cls()
                 # Use the candidate with best confidence on a small sample
                 sample = log_text[:4096]
-                sample_lines = [l for l in sample.splitlines() if l.strip()][:50]
+                sample_lines = [line_str for line_str in sample.splitlines() if line_str.strip()][:50]
+
                 if sample_lines and candidate.confidence_score(sample_lines) > 0:
                     parser_inst = candidate
                     break

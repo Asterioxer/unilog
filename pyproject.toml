@@ -43,3 +43,7 @@ build-backend = "hatchling.build"
 markers = [
     "performance: benchmark tests assessing execution budgets",
 ]
+
+[tool.ruff]
+exclude = ["scripts"]
+

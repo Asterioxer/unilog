@@ -1,9 +1,8 @@
 """Regression tests for Release 10 Intelligence Pipeline."""
 
-import pytest
 from datetime import datetime, timezone
 import unilog
-from unilog.analytics import MetricsEngine, IncidentCorrelator, HealthCalculator
+from unilog.analytics import MetricsEngine, IncidentCorrelator
 from unilog.analytics.rules import RuleEngine, RuleSet, RuleContext
 from unilog.analytics.rules.builtin import collect_all_rules
 

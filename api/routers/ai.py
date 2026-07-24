@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import httpx
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from api.dependencies.rate_limiter import limiter
 from api.schemas.ai import AIExplainRequest, AIExplainResponse
 
@@ -14,30 +14,26 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini
 def generate_fallback_mock(req: AIExplainRequest) -> dict:
     """Generate high-fidelity local deterministic mock analysis if Gemini API key is missing."""
     metrics = req.metrics
-    insights = req.insights
 
     has_errors = metrics.get("error_metrics", {}).get("error_rate", 0.0) > 0.05
-    slow_endpoints = metrics.get("performance", {}).get("top_slow_endpoints", [])
-    security_metrics = metrics.get("security", {})
+    has_high_latency = metrics.get("traffic_metrics", {}).get("avg_latency_ms", 0.0) > 400.0
     
-    # 1. Check for SQL Injection or Web Injections
+    # 1. Check for Security Injections
+    security_metrics = metrics.get("security_metrics") or metrics.get("security", {})
+
     injection = security_metrics.get("injection_metrics", {})
     has_sqli = injection.get("sql_injection_count", 0) > 0
-    has_xss = injection.get("xss_injection_count", 0) > 0
     
     # 2. Check for Scanner/Probing
     scanner = security_metrics.get("scanner_metrics", {})
-    has_scanner = scanner.get("scanner_hits_count", 0) > 0
+    has_scanner = scanner.get("probe_requests_count", 0) > 0 or scanner.get("scanner_user_agents_count", 0) > 0
     
-    # 3. Check for Brute Force
-    brute = security_metrics.get("brute_force", {})
-    has_brute = brute.get("lockout_candidates_count", 0) > 0
-    
-    # 4. Check for Bots
-    bot = security_metrics.get("bot_metrics", {})
-    has_bot = bot.get("headless_fingerprints_count", 0) > 0
+    # 3. Check for Auth Bruteforce
+    auth = security_metrics.get("auth_metrics", {})
+    has_auth_fail = auth.get("failed_login_count", 0) > 0
 
     remediations = []
+
     
     if has_sqli:
         summary = "CRITICAL: SQL Injection Attempts Detected"
@@ -58,7 +54,7 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
             ),
             "language": "nginx"
         })
-    elif has_brute:
+    elif has_auth_fail:
         summary = "HIGH: Brute-Force Login Attacks Detected"
         explanation = (
             "### Authentication Security Incident\n\n"
@@ -114,8 +110,9 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
             ),
             "language": "sql"
         })
-    elif slow_endpoints:
+    elif has_high_latency:
         summary = "INFO: Performance Latency Warning"
+
         explanation = (
             "### API Latency Diagnostics\n\n"
             "Several endpoints are exhibiting response latencies exceeding performance thresholds. "

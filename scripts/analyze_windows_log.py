@@ -3,7 +3,6 @@ Analyze a Windows Event Viewer CSV export with unilog.
 Usage: uv run python scripts/analyze_windows_log.py <path_to_csv>
 """
 import sys
-import json
 import pathlib
 
 try:

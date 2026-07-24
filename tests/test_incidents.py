@@ -1,6 +1,5 @@
 """Unit tests for IncidentCorrelator and TimelineBuilder."""
 
-import pytest
 from datetime import datetime, timezone
 import unilog
 from unilog.analytics import MetricsEngine, IncidentCorrelator

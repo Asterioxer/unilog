@@ -26,8 +26,10 @@ export default function AIAssistant({
     try {
       const data = await apiService.explainLogs(metrics, insights);
       setResult(data);
-    } catch (err: any) {
-      setError(err?.response?.data?.error?.message || err?.message || "Failed to generate AI explanation");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
+      setError(e?.response?.data?.error?.message || e?.message || "Failed to generate AI explanation");
+
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 """Timeline builder for chronological incident event tracking."""
 
 from typing import Any, List, Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import datetime
 from unilog.analytics.schemas import Insight, TimelineEvent
 
 

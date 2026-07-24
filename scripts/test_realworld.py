@@ -3,9 +3,7 @@ Real-world log testing harness for unilog.
 Generates realistic log scenarios and runs them through the full analytics pipeline.
 """
 import sys
-import json
 import random
-import time
 import requests
 from datetime import datetime, timedelta
 
@@ -89,7 +87,7 @@ def analyze(log_text: str, label: str):
     top = ep.get("top_endpoints", [])[:5]
     if top:
         max_share = max((e.get("share_pct", 0) for e in top), default=1)
-        print(f"  ✦ Top Endpoints:")
+        print("  ✦ Top Endpoints:")
         for e in top:
             bar = fmt_bar(e.get("share_pct", 0), max_share, 15)
             print(f"      {e.get('path','?'):<38}  {bar}  {e.get('share_pct',0):.1f}%  ({e.get('count',0)} reqs)")
@@ -105,7 +103,7 @@ def analyze(log_text: str, label: str):
     journey = metrics.get("journey", {})
     funnel = journey.get("funnel", {})
     if isinstance(funnel, dict) and any(v > 0 for v in funnel.values()):
-        print(f"  ✦ Funnel:")
+        print("  ✦ Funnel:")
         stages = ["Landing", "Products", "Product", "Cart", "Checkout"]
         landing_count = funnel.get("Landing", 1)
         for stage in stages:
@@ -147,7 +145,7 @@ def analyze(log_text: str, label: str):
             sec_parts.append(f"missing UA: {bot['missing_user_agent_count']}")
 
         if sec_parts:
-            print(f"  ✦ Security:")
+            print("  ✦ Security:")
             for part in sec_parts:
                 print(f"      • {part}")
 
@@ -170,7 +168,7 @@ def analyze(log_text: str, label: str):
             if rec:
                 print(f"     → {rec}")
     else:
-        print(f"\n  ✅ No insights triggered — system healthy")
+        print("\n  ✅ No insights triggered — system healthy")
 
     return d
 

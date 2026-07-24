@@ -1,8 +1,6 @@
 """Unit tests for HealthCalculator."""
 
-import pytest
 from unilog.analytics import MetricsEngine, HealthCalculator, IncidentCorrelator
-from unilog.analytics.schemas import Insight
 from datetime import datetime, timezone
 
 

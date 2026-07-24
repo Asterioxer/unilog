@@ -30,17 +30,18 @@ class MockWebSocket {
 }
 
 describe("LiveMonitor Component", () => {
-  let originalWebSocket: any;
+  let originalWebSocket: unknown;
 
   beforeEach(() => {
-    originalWebSocket = (window as any).WebSocket;
-    (window as any).WebSocket = MockWebSocket as any;
+    originalWebSocket = (window as unknown as Record<string, unknown>).WebSocket;
+    (window as unknown as Record<string, unknown>).WebSocket = MockWebSocket;
     MockWebSocket.mockInstances = [];
   });
 
   afterEach(() => {
-    (window as any).WebSocket = originalWebSocket;
+    (window as unknown as Record<string, unknown>).WebSocket = originalWebSocket;
   });
+
 
   it("renders connection status, stats cards, and action controls", async () => {
     render(<LiveMonitor />);

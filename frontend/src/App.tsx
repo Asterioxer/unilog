@@ -4,6 +4,10 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import LogsTable from "./pages/LogsTable";
+import CustomRulesPage from "./pages/CustomRulesPage";
+import ApiReferencePage from "./pages/ApiReferencePage";
+import SettingsPage from "./pages/SettingsPage";
+import HelpCenterPage from "./pages/HelpCenterPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
@@ -35,11 +39,11 @@ export default function App() {
                       <Route path="/" element={<Dashboard />} />
                       {/* Log Explorer Table subroute */}
                       <Route path="/logs" element={<LogsTable />} />
-                      {/* Placeholder sub-routes for sidebar matches */}
-                      <Route path="/rules" element={<Dashboard />} />
-                      <Route path="/docs" element={<Dashboard />} />
-                      <Route path="/settings" element={<Dashboard />} />
-                      <Route path="/help" element={<Dashboard />} />
+                      {/* Dedicated sidebar sub-routes */}
+                      <Route path="/rules" element={<CustomRulesPage />} />
+                      <Route path="/docs" element={<ApiReferencePage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/help" element={<HelpCenterPage />} />
                     </Routes>
                   </DashboardLayout>
                 }
@@ -51,3 +55,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
