@@ -15,7 +15,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-07-19
+### Added
+- **Live Monitoring Mode (Release 9)**: Implemented WebSocket log streaming router `api/routers/live.py` (`/api/v1/ws/live`) streaming simulated real-time web log traffic with live anomaly triggers.
+- **Live Terminal Frontend (`LiveMonitor.tsx`)**: Built live terminal console UI with auto-scroll, play/pause state controls, and configurable streaming speed intervals (0.1s to 2.0s).
+
+## [0.8.0] - 2026-07-19
+### Added
+- **AI SRE Assistant (Release 8)**: Added LLM diagnostic router `api/routers/ai.py` (`POST /api/v1/ai/diagnose`) explaining metric anomalies and root causes.
+- **Interactive AI Assistant UI (`AIAssistant.tsx`)**: Created frontend assistant component presenting structured root-cause explanations and copyable remediation configurations.
+
+## [0.7.0] - 2026-07-18
+### Added
+- **Security Intelligence (Release 7)**: Implemented `SecurityAnalyzer` under `unilog/analytics/modules/security_analyzer.py` mapping threat signatures for brute force logins, endpoint directory enumeration, bot fingerprints, vulnerability scanning, and SQLi/XSS code injection.
+- **SecurityObserver UI**: Created dedicated security intelligence observer panel rendering threat profile metrics, scanner hits, and attack indicators.
+
+## [0.6.0] - 2026-07-17
+### Added
+- **Session & Journey Analytics (Release 6)**: Developed `SessionAnalyzer` and `JourneyAnalyzer` under `unilog/analytics/modules/` for user session reconstruction, bounce rate calculation, and multi-step conversion funnel tracking.
+- **SessionObserver UI**: Added interactive session behavioral observer UI displaying active user session tables and conversion funnel drop-off visualization.
+
+## [0.5.0] - 2026-07-16
+### Added
+- **Insight Cards UI (Release 5)**: Created frontend `InsightCard` component rendering structured rule alerts with severity badges, confidence indicators, and actionable remediation guidance.
+- **Analytics Endpoint (`POST /api/v1/analyze`)**: Added consolidated backend analysis endpoint running full metrics compilation and rule evaluation.
+
+## [0.4.0] - 2026-07-15
+### Added
+- **Built-in Rule Engine (Release 4)**: Developed 12 built-in operational rules across 4 core categories (performance, reliability, traffic, security) under `unilog/analytics/rules/`.
+- **Typed Insight Schemas**: Enforced typed `Insight` objects with category, severity, confidence, evidence, and recommendations.
+
+---
+
 ## [0.3.5] - 2026-07-14
+
 
 ### Changed
 - **Minimum Python Version**: Raised the minimum supported Python version constraint to `>=3.10` in `pyproject.toml` and regenerated the locks, dropping compatibility with Python 3.9.
