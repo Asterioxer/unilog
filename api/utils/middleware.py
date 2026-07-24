@@ -24,7 +24,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Enforces strict, production-ready security headers on every response."""
 
     async def dispatch(self, request: Request, call_next):
+        if request.scope.get("type") == "websocket":
+            return await call_next(request)
+
         response = await call_next(request)
+
 
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
