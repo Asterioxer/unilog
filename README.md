@@ -65,6 +65,8 @@ flowchart TD
 | v0.7 | Security Intelligence | Dedicated SecurityAnalyzer, SecurityObserver UI panel with threat profiles |
 | v0.8 | AI Diagnostics | AI SRE Assistant generating root-cause reports and remediation configs |
 | v0.9 | Live Stream | Real-time WebSocket log streaming and interactive terminal monitor |
+| v1.0 | Incident Correlation | IncidentCorrelator, evidence-based confidence rationale, threat profiles, and System Health Matrix |
+
 
 ### Built-in Analyzers
 

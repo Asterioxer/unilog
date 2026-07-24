@@ -182,9 +182,54 @@ export interface SecurityMetrics {
   injection_metrics: InjectionMetrics;
 }
 
+export interface TimelineEvent {
+  timestamp: string;
+  event_type: string;
+  description: string;
+  severity: string;
+}
+
+export interface ThreatProfile {
+  suspected_tools: string[];
+  capabilities: string[];
+  observed_targets: string[];
+  risk_level: string;
+}
+
+export interface Incident {
+  incident_id: string;
+  title: string;
+  severity: string;
+  confidence: number;
+  confidence_evidence: string[];
+  affected_ips: string[];
+  timeline: TimelineEvent[];
+  threat_profile?: ThreatProfile;
+  sub_findings: string[];
+  evidence_summary: Record<string, unknown>;
+  recommendations: string[];
+}
+
+export interface HealthSubScore {
+  score: number;
+  status: 'HEALTHY' | 'WARNING' | 'CRITICAL';
+  summary: string;
+}
+
+export interface SystemHealthScore {
+  overall_score: number;
+  status: 'HEALTHY' | 'WARNING' | 'CRITICAL';
+  security: HealthSubScore;
+  reliability: HealthSubScore;
+  performance: HealthSubScore;
+  traffic: HealthSubScore;
+}
+
 export interface AnalyzeResponse {
   metrics: Record<string, unknown>;
   insights: InsightResponse[];
+  incidents?: Incident[];
+  system_health?: SystemHealthScore;
   metadata: AnalyzeMetadata;
   ruleset_version: string;
   format?: string;
@@ -192,6 +237,7 @@ export interface AnalyzeResponse {
   journey?: JourneyMetrics;
   security?: SecurityMetrics;
 }
+
 
 export interface ApiErrorDetail {
   code: string;

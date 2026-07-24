@@ -195,9 +195,22 @@ async def analyze_logs(request: Request, req: AnalyzeRequest):
                 for ins in triggered_insights
             ]
 
+        # Downstream Intelligence Pipeline: Correlate Incidents & Compute Health
+        from unilog.analytics import IncidentCorrelator, HealthCalculator
+        correlator = IncidentCorrelator()
+        health_calc = HealthCalculator()
+
+        incidents = correlator.correlate(triggered_insights, result.metrics, records)
+        system_health = health_calc.calculate(result.metrics, triggered_insights, incidents)
+
+        incidents_response = [inc.model_dump(mode="json") for inc in incidents]
+        health_response = system_health.model_dump(mode="json")
+
         return {
             "metrics": result.metrics.model_dump(exclude_none=True),
             "insights": insights_response,
+            "incidents": incidents_response,
+            "system_health": health_response,
             "metadata": {
                 "analyzed_records": result.metadata.analyzed_records,
                 "skipped_records": result.metadata.skipped_records,
@@ -210,6 +223,7 @@ async def analyze_logs(request: Request, req: AnalyzeRequest):
             },
             "ruleset_version": result.ruleset_version,
         }
+
     except Exception as e:
         logger.error(
             "Analytics pipeline failed: %s",

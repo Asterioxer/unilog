@@ -1,4 +1,4 @@
-import type { StatsResponse, DetectResponse, InsightResponse, SessionMetrics, JourneyMetrics, SecurityMetrics } from "./api";
+import type { StatsResponse, DetectResponse, InsightResponse, SessionMetrics, JourneyMetrics, SecurityMetrics, Incident, SystemHealthScore } from "./api";
 
 export type DashboardStatus =
   | "idle"
@@ -39,6 +39,8 @@ export interface AnalysisState {
   stats: StatsResponse | null;
   detect: DetectResponse | null;
   insights: InsightResponse[] | null;
+  incidents?: Incident[] | null;
+  systemHealth?: SystemHealthScore | null;
   session: SessionMetrics | null;
   journey: JourneyMetrics | null;
   security: SecurityMetrics | null;
@@ -46,6 +48,7 @@ export interface AnalysisState {
   lastUpdated: string | null;    // ISO Timestamp
   rawMetrics?: Record<string, unknown> | null;
 }
+
 
 export interface UIState {
   activeTab: "file" | "paste" | "live";

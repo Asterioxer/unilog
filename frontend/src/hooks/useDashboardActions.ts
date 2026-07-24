@@ -159,11 +159,14 @@ export const useDashboardActions = () => {
             stats: statsResponse,
             detect,
             insights: stats.insights || [],
+            incidents: stats.incidents || [],
+            systemHealth: stats.system_health || null,
             session: stats.session || null,
             journey: stats.journey || null,
             security: stats.security || null,
             rawMetrics: stats.metrics || null,
             lastUpdated: new Date().toISOString(),
+
           },
           metadata: {
             ...prev.metadata,

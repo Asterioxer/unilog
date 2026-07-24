@@ -5,9 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-24
+### Added
+- **Incident Correlation Engine (Release 10)**: Integrated `IncidentCorrelator` and `TimelineBuilder` under `unilog/analytics/incidents/` to aggregate co-occurring raw rule alerts into top-level deterministic `Incident` objects (`INC-YYYYMMDD-HHMMSS-XXXX`).
+- **Evidence-Based Confidence Rationale**: Implemented evidence checkpoints detailing why threat confidence scores are assigned without arbitrary percentage arithmetic.
+- **Multi-Tool Threat Actor Profiling**: Extracted `suspected_tools` (`Nikto`, `Playwright`, `Go-http-client`), capabilities, and observed target endpoints into structured threat profiles.
+- **System Health Matrix Calculator**: Added `HealthCalculator` under `unilog/analytics/health.py` to evaluate environment health scores (0-100) across Security, Reliability, Performance, and Traffic dimensions.
+- **Frontend SOC UI Components**: Created `SystemHealthCard` and `IncidentBoard` React components rendering health status matrix gauges and consolidated incident cards with expandable timelines.
+
 ---
 
 ## [0.3.5] - 2026-07-14
+
 ### Changed
 - **Minimum Python Version**: Raised the minimum supported Python version constraint to `>=3.10` in `pyproject.toml` and regenerated the locks, dropping compatibility with Python 3.9.
 - **Dependency Security Refresh**: Upgraded `python-multipart`, `starlette`, `urllib3`, `msgpack`, `requests`, `filelock`, `pytest`, and `pip` to safe release constraints, clearing all security advisories.

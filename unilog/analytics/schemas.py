@@ -230,9 +230,59 @@ class Insight(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class TimelineEvent(BaseModel):
+    """Chronological event footprint within an incident timeline."""
+    timestamp: str
+    event_type: str              # e.g., "scanner_probe", "bot_fingerprint", "threshold_breach"
+    description: str
+    severity: str                # e.g., "LOW", "MEDIUM", "HIGH", "CRITICAL"
+
+
+class ThreatProfile(BaseModel):
+    """Correlated threat actor and automated tool profiling."""
+    suspected_tools: List[str] = Field(default_factory=list)   # e.g., ["Nikto", "Playwright (headless)"]
+    capabilities: List[str] = Field(default_factory=list)      # e.g., ["Directory Discovery", "Admin Probing"]
+    observed_targets: List[str] = Field(default_factory=list)  # e.g., ["/wp-admin", "/.env"]
+    risk_level: str = "MEDIUM"                                 # e.g., "CRITICAL", "HIGH", "MEDIUM"
+
+
+class Incident(BaseModel):
+    """Correlated operational or security incident object aggregating multiple insights."""
+    incident_id: str             # e.g., "INC-20260724-143206-7F2A"
+    title: str                   # e.g., "Automated Reconnaissance Attack"
+    severity: str                # "CRITICAL", "HIGH", "MEDIUM", "LOW"
+    confidence: float            # 0.0 - 1.0 (e.g., 0.98)
+    confidence_evidence: List[str] = Field(default_factory=list) # e.g., ["✓ Known scanner UA", "✓ Sensitive probe paths"]
+    affected_ips: List[str] = Field(default_factory=list)
+    timeline: List[TimelineEvent] = Field(default_factory=list)
+    threat_profile: Optional[ThreatProfile] = None
+    sub_findings: List[str] = Field(default_factory=list)       # List of underlying Insight IDs
+    evidence_summary: Dict[str, Any] = Field(default_factory=dict)
+    recommendations: List[str] = Field(default_factory=list)    # Actionable remediation checklist
+
+
+class HealthSubScore(BaseModel):
+    """Individual system domain health score metric."""
+    score: int                   # 0 - 100
+    status: str                  # "HEALTHY", "WARNING", "CRITICAL"
+    summary: str
+
+
+class SystemHealthScore(BaseModel):
+    """Multi-dimensional environment health metric score matrix."""
+    overall_score: int           # 0 - 100
+    status: str                  # "HEALTHY", "WARNING", "CRITICAL"
+    security: HealthSubScore
+    reliability: HealthSubScore
+    performance: HealthSubScore
+    traffic: HealthSubScore
+
+
 class AnalysisResult(BaseModel):
-    """Canonical analysis result containing the metrics bundle, insights list, and execution telemetry."""
+    """Canonical analysis result containing the metrics bundle, insights list, correlated incidents, and execution telemetry."""
     metrics: MetricsBundle
     insights: List[Insight] = Field(default_factory=list)
+    incidents: List[Incident] = Field(default_factory=list)
+    system_health: Optional[SystemHealthScore] = None
     metadata: PerformanceMetadata
-    ruleset_version: str = "1.0"
+    ruleset_version: str = "1.0"

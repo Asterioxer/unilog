@@ -34,7 +34,11 @@ import SecurityObserver from "../components/SecurityObserver";
 import AIAssistant from "../components/AIAssistant";
 import LiveMonitor from "../components/LiveMonitor";
 
+import { SystemHealthCard } from "../components/SystemHealthCard";
+import { IncidentBoard } from "../components/IncidentBoard";
+
 function DashboardContent() {
+
   const [file, setFile] = useState<File | null>(null);
   const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security" | "ai">("overview");
   
@@ -550,9 +554,20 @@ function DashboardContent() {
               </div>
 
               {activeResultTab === "overview" ? (
-                <>
+                <div className="space-y-8">
+                  {/* System Health Score Matrix */}
+                  {state.analysis.systemHealth && (
+                    <SystemHealthCard health={state.analysis.systemHealth} />
+                  )}
+
+                  {/* Correlate SOC Incidents */}
+                  {state.analysis.incidents && state.analysis.incidents.length > 0 && (
+                    <IncidentBoard incidents={state.analysis.incidents} />
+                  )}
+
                   {/* Detail Visualizations Grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                     {/* Log Level Distribution */}
                     <ChartCard
                       title="Log Level Distribution"
@@ -615,8 +630,9 @@ function DashboardContent() {
                       <TopEndpointsChart data={chartTopEndpoints} />
                     </ChartCard>
                   </div>
-                </>
+                </div>
               ) : activeResultTab === "sessions" ? (
+
                 <SessionObserver 
                   sessionMetrics={state.analysis.session} 
                   journeyMetrics={state.analysis.journey}

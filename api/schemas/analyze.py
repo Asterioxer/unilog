@@ -65,5 +65,14 @@ class AnalyzeResponse(BaseModel):
         default_factory=list,
         description="Triggered rule insights (empty if enable_rules=False)",
     )
+    incidents: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Correlated SOC incidents aggregating triggered insights",
+    )
+    system_health: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Multi-dimensional environment system health matrix (0-100 score)",
+    )
     metadata: AnalyzeMetadata
     ruleset_version: str = "1.0"
+
