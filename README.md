@@ -21,7 +21,16 @@ Parse any log file into a clean pandas DataFrame, compile rich operational metri
 - **React Dashboard**: Upload logs via drag-and-drop, inspect metrics, view insight cards, session analytics, and security intelligence in a modern SPA.
 - **Fully Typed & Tested**: High test coverage (≥92%), complete type hinting, and robust CI/CD.
 
+## Live Dashboard & Monitoring Proof
+
+### Real-Time WebSocket Log Stream (Live Monitor)
+![Live Log Monitoring Mode](docs/screenshots/live_monitor_connected.png)
+
+### System Health Matrix Score & Correlated Incident Board
+![System Health Matrix & Incident Intelligence Board](docs/screenshots/system_health_and_incidents.png)
+
 ## Architecture
+
 
 ```mermaid
 flowchart TD

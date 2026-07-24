@@ -43,10 +43,10 @@ export default function LiveMonitor() {
     }
     
     setStatus("connecting");
-    const apiBase = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8002").replace(":8000", ":8002");
-    const wsProto = apiBase.startsWith("https") ? "wss:" : "ws:";
-    const hostPort = apiBase.replace(/^https?:\/\//, "");
-    const wsUrl = `${wsProto}//${hostPort}/api/v1/ws/live`;
+    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsHost = window.location.hostname || "127.0.0.1";
+    const wsUrl = `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
+
     
     try {
       const ws = new WebSocket(wsUrl);
