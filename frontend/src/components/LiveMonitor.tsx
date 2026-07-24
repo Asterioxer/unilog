@@ -27,59 +27,84 @@ export default function LiveMonitor() {
 
   // Connect to WebSocket
   const connectWebSocket = () => {
-    if (socketRef.current) return;
+    if (socketRef.current) {
+      if (
+        socketRef.current.readyState === WebSocket.OPEN ||
+        socketRef.current.readyState === WebSocket.CONNECTING
+      ) {
+        return;
+      }
+      try {
+        socketRef.current.close();
+      } catch {
+        // ignore
+      }
+      socketRef.current = null;
+    }
     
     setStatus("connecting");
-    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    // Point to backend port 8002 dynamically
-    const wsUrl = `${wsProto}//127.0.0.1:8002/api/v1/ws/live`;
+    const apiBase = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8002").replace(":8000", ":8002");
+    const wsProto = apiBase.startsWith("https") ? "wss:" : "ws:";
+    const hostPort = apiBase.replace(/^https?:\/\//, "");
+    const wsUrl = `${wsProto}//${hostPort}/api/v1/ws/live`;
     
-    const ws = new WebSocket(wsUrl);
-    socketRef.current = ws;
+    try {
+      const ws = new WebSocket(wsUrl);
+      socketRef.current = ws;
 
-    ws.onopen = () => {
-      setStatus("connected");
-      // Set initial rate delay
-      ws.send(JSON.stringify({ action: "rate", value: rate }));
-    };
+      ws.onopen = () => {
+        setStatus("connected");
+        ws.send(JSON.stringify({ action: "rate", value: rate }));
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const record: LiveLogRecord = JSON.parse(event.data);
-        setLogs((prev) => {
-          const nextLogs = [...prev, record];
-          if (nextLogs.length > 150) {
-            nextLogs.shift(); // Keep buffer size within 150 records for rendering efficiency
+      ws.onmessage = (event) => {
+        try {
+          const record: LiveLogRecord = JSON.parse(event.data);
+          setLogs((prev) => {
+            const nextLogs = [...prev, record];
+            if (nextLogs.length > 150) {
+              nextLogs.shift(); // Keep buffer size within 150 records for rendering efficiency
+            }
+            return nextLogs;
+          });
+          setTotalCount((c) => c + 1);
+          if (record.level === "ERROR" || record.level === "WARN") {
+            setErrorCount((c) => c + 1);
           }
-          return nextLogs;
-        });
-        setTotalCount((c) => c + 1);
-        if (record.level === "ERROR" || record.level === "WARN") {
-          setErrorCount((c) => c + 1);
+        } catch (err) {
+          console.error("Failed to parse incoming live WebSocket frame:", err);
         }
-      } catch (err) {
-        console.error("Failed to parse incoming live WebSocket frame:", err);
-      }
-    };
+      };
 
-    ws.onerror = (err) => {
-      console.error("WebSocket live stream connection error:", err);
-      setStatus("disconnected");
-    };
+      ws.onerror = (err) => {
+        console.error("WebSocket live stream connection error:", err);
+        setStatus("disconnected");
+        socketRef.current = null;
+      };
 
-    ws.onclose = () => {
+      ws.onclose = () => {
+        setStatus("disconnected");
+        socketRef.current = null;
+      };
+    } catch (e) {
+      console.error("Failed to establish WebSocket:", e);
       setStatus("disconnected");
       socketRef.current = null;
-    };
+    }
   };
 
   const disconnectWebSocket = () => {
     if (socketRef.current) {
-      socketRef.current.close();
+      try {
+        socketRef.current.close();
+      } catch {
+        // ignore
+      }
       socketRef.current = null;
     }
     setStatus("disconnected");
   };
+
 
   // Handle Play/Pause
   const toggleStreaming = () => {
