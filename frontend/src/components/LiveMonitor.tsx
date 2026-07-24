@@ -22,6 +22,23 @@ export default function LiveMonitor() {
   const [totalCount, setTotalCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
 
+  const streamingRef = useRef(streaming);
+  const statusRef = useRef(status);
+  const rateRef = useRef(rate);
+
+  useEffect(() => {
+    streamingRef.current = streaming;
+  }, [streaming]);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  useEffect(() => {
+    rateRef.current = rate;
+  }, [rate]);
+
+
   const socketRef = useRef<WebSocket | null>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
@@ -44,6 +61,8 @@ export default function LiveMonitor() {
     }
     
     setStatus("connecting");
+    statusRef.current = "connecting";
+
     const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsHost = window.location.hostname || "127.0.0.1";
     const wsUrl = `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
@@ -54,16 +73,20 @@ export default function LiveMonitor() {
 
       ws.onopen = () => {
         setStatus("connected");
-        ws.send(JSON.stringify({ action: "rate", value: rate }));
+        statusRef.current = "connected";
+        ws.send(JSON.stringify({ action: "rate", value: rateRef.current }));
       };
 
       ws.onmessage = (event) => {
+        if (!streamingRef.current || statusRef.current !== "connected") {
+          return;
+        }
         try {
           const record: LiveLogRecord = JSON.parse(event.data);
           setLogs((prev) => {
             const nextLogs = [...prev, record];
             if (nextLogs.length > 150) {
-              nextLogs.shift(); // Keep buffer size within 150 records for rendering efficiency
+              nextLogs.shift();
             }
             return nextLogs;
           });
@@ -79,45 +102,57 @@ export default function LiveMonitor() {
       ws.onerror = (err) => {
         console.error("WebSocket live stream connection error:", err);
         setStatus("disconnected");
+        statusRef.current = "disconnected";
         socketRef.current = null;
       };
 
       ws.onclose = () => {
         setStatus("disconnected");
+        statusRef.current = "disconnected";
         socketRef.current = null;
       };
     } catch (e) {
       console.error("Failed to establish WebSocket:", e);
       setStatus("disconnected");
+      statusRef.current = "disconnected";
       socketRef.current = null;
     }
-  }, [rate]);
+  }, []);
 
   const disconnectWebSocket = useCallback(() => {
+    statusRef.current = "disconnected";
+    setStatus("disconnected");
     if (socketRef.current) {
+      const ws = socketRef.current;
+      socketRef.current = null;
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onerror = null;
+      ws.onclose = null;
       try {
-        socketRef.current.close();
+        ws.close();
       } catch {
         // ignore
       }
-      socketRef.current = null;
     }
-    setStatus("disconnected");
   }, []);
 
   // Handle Play/Pause
   const toggleStreaming = () => {
-    if (!socketRef.current) return;
     const nextStreaming = !streaming;
     setStreaming(nextStreaming);
-    socketRef.current.send(
-      JSON.stringify({ action: nextStreaming ? "resume" : "pause" })
-    );
+    streamingRef.current = nextStreaming;
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({ action: nextStreaming ? "resume" : "pause" })
+      );
+    }
   };
 
   // Handle rate change
   const handleRateChange = (newRate: number) => {
     setRate(newRate);
+    rateRef.current = newRate;
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ action: "rate", value: newRate }));
     }
@@ -141,6 +176,8 @@ export default function LiveMonitor() {
       disconnectWebSocket();
     };
   }, [connectWebSocket, disconnectWebSocket]);
+
+
 
   // Scroll to bottom helper
   useEffect(() => {

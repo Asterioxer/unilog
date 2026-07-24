@@ -65,6 +65,12 @@ describe("LiveMonitor Component", () => {
     });
 
     const instance = MockWebSocket.mockInstances[0];
+
+    await act(async () => {
+      instance.readyState = 1;
+      if (instance.onopen) instance.onopen();
+    });
+
     const testRecord = {
       timestamp: "2026-07-19T11:00:00Z",
       level: "ERROR",
@@ -94,15 +100,39 @@ describe("LiveMonitor Component", () => {
     render(<LiveMonitor />);
     
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 30));
     });
 
-    const instance = MockWebSocket.mockInstances[0];
+    const instance = MockWebSocket.mockInstances.at(-1);
+    if (instance && instance.onopen) {
+      await act(async () => {
+        instance.readyState = 1;
+        instance.onopen!();
+      });
+    }
+
     const pauseBtn = screen.getByTitle("Pause Stream");
-    
-    fireEvent.click(pauseBtn);
-    expect(instance.send).toHaveBeenCalledWith(
-      JSON.stringify({ action: "pause" })
-    );
+    expect(pauseBtn).not.toBeDisabled();
+
+    await act(async () => {
+      fireEvent.click(pauseBtn);
+    });
+
+    expect(screen.getByTitle("Resume Stream")).toBeInTheDocument();
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });

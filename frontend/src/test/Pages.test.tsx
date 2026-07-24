@@ -9,6 +9,8 @@ import CustomRulesPage from "../pages/CustomRulesPage";
 import ApiReferencePage from "../pages/ApiReferencePage";
 import SettingsPage from "../pages/SettingsPage";
 import HelpCenterPage from "../pages/HelpCenterPage";
+import { ThemeProvider } from "../components/ThemeProvider";
+
 
 describe("Landing and Dashboard placeholder render checks", () => {
   let queryClient: QueryClient;
@@ -61,10 +63,15 @@ describe("Landing and Dashboard placeholder render checks", () => {
   });
 
   it("renders SettingsPage correctly", () => {
-    render(<SettingsPage />);
+    render(
+      <ThemeProvider>
+        <SettingsPage />
+      </ThemeProvider>
+    );
     expect(screen.getByText(/Application Preferences & Environment Settings/i)).toBeInTheDocument();
     expect(screen.getByText("Save Settings")).toBeInTheDocument();
   });
+
 
   it("renders HelpCenterPage correctly", () => {
     render(<HelpCenterPage />);
