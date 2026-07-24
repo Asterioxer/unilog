@@ -1,4 +1,5 @@
-import { HelpCircle, FileText, Cpu, Github, ExternalLink, ShieldCheck, Zap } from "lucide-react";
+import { HelpCircle, FileText, Cpu, ExternalLink, ShieldCheck, Zap } from "lucide-react";
+
 
 export default function HelpCenterPage() {
   const faqs = [
@@ -41,9 +42,10 @@ export default function HelpCenterPage() {
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground font-semibold text-sm rounded-xl transition-all shadow-xs"
             >
-              <Github className="h-4 w-4" />
+              <ExternalLink className="h-4 w-4" />
               GitHub Repository
               <ExternalLink className="h-3.5 w-3.5" />
+
             </a>
           </div>
         </div>

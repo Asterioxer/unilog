@@ -36,18 +36,19 @@ export default function App() {
                 element={
                   <DashboardLayout>
                     <Routes>
-                      <Route path="/" element={<Dashboard />} />
+                      <Route index element={<Dashboard />} />
                       {/* Log Explorer Table subroute */}
-                      <Route path="/logs" element={<LogsTable />} />
+                      <Route path="logs" element={<LogsTable />} />
                       {/* Dedicated sidebar sub-routes */}
-                      <Route path="/rules" element={<CustomRulesPage />} />
-                      <Route path="/docs" element={<ApiReferencePage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                      <Route path="/help" element={<HelpCenterPage />} />
+                      <Route path="rules" element={<CustomRulesPage />} />
+                      <Route path="docs" element={<ApiReferencePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
+                      <Route path="help" element={<HelpCenterPage />} />
                     </Routes>
                   </DashboardLayout>
                 }
               />
+
             </Routes>
           </BrowserRouter>
         </ThemeProvider>

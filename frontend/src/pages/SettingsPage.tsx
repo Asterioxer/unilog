@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Settings, Save, RefreshCw, Moon, Sun, Monitor, HardDrive, Check } from "lucide-react";
-import { useTheme } from "../components/ThemeProvider";
+import { useTheme } from "../hooks/useTheme";
+
+
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
