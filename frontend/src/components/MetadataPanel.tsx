@@ -32,9 +32,10 @@ export default function MetadataPanel({
 
   const formatDuration = (ms?: number) => {
     if (ms === undefined) return "N/A";
-    if (ms < 1000) return `${Math.round(ms)} ms`;
-    return `${(ms / 1000).toFixed(2)} s`;
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    return `${(ms / 1000).toFixed(2)}s`;
   };
+
 
 
   return (
