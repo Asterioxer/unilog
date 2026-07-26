@@ -151,19 +151,22 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Configurable CORS
-cors_env = os.environ.get("UNILOG_CORS_ORIGINS", "")
-if cors_env:
+cors_env = os.environ.get("UNILOG_CORS_ORIGINS", "*")
+if cors_env and cors_env != "*":
     cors_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+    allow_credentials = True
 else:
-    cors_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    cors_origins = ["*"]
+    allow_credentials = False
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_credentials=True,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Include routers
 app.include_router(health.router)  # root health checks (/health, /live, /ready)
