@@ -63,23 +63,24 @@ export default function LiveMonitor() {
     setStatus("connecting");
     statusRef.current = "connecting";
 
-    const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-    let wsUrl = "";
-    if (envUrl) {
-      try {
-        const parsed = new URL(envUrl);
-        const wsProto = parsed.protocol === "https:" ? "wss:" : "ws:";
-        wsUrl = `${wsProto}//${parsed.host}/api/v1/ws/live`;
-      } catch {
-        const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsHost = window.location.hostname || "127.0.0.1";
-        wsUrl = `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
+    const getWsUrl = (): string => {
+      const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+      if (envUrl) {
+        try {
+          const parsed = new URL(envUrl);
+          const wsProto = parsed.protocol === "https:" ? "wss:" : "ws:";
+          return `${wsProto}//${parsed.host}/api/v1/ws/live`;
+        } catch {
+          // fallback below
+        }
       }
-    } else {
       const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsHost = window.location.hostname || "127.0.0.1";
-      wsUrl = `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
-    }
+      return `${wsProto}//${wsHost}:8002/api/v1/ws/live`;
+    };
+
+    const wsUrl = getWsUrl();
+
 
 
     try {
