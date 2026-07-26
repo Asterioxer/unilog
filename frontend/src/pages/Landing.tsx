@@ -75,7 +75,8 @@ export default function Landing() {
         >
           <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/10 text-xs font-semibold text-primary mb-6">
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-            V0.2.0 API Live & Pinned
+            v1.0.0-beta.1 Live & Pinned
+
           </motion.div>
           <motion.h1 
             variants={itemVariants}
