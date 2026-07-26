@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.1] - 2026-07-26
+### Added
+- **Production Packaging & Release Candidate Setup**: Tagged `v1.0.0-beta.1` for initial operational deployment.
+- **Documentation Suite**: Added `docs/architecture.md`, `docs/plugin-development.md`, `docs/deployment.md`, `docs/performance.md`, and root `CONTRIBUTING.md`.
+- **Sub-Route Stability**: Verified dedicated sub-route navigation (`/rules`, `/docs`, `/settings`, `/help`) and immediate WebSocket stream disconnect reactivity.
+
+---
+
 ## [1.0.0] - 2026-07-24
+
 ### Added
 - **Incident Correlation Engine (Release 10)**: Integrated `IncidentCorrelator` and `TimelineBuilder` under `unilog/analytics/incidents/` to aggregate co-occurring raw rule alerts into top-level deterministic `Incident` objects (`INC-YYYYMMDD-HHMMSS-XXXX`).
 - **Evidence-Based Confidence Rationale**: Implemented evidence checkpoints detailing why threat confidence scores are assigned without arbitrary percentage arithmetic.

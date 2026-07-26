@@ -1,24 +1,17 @@
-# Custom Plugin Development
+# Plugin & Extension Guide
 
-`unilog` features an extensible registry allowing developers to add proprietary log formats seamlessly without hacking core code.
-
-## Creating a Parser Plugin
-
-A custom parser must:
-1. Inherit from `BaseParser` (or `RegexParser` / `StructuredRegexParser`).
-2. Be decorated with `@register_parser`.
-3. Expose configuration metadata properties:
-   - `name`: Unique parser string identifier.
-   - `description`: Human-readable label.
-   - `priority`: Scoring weight (higher means evaluated first; standard range `1-100`).
-   - `supported_extensions`: File suffixes matched during file type detection.
-4. Implement `parse_line(self, line: str) -> Optional[Dict[str, Any]]`.
+`unilog` is architected for maximum extensibility. Developers can write and register custom **Log Parsers**, **Analytics Observers**, and **Heuristic Rules** without modifying core codebase files.
 
 ---
 
-## Code Example: Standard Custom Parser
+## 1. Writing a Custom Log Parser
 
-Save the following file in a custom directory (e.g. `my_parsers.py`):
+A custom parser:
+1. Inherits from `BaseParser`, `RegexParser`, or `StructuredRegexParser`.
+2. Uses the `@register_parser` class decorator.
+3. Implements `parse_line(self, line: str) -> Optional[Dict[str, Any]]`.
+
+### Example: Custom App Parser
 
 ```python
 from typing import Optional, Dict, Any
@@ -26,58 +19,76 @@ from unilog.parsers.base import BaseParser
 from unilog.registry import register_parser
 
 @register_parser
-class CustomAppParser(BaseParser):
-    name = "custom_app"
-    description = "Internal Custom Application Log Format"
-    priority = 85
-    supported_extensions = [".log", ".txt"]
+class MicroserviceParser(BaseParser):
+    name = "microservice_json"
+    description = "Internal Microservice Structured Format"
+    priority = 90
+    supported_extensions = [".log", ".json"]
 
     def parse_line(self, line: str) -> Optional[Dict[str, Any]]:
-        # Example line format: "2026-07-10 | ERROR | user_auth | login failed"
         if not line.strip():
             return None
             
-        parts = [p.strip() for p in line.split("|")]
+        parts = [p.strip() for p in line.split(" :: ")]
         if len(parts) < 4:
             return {"_parse_error": True, "raw": line}
             
         return {
             "timestamp": parts[0],
             "level": parts[1],
-            "module": parts[2],
+            "service": parts[2],
             "message": parts[3]
         }
 ```
 
-Importing this module anywhere before running `unilog` auto-registers it:
+Importing this module dynamically registers `microservice_json` into auto-detection:
 
 ```python
-import my_parsers
-import unilog
+import my_custom_parser
+from unilog import parse_log_file
 
-# 'custom_app' is now active in auto-detection and parsing!
-df = unilog.parse("app_internal.log")
+records, metadata = parse_log_file("service.log")
 ```
 
 ---
 
-## Code Example: Custom Regex Parser
+## 2. Writing a Custom Regex Parser
 
-You can inherit from `StructuredRegexParser` to define regex-based parsers with automated normalization:
+For pattern-based logs, inherit from `StructuredRegexParser`:
 
 ```python
 from unilog.parsers.base import StructuredRegexParser
 from unilog.registry import register_parser
 
 @register_parser
-class CustomWebParser(StructuredRegexParser):
-    name = "custom_web"
-    description = "Custom Web access log"
-    priority = 75
+class CustomProxyParser(StructuredRegexParser):
+    name = "custom_proxy"
+    description = "Internal Enterprise Proxy Log"
+    priority = 80
     supported_extensions = [".log"]
     
-    # regex captures normalized fields like client_ip, timestamp, request_path, status_code
-    pattern = r"^(?P<client_ip>[\w\.]+) - \[(?P<timestamp>[^\]]+)\] \"(?P<request_path>[^\"]+)\" (?P<status_code>\d+)$"
+    # Named regex groups automatically map to canonical field names
+    pattern = r"^(?P<client_ip>[\w\.]+) \[(?P<timestamp>[^\]]+)\] \"(?P<method>\A-Z]+) (?P<request_path>[^\"]+)\" (?P<status_code>\d+) (?P<response_time>\d+)$"
     timestamp_field = "timestamp"
     timestamp_format = "%d/%b/%Y:%H:%M:%S %z"
+```
+
+---
+
+## 3. Writing Custom Heuristic Rules
+
+`unilog` allows registering custom rules to evaluate stream anomaly conditions dynamically:
+
+```python
+from unilog.analytics.rules import Rule, RuleCategory, RuleSeverity
+
+# Define custom rule instance
+high_5xx_spike_rule = Rule(
+    id="RULE_CUSTOM_01",
+    name="High 5xx Failure Rate",
+    category=RuleCategory.RELIABILITY,
+    severity=RuleSeverity.CRITICAL,
+    description="Fires when HTTP 5xx error percentage exceeds 15% of total volume.",
+    evaluator=lambda metrics: (metrics.get("status_codes", {}).get("5xx", 0) / max(metrics.get("total_lines", 1), 1)) > 0.15
+)
 ```
