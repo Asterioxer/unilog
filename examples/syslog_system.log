@@ -1,0 +1,5 @@
+Jul 26 10:00:00 webserver01 systemd[1]: Started nginx.service - High Performance HTTP Server.
+Jul 26 10:01:15 webserver01 sshd[24801]: Failed password for root from 192.168.1.50 port 49152 ssh2
+Jul 26 10:01:18 webserver01 sshd[24801]: Failed password for root from 192.168.1.50 port 49154 ssh2
+Jul 26 10:01:20 webserver01 sshd[24801]: Accepted password for admin from 192.168.1.50 port 49156 ssh2
+Jul 26 10:02:00 webserver01 kernel: [ 1204.520112] Out of memory: Kill process 8910 (python3) score 850 or sacrifice child

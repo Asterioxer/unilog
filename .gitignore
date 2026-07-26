@@ -9,3 +9,12 @@ build/
 *.egg-info/
 .coverage
 htmlcov/
+*.log
+!examples/*.log
+.DS_Store
+frontend/dist/
+frontend/node_modules/
+frontend/coverage/
+.mypy_cache/
+.ruff_cache/
+

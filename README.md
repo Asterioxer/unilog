@@ -307,7 +307,18 @@ Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
 **Live Stream**
 - `WebSocket /api/v1/ws/live` - Start a WebSocket connection for real-time log streaming.
 
+### 🛡️ Security & Authentication
+
+> [!NOTE]
+> **Authentication Status**: API authentication is currently **disabled by design** for the `v1.0.0-beta` public demo to allow seamless evaluation.
+>
+> For enterprise on-premise deployments or production multi-tenant environments:
+> - Place `unilog` behind an API Gateway (e.g., Nginx, Traefik, Kong, or Cloudflare Access) with OAuth2 / OIDC or Bearer Token header authentication.
+> - Configure `UNILOG_CORS_ORIGINS` environment variable to enforce strict domain origin restrictions.
+> - Rate limiting is active via `slowapi` to prevent endpoint abuse.
+
 ### API Architecture
+
 
 ```mermaid
 flowchart LR
