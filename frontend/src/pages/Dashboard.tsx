@@ -373,7 +373,13 @@ function DashboardContent() {
                     <p className="font-semibold">Log Analytics Ready</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Parsed <span className="font-semibold text-foreground">{state.analysis.stats.total_lines.toLocaleString()}</span> records in{" "}
-                      <span className="font-semibold text-foreground">{state.metadata.processingDurationMs ? `${state.metadata.processingDurationMs}ms` : "<1ms"}</span>
+                      <span className="font-semibold text-foreground">
+                        {state.metadata.processingDurationMs != null 
+                          ? (state.metadata.processingDurationMs >= 1000 
+                              ? `${(state.metadata.processingDurationMs / 1000).toFixed(2)} s` 
+                              : `${Math.round(state.metadata.processingDurationMs)} ms`) 
+                          : "<1 ms"}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -389,7 +395,7 @@ function DashboardContent() {
                         {Math.round(state.analysis.detect.confidence * 100)}% Confidence
                       </span>
                     </div>
-                    <div className="text-base font-extrabold font-mono text-foreground uppercase tracking-tight">
+                    <div className="text-xl font-black font-mono text-foreground uppercase tracking-wider">
                       {state.analysis.detect.format}
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
@@ -435,14 +441,15 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* Collapsible Full Rankings Detail View */}
+            {/* Collapsible Evaluated Formats Matrix Detail View */}
             {state.analysis.detect && (
               <div className="border-t border-border pt-4 mt-2">
                 <details className="group">
                   <summary className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer list-none select-none">
                     <span className="flex items-center gap-1.5">
-                      Full Parser Confidence Breakdown
+                      Evaluated Formats Matrix
                     </span>
+
                     <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="mt-3 space-y-2 max-h-36 overflow-y-auto">

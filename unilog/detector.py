@@ -103,7 +103,8 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
         
         best_conf_pct = round(best['confidence'] * 100)
         thresh_pct = round(threshold * 100)
-        reason = f"Selected parser '{best['format']}' with {best_conf_pct}% confidence (threshold: {thresh_pct}%)."
+        reason = f"Selected parser '{best['format']}' with {best_conf_pct}% confidence (detection threshold: {thresh_pct}%)."
+
         if ambiguous:
             alt_names = ", ".join(f"'{a['format']}' ({round(a['confidence'] * 100)}%)" for a in alternatives)
             reason += f" Compatible formats: {alt_names}."
