@@ -1,11 +1,19 @@
 version: '3.8'
 
 services:
-  api:
-    build: .
+  unilog-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
     environment:
       - PYTHONUNBUFFERED=1
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/live', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
