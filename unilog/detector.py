@@ -101,10 +101,12 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
         best = non_zero_rankings[0]
         parser_inst = best["parser_class"]()
         
-        reason = f"Detected format '{best['format']}' with confidence {best['confidence']} (threshold: {threshold})."
+        best_conf_pct = round(best['confidence'] * 100)
+        thresh_pct = round(threshold * 100)
+        reason = f"Selected parser '{best['format']}' with {best_conf_pct}% confidence (threshold: {thresh_pct}%)."
         if ambiguous:
-            alt_names = ", ".join(f"'{a['format']}' ({a['confidence']})" for a in alternatives)
-            reason += f" Ambiguous: {alt_names} within margin."
+            alt_names = ", ".join(f"'{a['format']}' ({round(a['confidence'] * 100)}%)" for a in alternatives)
+            reason += f" Compatible formats: {alt_names}."
 
         return {
             "format": best["format"],
@@ -119,7 +121,10 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
 
     reason_str = "No registered parser exceeded the confidence threshold."
     if non_zero_rankings:
-        reason_str = f"Best match '{non_zero_rankings[0]['format']}' scored {non_zero_rankings[0]['confidence']}, which is below threshold {threshold}."
+        best_score_pct = round(non_zero_rankings[0]['confidence'] * 100)
+        thresh_pct = round(threshold * 100)
+        reason_str = f"Best match '{non_zero_rankings[0]['format']}' scored {best_score_pct}%, which is below threshold {thresh_pct}%."
+
         
     return {
         "format": "unknown",

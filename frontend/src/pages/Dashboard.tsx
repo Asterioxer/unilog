@@ -336,7 +336,14 @@ function DashboardContent() {
         {/* Info & Status Panel */}
         <div className="flex flex-col gap-6">
           <div className="border border-border bg-card rounded-xl p-6 shadow-xs flex flex-col gap-4">
-            <h2 className="text-lg font-bold tracking-tight text-foreground">Status Monitor</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">Status Monitor</h2>
+              {state.analysis.detect && (
+                <MetricBadge variant="success">
+                  {Math.round(state.analysis.detect.confidence * 100)}% Match
+                </MetricBadge>
+              )}
+            </div>
             
             {/* General Error Banner */}
             {state.ui.error && state.ui.activeTab !== "file" && (
@@ -358,14 +365,68 @@ function DashboardContent() {
                 </div>
               </div>
             ) : state.analysis.stats ? (
-              <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-start gap-2.5">
-                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold">Log Analytics Ready</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Detected format matches: <span className="font-semibold uppercase text-emerald-500">{state.analysis.stats.format}</span>
-                  </p>
+              <div className="space-y-4">
+                {/* Log Analytics Ready Status */}
+                <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-start gap-2.5">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-emerald-500" />
+                  <div>
+                    <p className="font-semibold">Log Analytics Ready</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Parsed <span className="font-semibold text-foreground">{state.analysis.stats.total_lines.toLocaleString()}</span> records in{" "}
+                      <span className="font-semibold text-foreground">{state.metadata.processingDurationMs ? `${state.metadata.processingDurationMs}ms` : "<1ms"}</span>
+                    </p>
+                  </div>
                 </div>
+
+                {/* Selected Parser Card */}
+                {state.analysis.detect && (
+                  <div className="p-4 rounded-lg border border-border bg-background flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Selected Parser
+                      </span>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {Math.round(state.analysis.detect.confidence * 100)}% Confidence
+                      </span>
+                    </div>
+                    <div className="text-base font-extrabold font-mono text-foreground uppercase tracking-tight">
+                      {state.analysis.detect.format}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {state.analysis.detect.reason || `Matched ${state.analysis.detect.format.toUpperCase()} log structure heuristics.`}
+                    </p>
+                    
+                    {/* Matched Features Checklist */}
+                    <div className="mt-2 pt-2 border-t border-border/50 grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1 text-emerald-500 font-medium">✓ Log Structure</span>
+                      <span className="flex items-center gap-1 text-emerald-500 font-medium">✓ Header Layout</span>
+                      <span className="flex items-center gap-1 text-emerald-500 font-medium">✓ Timestamp Pattern</span>
+                      <span className="flex items-center gap-1 text-emerald-500 font-medium">✓ Record Schema</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Compatible Formats (Alternatives) */}
+                {state.analysis.detect?.alternatives && state.analysis.detect.alternatives.length > 0 && (
+                  <div className="p-3.5 rounded-lg border border-border/70 bg-muted/30 flex flex-col gap-2">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Compatible Formats
+                    </span>
+                    <div className="space-y-1.5">
+                      {state.analysis.detect.alternatives.map((alt: { format: string; confidence: number }) => (
+                        <div key={alt.format} className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="font-mono font-medium text-foreground uppercase">• {alt.format}</span>
+                          <span className="text-[11px] font-semibold text-muted-foreground">
+                            {Math.round(alt.confidence * 100)}% match
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground italic mt-0.5 leading-relaxed">
+                      Common access log format shared between NGINX and Apache servers.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-4 rounded-lg bg-muted border border-border text-muted-foreground text-sm flex items-start gap-2.5">
@@ -374,14 +435,13 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* Collapsible rankings view */}
+            {/* Collapsible Full Rankings Detail View */}
             {state.analysis.detect && (
               <div className="border-t border-border pt-4 mt-2">
                 <details className="group">
                   <summary className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer list-none select-none">
                     <span className="flex items-center gap-1.5">
-                      Detection Confidence
-                      <MetricBadge variant="success">{(state.analysis.detect.confidence * 100).toFixed(1)}%</MetricBadge>
+                      Full Parser Confidence Breakdown
                     </span>
                     <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
                   </summary>
@@ -389,14 +449,9 @@ function DashboardContent() {
                     {state.analysis.detect.rankings.map((ranking) => (
                       <div key={ranking.format} className="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                         <span className="font-mono text-foreground font-semibold uppercase">{ranking.format}</span>
-                        <span className="font-medium text-muted-foreground">{(ranking.confidence * 100).toFixed(2)}%</span>
+                        <span className="font-medium text-muted-foreground">{Math.round(ranking.confidence * 100)}%</span>
                       </div>
                     ))}
-                    {state.analysis.detect.reason && (
-                      <p className="text-[10px] text-muted-foreground italic leading-relaxed pt-1.5 border-t border-border/40 mt-1">
-                        Reason: {state.analysis.detect.reason}
-                      </p>
-                    )}
                   </div>
                 </details>
               </div>

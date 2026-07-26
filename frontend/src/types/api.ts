@@ -33,7 +33,10 @@ export interface DetectResponse {
   confidence: number;
   rankings: DetectRanking[];
   reason: string;
+  ambiguous?: boolean;
+  alternatives?: DetectRanking[];
 }
+
 
 export interface StatsRequest {
   log_text: string;
