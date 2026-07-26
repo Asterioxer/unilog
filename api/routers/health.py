@@ -15,14 +15,31 @@ class ReadyResponse(BaseModel):
     status: str = Field("ready", description="Readiness check status indicator")
 
 @router.get(
+    "/",
+    summary="Root API Landing",
+    description="Welcome endpoint for unilog REST service."
+)
+async def root_index():
+    version = getattr(unilog, "__version__", "1.0.0-beta.1")
+    return {
+        "name": "unilog REST API",
+        "status": "online",
+        "version": version,
+        "docs": "/docs",
+        "health": "/health",
+        "redoc": "/redoc"
+    }
+
+@router.get(
     "/health",
     response_model=HealthResponse,
     summary="API Health Check",
     description="Check the current status and version of the unilog REST service."
 )
 async def health_check():
-    version = getattr(unilog, "__version__", "0.2.0-alpha")
+    version = getattr(unilog, "__version__", "1.0.0-beta.1")
     return {"status": "healthy", "version": version}
+
 
 @router.get(
     "/live",
