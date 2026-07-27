@@ -365,11 +365,41 @@ scrape_configs:
         ) : (
           /* EMBEDDED IFRAME VIEW WITH TROUBLESHOOTING HELPER */
           <div className="space-y-4">
+            <div className="p-4 border border-blue-500/30 bg-blue-500/10 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-blue-400 font-bold text-xs">
+                  <Terminal className="h-4 w-4" />
+                  Release 13 — One-Click Docker Compose Production Stack
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">
+                  Release 13 Active
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Spin up <code className="px-1 py-0.5 bg-background rounded-md text-foreground">unilog API (:8002)</code> + <code className="px-1 py-0.5 bg-background rounded-md text-foreground">Prometheus (:9090)</code> + <code className="px-1 py-0.5 bg-background rounded-md text-foreground">Grafana (:3000)</code> with 1 command:
+              </p>
+              <div className="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-emerald-400">
+                <span>docker compose up -d</span>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText("docker compose up -d");
+                    setCopiedPromQl(true);
+                    setTimeout(() => setCopiedPromQl(false), 2000);
+                  }}
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md transition-all text-[11px] flex items-center gap-1 font-sans"
+                >
+                  <Copy className="h-3 w-3" />
+                  Copy Command
+                </button>
+              </div>
+            </div>
+
             <div className="p-4 border border-amber-500/30 bg-amber-500/10 rounded-xl space-y-2">
               <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
                 <AlertTriangle className="h-4 w-4" />
                 Why does `http://localhost:3000 refused to connect` appear?
               </div>
+
               <p className="text-xs text-muted-foreground">
                 1. <strong>Grafana must be running</strong> on your local machine (<code className="px-1 py-0.5 bg-background rounded-md text-foreground">docker compose up -d</code>).<br />
                 2. <strong>Browser Mixed Content Protection</strong>: Production HTTPS sites (<code className="px-1 py-0.5 bg-background rounded-md text-foreground">https://unilog-orcin.vercel.app</code>) block embedding non-SSL <code className="px-1 py-0.5 bg-background rounded-md text-foreground">http://localhost:3000</code> directly inside an iframe.

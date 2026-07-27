@@ -458,7 +458,8 @@ For more details on operations, configuration, and swapping LLM clients, see [ma
 |:---|:---|:---|:---|
 | **Release 11** | **Prometheus Observability Subsystem** | `COMPLETED` | Native `/metrics` endpoint (`api/observability/`), custom latency histogram buckets ($1\text{ms}$–$10\text{s}$), zero-cardinality endpoint normalization, 100-thread concurrent scraping tests. |
 | **Release 12** | **Grafana Dashboard Pack & Prometheus Setup** | `COMPLETED` | Pre-built Grafana Dashboard JSON (`deploy/grafana/unilog-dashboard.json`) with 8 visual panels (System Health Score, RPS, P95/P99 latency, WebSocket streams), Prometheus scrape config (`deploy/prometheus/prometheus.yml`), and auto-provisioning manifests. |
-| **Release 13** | **One-Click Docker Compose Production Stack** | `PLANNED` | Full orchestration `docker-compose.yml` spinning up `unilog` API, Prometheus, and Grafana in a single command (`docker compose up -d`). |
+| **Release 13** | **One-Click Docker Compose Production Stack** | `COMPLETED` | Master `docker-compose.yml` orchestrating `unilog` API (`:8002`), Prometheus (`:9090`), and Grafana (`:3000`) in containerized bridge isolation with automated `/health` healthchecks, optimized `Dockerfile`, and auto-provisioned dashboards. |
+
 | **Release 14** | **OpenTelemetry & Jaeger Distributed Tracing** | `PLANNED` | OTLP trace exporter integration with Jaeger / Grafana Tempo span context propagation. |
 | **Release 15** | **Grafana Loki Log Aggregation Pipeline** | `PLANNED` | Direct Loki log push API exporter and Promtail stream integration. |
 

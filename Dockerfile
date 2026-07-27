@@ -1,38 +1,40 @@
-FROM python:3.12.1-slim@sha256:ee9a59cfdad294560241c9a8c8e40034f165feb4af7088c1479c2cdd84aafbed
-
-# Install astral/uv from official registry
-COPY --from=ghcr.io/astral-sh/uv:0.3.3 /uv /uvx /bin/
-
-# Set up non-root application user
-RUN useradd -u 1000 -m appuser
+# Production Multi-Stage Dockerfile for unilog Platform API
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
-RUN chown appuser:appuser /app
 
-# Switch to non-root user for security
-USER appuser
+# Install uv for fast dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 
-# Copy specification files for caching
-COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+# Copy project manifests
+COPY pyproject.toml README.md ./
+COPY unilog ./unilog
+COPY api ./api
 
-# Pre-install dependencies (layer caching optimization)
-RUN uv sync --no-install-project --all-extras
+# Build wheel and install production dependencies
+RUN /uv/bin/uv pip install --system --no-cache .
 
-# Copy repository contents
-COPY --chown=appuser:appuser . .
+FROM python:3.12-slim AS runner
 
-# Install package
-RUN uv sync --all-extras
+WORKDIR /app
 
-# Expose FastAPI default port
-EXPOSE 8000
+# Copy installed site-packages and app code from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY unilog ./unilog
+COPY api ./api
 
-# Set Python path to find api app modules
-ENV PYTHONPATH=/app
+EXPOSE 8002
 
-# Healthcheck definition utilizing Python standard library to keep image slim
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/live', timeout=2)" || exit 1
+ENV PORT=8002 \
+    PYTHONUNBUFFERED=1 \
+    UNILOG_ENV=production
 
-# Run service
-CMD ["uv", "run", "uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Non-root security user
+RUN useradd -m -u 1000 unilog && chown -R unilog:unilog /app
+USER unilog
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"
+
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8002"]

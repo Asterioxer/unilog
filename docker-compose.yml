@@ -1,19 +1,61 @@
-version: '3.8'
+# One-Click Production Docker Compose Stack for unilog Platform
+# Usage: docker compose up -d
 
 services:
   unilog-api:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: unilog-api
     ports:
-      - "8000:8000"
+      - "8002:8002"
     environment:
-      - PYTHONUNBUFFERED=1
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-    restart: unless-stopped
+      - PORT=8002
+      - UNILOG_ENV=production
+      - UNILOG_LOG_LEVEL=INFO
+      - UNILOG_TRUST_PROXY=true
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/live', timeout=2)"]
-      interval: 30s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8002/health')\""]
+      interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 5s
+    restart: always
+    networks:
+      - unilog-net
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: unilog-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      unilog-api:
+        condition: service_healthy
+    restart: always
+    networks:
+      - unilog-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: unilog-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./deploy/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./deploy/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./deploy/grafana/unilog-dashboard.json:/var/lib/grafana/dashboards/unilog-dashboard.json:ro
+    depends_on:
+      - prometheus
+    restart: always
+    networks:
+      - unilog-net
+
+networks:
+  unilog-net:
+    driver: bridge

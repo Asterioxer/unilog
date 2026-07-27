@@ -53,4 +53,5 @@ The frontend automatically resolves the backend API URL dynamically based on env
 |:---|:---|:---|:---|
 | **Release 11** | **API Reference & Observability Integration** | `COMPLETED` | Dynamic production URL resolution for Swagger, ReDoc, OpenAPI JSON, and Prometheus `/metrics` endpoints. |
 | **Release 12** | **Grafana Telemetry Stream Inspector** | `COMPLETED` | Live `/metrics` stream button and Prometheus telemetry reference documentation. |
-| **Release 13** | **Docker Compose Environment UI Config** | `PLANNED` | Container environment status indicator and health check polling. |
+| **Release 13** | **Docker Compose Environment & SPA Integration** | `COMPLETED` | 1-Click Docker Compose deployment snippet (`docker compose up -d`), container environment guide, and live observer integration. |
+
