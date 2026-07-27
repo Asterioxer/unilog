@@ -36,11 +36,15 @@ import LiveMonitor from "../components/LiveMonitor";
 
 import { SystemHealthCard } from "../components/SystemHealthCard";
 import { IncidentBoard } from "../components/IncidentBoard";
+import GrafanaObserver from "../components/GrafanaObserver";
+
+
 
 function DashboardContent() {
 
   const [file, setFile] = useState<File | null>(null);
-  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security" | "ai">("overview");
+  const [activeResultTab, setActiveResultTab] = useState<"overview" | "sessions" | "security" | "ai" | "telemetry">("overview");
+
   
   const { state, setState } = useDashboardContext();
   const queryClient = useQueryClient();
@@ -613,7 +617,18 @@ function DashboardContent() {
                 >
                   AI SRE Assistant
                 </button>
+                <button
+                  onClick={() => setActiveResultTab("telemetry")}
+                  className={`pb-3 text-sm font-semibold border-b-2 px-4 transition-colors ${
+                    activeResultTab === "telemetry" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Grafana & Telemetry
+                </button>
               </div>
+
 
               {activeResultTab === "overview" ? (
                 <div className="space-y-8">
@@ -705,13 +720,16 @@ function DashboardContent() {
                   securityMetrics={state.analysis.security} 
                   isProcessing={isProcessing}
                 />
-              ) : (
+              ) : activeResultTab === "ai" ? (
                 <AIAssistant
                   metrics={state.analysis.rawMetrics || null}
                   insights={state.analysis.insights || []}
                   isProcessing={isProcessing}
                 />
+              ) : (
+                <GrafanaObserver />
               )}
+
             </>
           )}
         </div>
