@@ -1,75 +1,56 @@
-# React + TypeScript + Vite
+# unilog Frontend SPA — React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, high-performance React web application for `unilog` — Universal Log Parser & Analytics Platform.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ⚡ Features & Component Architecture
 
-## React Compiler
+- **Log Upload & Raw Text Parsing**: Drag-and-drop file uploader and live text dump area (`UploadPanel.tsx`).
+- **Summary Metrics**: Animated scorecards for total requests, P99 latency, error rates, and bandwidth (`SummaryCard.tsx`).
+- **Data Visualizations**: Recharts-powered graphs for log levels, status codes, latency timelines, top endpoints, and IP distributions (`components/charts/`).
+- **Interactive Logs Table**: Filterable, sortable, paginated table with column toggles, keyboard roving focus, and JSON/CSV export (`components/table/`).
+- **Session Observer**: Behavioral user session reconstruction, bounce rate calculation, and journey conversion funnels (`SessionObserver.tsx`).
+- **Security Intelligence**: Threat profile analysis for brute force, bot probes, directory recon, and vulnerability scanners (`SecurityObserver.tsx`).
+- **AI SRE Diagnostic Assistant**: Interactive LLM engine (OpenRouter / Gemini) generating root-cause reports and copyable remediation configs (`AIAssistant.tsx`).
+- **Live Monitor**: Real-time full-duplex WebSocket log terminal streaming with speed control (`LiveMonitor.tsx`).
+- **API & Observability Reference**: OpenAPI spec browser with dynamic Swagger, ReDoc, OpenAPI JSON, and Prometheus `/metrics` stream links (`ApiReferencePage.tsx`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🚀 Development Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Install dependencies
+npm ci
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Start development server (http://localhost:5173)
+npm run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Run Vitest unit tests with coverage
+npm run test:cov
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+# Production build
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🌐 Environment Configuration
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The frontend automatically resolves the backend API URL dynamically based on environment or host context:
 
-```
+| Variable | Description | Default |
+|:---|:---|:---|
+| `VITE_API_BASE_URL` | Primary backend HTTP API URL | Auto-detect (`https://unilog-w9oe.onrender.com` on Vercel / `http://127.0.0.1:8002` on localhost) |
+| `VITE_API_URL` | Fallback backend HTTP API URL | Same as `VITE_API_BASE_URL` |
+
+---
+
+## 🗺️ Release Checkpoints
+
+| Release | Subsystem | Status | Features |
+|:---|:---|:---|:---|
+| **Release 11** | **API Reference & Observability Integration** | `COMPLETED` | Dynamic production URL resolution for Swagger, ReDoc, OpenAPI JSON, and Prometheus `/metrics` endpoints. |
+| **Release 12** | **Grafana Telemetry Stream Inspector** | `COMPLETED` | Live `/metrics` stream button and Prometheus telemetry reference documentation. |
+| **Release 13** | **Docker Compose Environment UI Config** | `PLANNED` | Container environment status indicator and health check polling. |
