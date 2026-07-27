@@ -15,11 +15,12 @@ services:
       - UNILOG_LOG_LEVEL=INFO
       - UNILOG_TRUST_PROXY=true
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8002/health')\""]
-      interval: 10s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')\""]
+      interval: 5s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 15s
+
     restart: always
     networks:
       - unilog-net

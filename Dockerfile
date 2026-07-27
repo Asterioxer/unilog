@@ -34,7 +34,8 @@ ENV PORT=8002 \
 RUN useradd -m -u 1000 unilog && chown -R unilog:unilog /app
 USER unilog
 
-HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"
+HEALTHCHECK --interval=5s --timeout=5s --start-period=15s --retries=5 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')"
+
 
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8002"]
