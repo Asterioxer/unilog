@@ -195,8 +195,10 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
                 "anthropic/claude-3.5-haiku",
             ] if m
         ]
-        seen = set()
-        unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
+        unique_models: list[str] = []
+        for m in models_to_try:
+            if m not in unique_models:
+                unique_models.append(m)
 
         try:
             async with httpx.AsyncClient() as client:
@@ -301,8 +303,11 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
                 "gemini-2.0-flash",
             ] if m
         ]
-        seen = set()
-        unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
+        unique_models = []
+        for m in models_to_try:
+            if m not in unique_models:
+                unique_models.append(m)
+
 
         try:
             async with httpx.AsyncClient() as client:

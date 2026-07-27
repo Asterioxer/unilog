@@ -1,9 +1,13 @@
 import axios from "axios";
 
-const rawApiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://127.0.0.1:8002";
+const defaultProdUrl = "https://unilog-w9oe.onrender.com";
+const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+const rawApiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || (isLocalhost ? "http://127.0.0.1:8002" : defaultProdUrl);
+
 export const API_BASE_URL = rawApiUrl.includes("127.0.0.1") || rawApiUrl.includes("localhost") 
   ? rawApiUrl.replace(":8000", ":8002")
   : rawApiUrl.replace(/\/$/, "");
+
 
 
 
