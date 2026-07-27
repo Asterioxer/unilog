@@ -286,10 +286,12 @@ Access the interactive OpenAPI Swagger UI at `http://localhost:8000/docs`.
 
 ### API Endpoints
 
-**Health**
+**Observability & Health**
+- `GET /metrics` - Standard Prometheus exposition text endpoint (`text/plain; version=0.0.4`).
 - `GET /health` - General status of the REST service.
 - `GET /live` - Liveness health check status (Kubernetes standard).
 - `GET /ready` - Readiness health check status (Kubernetes standard).
+
 
 **Log Analysis**
 - `POST /api/v1/parse` - Parse raw log text payload into structured records.
@@ -333,7 +335,22 @@ flowchart LR
 
 ### curl Examples
 
+**Scrape Prometheus metrics:**
+```bash
+curl http://localhost:8000/metrics
+# HELP unilog_requests_total Total HTTP API requests handled
+# TYPE unilog_requests_total counter
+unilog_requests_total{endpoint="/api/v1/analyze",exception="none",method="POST",status="200"} 34.0
+# HELP unilog_logs_processed_total Total log records parsed by syntax format
+# TYPE unilog_logs_processed_total counter
+unilog_logs_processed_total{format="nginx"} 1250.0
+# HELP unilog_system_health_score Real-time system health matrix scores (0-100)
+# TYPE unilog_system_health_score gauge
+unilog_system_health_score{dimension="overall"} 95.0
+```
+
 **Parse log payload:**
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/parse \
   -H "Content-Type: application/json" \

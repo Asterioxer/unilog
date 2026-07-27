@@ -4,9 +4,11 @@ import random
 import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from api.observability import recorder
 
 logger = logging.getLogger("unilog-api")
 router = APIRouter(tags=["Live"])
+
 
 # Malicious scanner targets, bot user agents, and typical login endpoints to trigger security rules in real-time
 IP_POOL = ["192.168.1.10", "10.0.0.15", "185.220.101.47", "127.0.0.1", "192.168.0.85", "8.8.8.8"]
@@ -65,6 +67,7 @@ def generate_live_nginx_record() -> dict:
 @router.websocket("/ws/live")
 async def live_stream_websocket(websocket: WebSocket):
     await websocket.accept()
+    recorder.record_websocket_connection(1)
     logger.info("Live stream WebSocket connection established")
     
     streaming = True
@@ -100,14 +103,19 @@ async def live_stream_websocket(websocket: WebSocket):
             if streaming:
                 record = generate_live_nginx_record()
                 await websocket.send_json(record)
+                recorder.record_websocket_stream(1, rate_per_second=1.0 / delay if delay > 0 else 0.0)
             await asyncio.sleep(delay)
     except WebSocketDisconnect:
         logger.info("Live stream WebSocket client disconnected")
+        recorder.record_websocket_disconnect()
     except Exception as e:
         logger.error(f"Error in websocket send stream: {e}")
+        recorder.record_websocket_disconnect()
     finally:
+        recorder.record_websocket_connection(-1)
         receive_task.cancel()
         try:
             await websocket.close()
         except Exception:
             pass
+

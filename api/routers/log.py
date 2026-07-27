@@ -29,8 +29,10 @@ from api.config import (
     UNILOG_DECOMPRESS_CHUNK_SIZE
 )
 from api.utils.decompression import decompress_gzip_safe, DecompressionLimitExceeded
+from api.observability import recorder
 
 logger = logging.getLogger("unilog-api")
+
 
 router = APIRouter(tags=["Logs"])
 
@@ -48,11 +50,14 @@ RATE_LIMIT_VALUE = UNILOG_RATE_LIMIT
 async def parse_logs(request: Request, req: ParseRequest):
     if req.format and req.format != "auto" and not get_parser(req.format):
         raise HTTPException(status_code=400, detail=f"Invalid format requested: {req.format}")
+    start_t = time.time()
     try:
         df = unilog.parse_string(req.log_text, format=req.format)
         records = df.to_dict(orient="records")
+        recorder.record_log_parsing(req.format or "auto", len(records), time.time() - start_t)
         return {"records": records, "total": len(records)}
     except Exception as e:
+        recorder.record_log_parsing(req.format or "auto", 0, time.time() - start_t, is_error=True)
         logger.error(
             "Failed to parse logs: %s",
             str(e),
@@ -63,6 +68,7 @@ async def parse_logs(request: Request, req: ParseRequest):
             }
         )
         raise HTTPException(status_code=400, detail="Failed to parse logs.")
+
 
 
 @router.post(
@@ -206,8 +212,29 @@ async def analyze_logs(request: Request, req: AnalyzeRequest):
         incidents_response = [inc.model_dump(mode="json") for inc in incidents]
         health_response = system_health.model_dump(mode="json")
 
+        # Telemetry Subsystem Recording
+        execution_time_sec = (result.metadata.execution_time_ms or 0.0) / 1000.0
+        recorder.record_log_parsing(req.format or "auto", result.metadata.analyzed_records, execution_time_sec)
+
+        for ins in triggered_insights:
+            recorder.record_triggered_rule(ins.id, ins.severity, ins.category)
+
+        for inc in incidents:
+            recorder.record_incident(inc.severity, "general")
+
+
+        recorder.update_health_scores(
+            overall=float(system_health.overall_score),
+            security=float(system_health.security.score),
+            reliability=float(system_health.reliability.score),
+            performance=float(system_health.performance.score),
+            traffic=float(system_health.traffic.score),
+        )
+
+
         return {
             "metrics": result.metrics.model_dump(exclude_none=True),
+
             "insights": insights_response,
             "incidents": incidents_response,
             "system_health": health_response,

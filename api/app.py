@@ -9,11 +9,13 @@ from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 
 import unilog
-from api.routers import health, log, system, ai, live
+from api.routers import health, log, system, ai, live, metrics
+from api.observability import PrometheusMiddleware
 from api.dependencies.rate_limiter import limiter
 from api.config import validate_config
 from api.security.network import resolve_client_ip
 from api.utils.middleware import SecurityHeadersMiddleware
+
 
 # Run startup configuration validation
 validate_config()
@@ -172,12 +174,17 @@ app.add_middleware(
 )
 
 
+# Enable Prometheus telemetry middleware
+app.add_middleware(PrometheusMiddleware)
+
 # Include routers
 app.include_router(health.router)  # root health checks (/health, /live, /ready)
+app.include_router(metrics.router) # root Prometheus metrics exporter (/metrics)
 app.include_router(log.router, prefix="/api/v1")  # versioned endpoints
 app.include_router(system.router, prefix="/api/v1")  # capability telemetry info
 app.include_router(ai.router, prefix="/api/v1")  # AI diagnostics endpoints
 app.include_router(live.router, prefix="/api/v1")  # Live WebSocket stream endpoint
+
 
 if __name__ == "__main__":
     import uvicorn

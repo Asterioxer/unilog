@@ -1,13 +1,16 @@
 import os
 import json
+import time
 import logging
 import httpx
 from fastapi import APIRouter, Request
 from api.dependencies.rate_limiter import limiter
 from api.schemas.ai import AIExplainRequest, AIExplainResponse
+from api.observability import recorder
 
 logger = logging.getLogger("unilog-api")
 router = APIRouter(tags=["AI"])
+
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
@@ -152,10 +155,14 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
 )
 @limiter.limit("50/minute")
 async def explain_log_analysis(request: Request, req: AIExplainRequest):
+    start_t = time.time()
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         logger.info("GEMINI_API_KEY not found. Returning local mock engine analysis.")
-        return generate_fallback_mock(req)
+        res = generate_fallback_mock(req)
+        recorder.record_ai_request(time.time() - start_t, fallback_used=True)
+        return res
+
 
     # Format the prompt with metrics and insights summaries
     prompt = (
@@ -226,15 +233,19 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
             if resp.status_code != 200:
                 logger.error(f"Gemini API returned error {resp.status_code}: {resp.text}")
                 # Fall back to local mock to keep system operational (robust fallback)
+                recorder.record_ai_request(time.time() - start_t, fallback_used=True)
                 return generate_fallback_mock(req)
                 
             result_json = resp.json()
             # Extract generated text
             candidate_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
             parsed_response = json.loads(candidate_text)
+            recorder.record_ai_request(time.time() - start_t, fallback_used=False)
             return parsed_response
 
     except Exception as e:
         logger.error(f"Exception during Gemini API request: {e}", exc_info=True)
         # Fall back to local mock to keep system operational
+        recorder.record_ai_request(time.time() - start_t, fallback_used=True)
         return generate_fallback_mock(req)
+
