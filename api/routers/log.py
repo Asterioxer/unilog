@@ -237,6 +237,12 @@ async def analyze_logs(request: Request, req: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="Analytics pipeline failed.")
 
 
+@router.get(
+    "/formats",
+    response_model=FormatsResponse,
+    summary="List registered log formats",
+    description="Get details of all built-in and pluggable parser formats registered."
+)
 @router.post(
     "/formats",
     response_model=FormatsResponse,
@@ -245,6 +251,7 @@ async def analyze_logs(request: Request, req: AnalyzeRequest):
 )
 @limiter.limit(RATE_LIMIT_VALUE)
 async def formats_logs(request: Request):
+
     try:
         fmts = unilog.list_formats()
         result_formats = []
