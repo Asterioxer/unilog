@@ -1,5 +1,4 @@
 import threading
-import pytest
 from fastapi.testclient import TestClient
 from api.app import app
 from api.observability import recorder, generate_prometheus_metrics

@@ -1,5 +1,4 @@
 import time
-from typing import Optional, Dict, Any
 from api.observability.metrics import (
     LOGS_PROCESSED_TOTAL,
     PARSER_ERRORS_TOTAL,
