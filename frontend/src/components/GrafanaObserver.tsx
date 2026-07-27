@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
-  Activity, LayoutDashboard, Copy, Check, ExternalLink, RefreshCw, Layers, Terminal, Search, Flame
+  Activity, LayoutDashboard, Copy, Check, ExternalLink, RefreshCw, Layers, Terminal, Search, Flame, AlertTriangle, ShieldCheck
 } from "lucide-react";
 import { API_BASE_URL } from "../services/apiClient";
 
@@ -30,7 +30,7 @@ const PRESET_PROMQL_QUERIES = [
 
 export default function GrafanaObserver() {
   const [grafanaUrl, setGrafanaUrl] = useState("http://localhost:3000/d/unilog-overview/unilog-platform-observability-overview?orgId=1&kiosk");
-  const [showIframe, setShowIframe] = useState(false);
+  const [activeViewMode, setActiveViewMode] = useState<"native" | "iframe">("native");
   const [copiedJson, setCopiedJson] = useState(false);
   const [copiedPromYaml, setCopiedPromYaml] = useState(false);
   const [copiedPromQl, setCopiedPromQl] = useState(false);
@@ -55,7 +55,7 @@ export default function GrafanaObserver() {
       setScrapeLatency(Math.round(end - start));
       setMetricsText(text);
 
-      // Parse all metric lines for PromQL Sandbox evaluation
+      // Parse metric lines for PromQL evaluation & native charts
       const lines = text.split("\n");
       const metricsList: ParsedMetricLine[] = [];
       for (const line of lines) {
@@ -135,14 +135,12 @@ export default function GrafanaObserver() {
     const q = customPromQl.trim();
     if (!q) return [];
     
-    // Exact metric match or prefix match
     const filtered = parsedMetrics.filter(m => 
       m.name === q || m.raw.toLowerCase().includes(q.toLowerCase())
     );
 
     if (filtered.length > 0) return filtered;
 
-    // Fallback search across all lines
     return parsedMetrics.filter(m => 
       m.raw.toLowerCase().includes(q.toLowerCase().split("(").pop()?.split(")")[0] || q)
     );
@@ -200,11 +198,11 @@ scrape_configs:
               <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
                 Prometheus & Grafana Observability Center
                 <span className="text-xs font-semibold px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
-                  Live Scrape Engine
+                  Live Observability Engine
                 </span>
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Monitor live Prometheus metrics, execute PromQL queries in real-time, inspect scrape target health, and embed Grafana dashboards.
+                Monitor live Prometheus metrics, inspect metric gauges, run PromQL queries, and view native Grafana dashboard panels.
               </p>
             </div>
           </div>
@@ -266,6 +264,162 @@ scrape_configs:
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Mode Selector & Dashboard View Area */}
+      <div className="p-6 border border-border bg-card rounded-2xl space-y-4 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
+          <div>
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <Layers className="h-5 w-5 text-purple-400" />
+              Grafana Observability Dashboard Panels
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Switch between Native SPA Dashboard Panels and Embedded Iframe Mode.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-xl border border-border">
+            <button
+              onClick={() => setActiveViewMode("native")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeViewMode === "native"
+                  ? "bg-amber-500 text-black shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Native Visual Dashboard
+            </button>
+            <button
+              onClick={() => setActiveViewMode("iframe")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeViewMode === "iframe"
+                  ? "bg-purple-500 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Embedded Grafana URL View
+            </button>
+          </div>
+        </div>
+
+        {/* NATIVE VISUAL GRAFANA DASHBOARD PANELS */}
+        {activeViewMode === "native" ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Panel 1: System Health Score Matrix */}
+              <div className="p-5 border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 via-card to-card rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Gauge Panel</span>
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">System Health Score</h4>
+                <div className="text-3xl font-black text-emerald-400 tracking-tight">
+                  {parsedGauges.find(g => g.name === "health_score")?.value || "100%"}
+                </div>
+                <p className="text-xs text-muted-foreground">Derived from response error rates, P99 latencies, and security anomalies.</p>
+              </div>
+
+              {/* Panel 2: Total Records Parsed */}
+              <div className="p-5 border border-blue-500/20 bg-gradient-to-b from-blue-500/10 via-card to-card rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Stat Panel</span>
+                  <Activity className="h-4 w-4 text-blue-400" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">Total Records Parsed</h4>
+                <div className="text-3xl font-black text-blue-400 tracking-tight">
+                  {parsedGauges.find(g => g.name === "records_parsed")?.value || "0"}
+                </div>
+                <p className="text-xs text-muted-foreground">Cumulative log lines ingested and parsed across all format detectors.</p>
+              </div>
+
+              {/* Panel 3: Active WebSocket Streams */}
+              <div className="p-5 border border-purple-500/20 bg-gradient-to-b from-purple-500/10 via-card to-card rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Live Stream Panel</span>
+                  <Layers className="h-4 w-4 text-purple-400" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">Active WebSocket Streams</h4>
+                <div className="text-3xl font-black text-purple-400 tracking-tight">
+                  {parsedGauges.find(g => g.name === "active_websockets")?.value || "0"}
+                </div>
+                <p className="text-xs text-muted-foreground">Real-time active full-duplex log terminal streaming sockets.</p>
+              </div>
+            </div>
+
+            {/* Panel 4: PromQL Query Breakdown Table */}
+            <div className="p-5 border border-border bg-slate-950 rounded-xl space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h4 className="text-xs font-bold text-slate-300 font-mono">PromQL Target Series Heatmap</h4>
+                <span className="text-xs text-slate-400 font-mono">Total Series: {parsedMetrics.length}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 font-mono text-xs max-h-48 overflow-y-auto">
+                {parsedMetrics.slice(0, 12).map((m, i) => (
+                  <div key={i} className="p-2 bg-slate-900/80 border border-slate-800 rounded-lg flex items-center justify-between">
+                    <span className="text-amber-400 font-medium truncate max-w-[160px]">{m.name}</span>
+                    <span className="text-emerald-400 font-bold">{m.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* EMBEDDED IFRAME VIEW WITH TROUBLESHOOTING HELPER */
+          <div className="space-y-4">
+            <div className="p-4 border border-amber-500/30 bg-amber-500/10 rounded-xl space-y-2">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                <AlertTriangle className="h-4 w-4" />
+                Why does `http://localhost:3000 refused to connect` appear?
+              </div>
+              <p className="text-xs text-muted-foreground">
+                1. <strong>Grafana must be running</strong> on your local machine (<code className="px-1 py-0.5 bg-background rounded-md text-foreground">docker compose up -d</code>).<br />
+                2. <strong>Browser Mixed Content Protection</strong>: Production HTTPS sites (<code className="px-1 py-0.5 bg-background rounded-md text-foreground">https://unilog-orcin.vercel.app</code>) block embedding non-SSL <code className="px-1 py-0.5 bg-background rounded-md text-foreground">http://localhost:3000</code> directly inside an iframe.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <a
+                  href={grafanaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black font-semibold text-xs rounded-lg hover:bg-amber-400 transition-all"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open Grafana in New Window
+                </a>
+                <button
+                  onClick={() => setActiveViewMode("native")}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-semibold text-xs rounded-lg hover:bg-muted transition-all"
+                >
+                  Switch to Native Visual Panels
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={grafanaUrl}
+                onChange={(e) => setGrafanaUrl(e.target.value)}
+                className="flex-1 px-3 py-2 bg-background border border-border rounded-xl text-xs font-mono text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                placeholder="Enter Grafana dashboard URL..."
+              />
+              <a
+                href={grafanaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2 bg-muted text-foreground text-xs font-medium rounded-xl hover:bg-muted/80 transition-all"
+              >
+                Launch
+              </a>
+            </div>
+            <div className="w-full h-128 border border-border rounded-xl overflow-hidden bg-background">
+              <iframe
+                src={grafanaUrl}
+                title="Grafana Dashboard"
+                className="w-full h-full border-0"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Interactive PromQL Sandbox & Explorer */}
@@ -343,77 +497,6 @@ scrape_configs:
             </div>
           )}
         </div>
-      </div>
-
-      {/* Embedded Grafana Panel & Controls */}
-      <div className="p-6 border border-border bg-card rounded-2xl space-y-4 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-          <div>
-            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-              <Layers className="h-5 w-5 text-purple-400" />
-              Embedded Grafana Dashboard Viewer
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Enter your local or hosted Grafana URL to view live embedded dashboard panels directly in the app.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowIframe(!showIframe)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-xl hover:bg-purple-600 transition-all shadow-xs"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              {showIframe ? "Hide Embedded Grafana" : "Show Embedded Grafana"}
-            </button>
-            <a
-              href={`${API_BASE_URL}/metrics`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 border border-border hover:bg-muted text-foreground font-medium text-sm rounded-xl transition-all"
-            >
-              Open /metrics
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-
-        {showIframe ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={grafanaUrl}
-                onChange={(e) => setGrafanaUrl(e.target.value)}
-                className="flex-1 px-3 py-2 bg-background border border-border rounded-xl text-xs font-mono text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
-                placeholder="Enter Grafana dashboard URL..."
-              />
-              <a
-                href={grafanaUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-2 bg-muted text-foreground text-xs font-medium rounded-xl hover:bg-muted/80 transition-all"
-              >
-                Launch
-              </a>
-            </div>
-            <div className="w-full h-128 border border-border rounded-xl overflow-hidden bg-background">
-              <iframe
-                src={grafanaUrl}
-                title="Grafana Dashboard"
-                className="w-full h-full border-0"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="p-8 text-center border border-dashed border-border bg-muted/10 rounded-xl space-y-3">
-            <LayoutDashboard className="h-10 w-10 text-muted-foreground/60 mx-auto" />
-            <h4 className="text-sm font-bold text-foreground">Grafana Embedding Ready</h4>
-            <p className="text-xs text-muted-foreground max-w-lg mx-auto">
-              Run your Grafana instance locally with <code className="px-1.5 py-0.5 bg-muted rounded-md text-foreground">deploy/grafana/unilog-dashboard.json</code>, then click <strong>Show Embedded Grafana</strong> to render interactive Grafana panels right here inside your React application.
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Raw Prometheus Telemetry Stream Inspector */}
