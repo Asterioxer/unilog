@@ -104,10 +104,13 @@ def read_file(path: Union[str, io.TextIOBase]) -> Generator[str, None, None]:
                 yield line
 
 def sample_lines(path: Union[str, io.TextIOBase, List[str]], n: int = 50) -> List[str]:
-    """Read first n lines from path/stream/list for detection."""
+    """Read first n lines from path/stream/list/multiline-string for detection."""
     if isinstance(path, list):
         return path[:n]
+    if isinstance(path, str) and "\n" in path:
+        return path.splitlines()[:n]
     lines = []
+
     try:
         # If it's stdin/stream and we consume from it, we might lose lines.
         # But for files, we open it, read N lines, and close.

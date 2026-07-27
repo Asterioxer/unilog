@@ -16,9 +16,9 @@ class SyslogParser(StructuredRegexParser):
     required_fields = ["timestamp", "hostname", "process", "message", "level"]
     optional_fields = ["priority", "pid", "syslog_version", "msgid", "structured_data"]
 
-    # RFC 3164 pattern: <PRI>MMM DD HH:MM:SS hostname process[pid]: message
+    # RFC 3164 pattern: (optional PRI) MMM DD HH:MM:SS hostname process[pid]: message
     _rfc3164_pattern = re.compile(
-        r'^<(?P<priority>\d+)>(?P<timestamp_raw>[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2})\s+'
+        r'^(?:<(?P<priority>\d+)>)?(?P<timestamp_raw>[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2})\s+'
         r'(?P<hostname>\S+)\s+(?P<process>[^:\[\s]+)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)$'
     )
 
@@ -69,7 +69,17 @@ class SyslogParser(StructuredRegexParser):
             severity = pri % 8
             res["level"] = self.SEVERITY_LEVELS.get(severity, "INFO")
         else:
-            res["level"] = "INFO"
+            # Infer level from message content if PRI is absent
+            msg_lower = (res.get("message") or "").lower()
+            if any(k in msg_lower for k in ["failed", "failure", "error", "kill", "out of memory", "panic", "fatal"]):
+                res["level"] = "ERROR"
+            elif any(k in msg_lower for k in ["warn", "warning"]):
+                res["level"] = "WARNING"
+            elif "notice" in msg_lower:
+                res["level"] = "NOTICE"
+            else:
+                res["level"] = "INFO"
+
 
         # Normalize pid
         if "pid" in res:

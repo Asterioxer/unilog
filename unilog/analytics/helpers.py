@@ -19,18 +19,24 @@ def extract_numeric_field(record: Mapping[str, Any], aliases: Sequence[str]) -> 
 
 
 def normalize_endpoint(record: Mapping[str, Any]) -> str:
-    """Extract and normalize the endpoint path consistently across analyzers."""
+    """Extract and normalize the endpoint path or service process consistently across analyzers."""
     path = record.get("path") or record.get("request_path") or record.get("request")
-    if not path:
-        return "unknown"
-    path_str = str(path).strip()
-    parts = path_str.split()
-    if len(parts) >= 2:
-        # Match "GET /path HTTP/1.1" -> "/path"
-        return parts[1]
-    elif len(parts) == 1:
-        return parts[0]
+    if path:
+        path_str = str(path).strip()
+        parts = path_str.split()
+        if len(parts) >= 2:
+            # Match "GET /path HTTP/1.1" -> "/path"
+            return parts[1]
+        elif len(parts) == 1:
+            return parts[0]
+
+    # For Syslog and systemd service logs, map endpoint to process/service name
+    process = record.get("process") or record.get("service") or record.get("app")
+    if process:
+        return str(process).strip()
+
     return "unknown"
+
 
 
 def extract_timestamp(record: Mapping[str, Any]) -> Optional[datetime]:

@@ -22,7 +22,8 @@ def detect(path_or_stream: Any, threshold: float = 0.6) -> Dict[str, Any]:
         "reason": str
     }
     """
-    if isinstance(path_or_stream, str) and path_or_stream != "-":
+    if isinstance(path_or_stream, str) and "\n" not in path_or_stream and path_or_stream != "-":
+
         import os
         from unilog.utils import validate_path_safety
         clean_path = validate_path_safety(path_or_stream)
