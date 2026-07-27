@@ -158,8 +158,17 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
 async def explain_log_analysis(request: Request, req: AIExplainRequest):
     start_t = time.time()
 
-    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    openrouter_key = (
+        os.environ.get("OPENROUTER_API_KEY") 
+        or os.environ.get("OPENROUTER_KEY")
+        or os.environ.get("AI_API_KEY")
+    )
     gemini_key = os.environ.get("GEMINI_API_KEY")
+
+    # Auto-detect if an OpenRouter key was provided under GEMINI_API_KEY
+    if gemini_key and (gemini_key.startswith("sk-or-") or gemini_key.startswith("sk-")):
+        openrouter_key = gemini_key
+        gemini_key = None
 
     if not openrouter_key and not gemini_key:
         logger.info("Neither OPENROUTER_API_KEY nor GEMINI_API_KEY found. Returning local mock engine analysis.")
@@ -175,50 +184,63 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
         f"Rule Insights:\n{json.dumps([ins.model_dump() for ins in req.insights], indent=2)}"
     )
 
-    # 1. Try OpenRouter API if OPENROUTER_API_KEY is present
+    # 1. Primary Provider: OpenRouter API
     if openrouter_key:
+        models_to_try = [
+            m for m in [
+                os.environ.get("OPENROUTER_MODEL"),
+                "google/gemini-2.0-flash-001",
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "openai/gpt-4o-mini",
+                "anthropic/claude-3.5-haiku",
+            ] if m
+        ]
+        seen = set()
+        unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
+
         try:
-            model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
-            openrouter_payload = {
-                "model": model,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are unilog's AI SRE Assistant. "
-                            "Analyze system log metrics and insights. Respond ONLY with valid JSON matching keys:\n"
-                            "- summary (string): concise summary of log status\n"
-                            "- explanation (string): markdown-formatted root cause explanation\n"
-                            "- remediations (array of objects): [{title, description, code, language}]"
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-            }
             async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    json=openrouter_payload,
-                    headers={
-                        "Authorization": f"Bearer {openrouter_key}",
-                        "HTTP-Referer": "https://github.com/Asterioxer/unilog",
-                        "X-Title": "unilog SRE Assistant",
-                        "Content-Type": "application/json",
-                    },
-                    timeout=30.0,
-                )
-                if resp.status_code == 200:
-                    result_json = resp.json()
-                    content = result_json["choices"][0]["message"]["content"]
-                    parsed = json.loads(content)
-                    parsed["provider"] = "openrouter-live"
-                    recorder.record_ai_request(time.time() - start_t, fallback_used=False)
-                    return parsed
-                else:
-                    logger.warning(f"OpenRouter API returned error HTTP {resp.status_code}: {resp.text}")
+                for model_name in unique_models:
+                    openrouter_payload = {
+                        "model": model_name,
+                        "response_format": {"type": "json_object"},
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": (
+                                    "You are unilog's AI SRE Assistant. "
+                                    "Analyze system log metrics and insights. Respond ONLY with valid JSON matching keys:\n"
+                                    "- summary (string): concise summary of log status\n"
+                                    "- explanation (string): markdown-formatted root cause explanation\n"
+                                    "- remediations (array of objects): [{title, description, code, language}]"
+                                ),
+                            },
+                            {"role": "user", "content": prompt},
+                        ],
+                    }
+                    resp = await client.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        json=openrouter_payload,
+                        headers={
+                            "Authorization": f"Bearer {openrouter_key}",
+                            "HTTP-Referer": "https://github.com/Asterioxer/unilog",
+                            "X-Title": "unilog SRE Assistant",
+                            "Content-Type": "application/json",
+                        },
+                        timeout=30.0,
+                    )
+                    if resp.status_code == 200:
+                        result_json = resp.json()
+                        content = result_json["choices"][0]["message"]["content"]
+                        parsed = json.loads(content)
+                        parsed["provider"] = "openrouter-live"
+                        recorder.record_ai_request(time.time() - start_t, fallback_used=False)
+                        return parsed
+                    else:
+                        logger.warning(f"OpenRouter model '{model_name}' returned error HTTP {resp.status_code}: {resp.text}")
         except Exception as e:
             logger.error(f"Exception during OpenRouter API request: {e}", exc_info=True)
+
 
     # 2. Try Gemini API if GEMINI_API_KEY is present
     if gemini_key:
