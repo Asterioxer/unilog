@@ -47,7 +47,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "unilog_health_overall_score",
+          "expr": "unilog_system_health_score or unilog_health_overall_score",
           "legendFormat": "Health Score",
           "range": true,
           "refId": "A"
@@ -78,7 +78,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "unilog_active_websocket_connections",
+          "expr": "unilog_active_websockets or unilog_active_websocket_connections",
           "legendFormat": "Active Connections",
           "refId": "A"
         }
@@ -107,7 +107,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(unilog_log_records_parsed_total)",
+          "expr": "sum(unilog_logs_processed_total) or sum(unilog_log_records_parsed_total)",
           "legendFormat": "Total Records",
           "refId": "A"
         }
@@ -166,7 +166,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(unilog_http_requests_total[1m])) by (status)",
+          "expr": "sum(rate(unilog_requests_total[1m])) by (status) or sum(rate(unilog_http_requests_total[1m])) by (status)",
           "legendFormat": "Status {{status}}",
           "refId": "A"
         }
@@ -194,21 +194,21 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(unilog_parser_latency_seconds_bucket[1m])) by (le)) or histogram_quantile(0.50, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
           "legendFormat": "p50 Latency",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.90, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(rate(unilog_parser_latency_seconds_bucket[1m])) by (le)) or histogram_quantile(0.90, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
           "legendFormat": "p90 Latency",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(unilog_parser_latency_seconds_bucket[1m])) by (le)) or histogram_quantile(0.99, sum(rate(unilog_http_request_duration_seconds_bucket[1m])) by (le))",
           "legendFormat": "p99 Latency",
           "refId": "C"
         }
@@ -235,7 +235,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(unilog_log_records_parsed_total[1m])) by (format)",
+          "expr": "sum(rate(unilog_logs_processed_total[1m])) by (format) or sum(rate(unilog_log_records_parsed_total[1m])) by (format)",
           "legendFormat": "Format {{format}}",
           "refId": "A"
         }
@@ -262,8 +262,8 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(unilog_ai_requests_total[1m])) by (fallback_used)",
-          "legendFormat": "Fallback={{fallback_used}}",
+          "expr": "sum(rate(unilog_ai_requests_total[1m]))",
+          "legendFormat": "AI Requests",
           "refId": "A"
         }
       ]
@@ -277,5 +277,5 @@
   "timezone": "browser",
   "title": "unilog Platform Observability Overview",
   "uid": "unilog-overview",
-  "version": 1
+  "version": 2
 }
