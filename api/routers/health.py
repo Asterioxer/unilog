@@ -6,7 +6,8 @@ router = APIRouter(tags=["Health"])
 
 class HealthResponse(BaseModel):
     status: str = Field("healthy", description="API health check status indicator")
-    version: str = Field("0.2.0-alpha", description="Current unilog package version")
+    version: str = Field("1.0.0-beta.1", description="Current unilog package version")
+
 
 class LiveResponse(BaseModel):
     status: str = Field("live", description="Liveness check status indicator")

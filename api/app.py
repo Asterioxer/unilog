@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 
+import unilog
 from api.routers import health, log, system, ai, live
 from api.dependencies.rate_limiter import limiter
 from api.config import validate_config
@@ -24,6 +25,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("unilog-api")
 
+api_version = getattr(unilog, "__version__", "1.0.0-beta.1")
+
 app = FastAPI(
     title="unilog REST API",
     description="""
@@ -31,7 +34,8 @@ A production-ready platform API for unilog (Universal Log Parser).
 This API handles format auto-detection, parsing log text, generating aggregate statistics,
 and asynchronous file uploads with background task execution.
     """,
-    version="0.2.0-beta",
+    version=api_version,
+
     contact={
         "name": "unilog Developer Team",
         "url": "https://github.com/Asterioxer/unilog",
