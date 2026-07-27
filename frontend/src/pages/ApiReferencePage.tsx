@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { BookOpen, ExternalLink, Code, Activity } from "lucide-react";
+import { BookOpen, ExternalLink, Code, Activity, LayoutDashboard } from "lucide-react";
+
 import { API_BASE_URL } from "../services/apiClient";
 
 interface EndpointDoc {
@@ -134,6 +135,16 @@ export default function ApiReferencePage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a
+              href="https://raw.githubusercontent.com/Asterioxer/unilog/main/deploy/grafana/unilog-dashboard.json"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold text-sm rounded-xl transition-all"
+            >
+
+              <LayoutDashboard className="h-4 w-4 text-amber-400" />
+              Grafana Dashboard JSON
+            </a>
+            <a
               href={`${API_BASE_URL}/metrics`}
               target="_blank"
               rel="noreferrer"
@@ -170,6 +181,7 @@ export default function ApiReferencePage() {
               <Code className="h-4 w-4" />
             </a>
           </div>
+
 
         </div>
       </div>
