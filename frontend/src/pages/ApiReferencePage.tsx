@@ -134,6 +134,15 @@ export default function ApiReferencePage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a
+              href={`${API_BASE_URL}/metrics`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-sm rounded-xl transition-all"
+            >
+              <Activity className="h-4 w-4 text-purple-400" />
+              Live /metrics Stream
+            </a>
+            <a
               href={docsUrl}
               target="_blank"
               rel="noreferrer"
@@ -161,8 +170,10 @@ export default function ApiReferencePage() {
               <Code className="h-4 w-4" />
             </a>
           </div>
+
         </div>
       </div>
+
 
       {/* Endpoints List */}
       <div className="space-y-4">
