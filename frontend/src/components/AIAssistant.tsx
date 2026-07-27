@@ -162,7 +162,11 @@ export default function AIAssistant({
                 <Zap className="h-5 w-5 text-amber-500" />
                 <h3 className="text-base font-bold text-foreground">Diagnostic Report</h3>
               </div>
-              {result.provider === "gemini-live" ? (
+              {result.provider === "openrouter-live" ? (
+                <span className="text-xs font-semibold px-2.5 py-0.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full flex items-center gap-1 shadow-2xs">
+                  <Sparkles className="h-3 w-3" /> Live OpenRouter AI
+                </span>
+              ) : result.provider === "gemini-live" ? (
                 <span className="text-xs font-semibold px-2.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full flex items-center gap-1 shadow-2xs">
                   <Sparkles className="h-3 w-3" /> Live Gemini LLM
                 </span>
@@ -171,6 +175,7 @@ export default function AIAssistant({
                   <Zap className="h-3 w-3" /> Local SRE Engine
                 </span>
               )}
+
             </div>
 
             <div className="p-4 bg-muted/20 border border-border/40 rounded-xl">

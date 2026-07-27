@@ -152,14 +152,17 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
     "/ai/explain",
     response_model=AIExplainResponse,
     summary="Generate AI Explanation & Remediation",
-    description="Analyze metrics and insights, returning an AI-generated explanation and remediation plan using Gemini."
+    description="Analyze metrics and insights, returning an AI-generated explanation and remediation plan using OpenRouter or Gemini."
 )
 @limiter.limit("50/minute")
 async def explain_log_analysis(request: Request, req: AIExplainRequest):
     start_t = time.time()
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        logger.info("GEMINI_API_KEY not found. Returning local mock engine analysis.")
+
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+
+    if not openrouter_key and not gemini_key:
+        logger.info("Neither OPENROUTER_API_KEY nor GEMINI_API_KEY found. Returning local mock engine analysis.")
         res = generate_fallback_mock(req)
         recorder.record_ai_request(time.time() - start_t, fallback_used=True)
         return res
@@ -172,96 +175,138 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
         f"Rule Insights:\n{json.dumps([ins.model_dump() for ins in req.insights], indent=2)}"
     )
 
-    schema = {
-        "type": "OBJECT",
-        "properties": {
-            "summary": {
-                "type": "STRING",
-                "description": "A concise high-level overview of the log status (e.g. 'CRITICAL: SQL Injection Attempts Detected')"
-            },
-            "explanation": {
-                "type": "STRING",
-                "description": "Markdown-formatted detailed analysis and root-cause explanation of the events."
-            },
-            "remediations": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "title": { "type": "STRING", "description": "Title of the fix" },
-                        "description": { "type": "STRING", "description": "What this fix does" },
-                        "code": { "type": "STRING", "description": "Code snippet, configuration rule, or shell commands" },
-                        "language": { "type": "STRING", "description": "Language of code (nginx, sql, bash, etc)" }
-                    },
-                    "required": ["title", "description", "code", "language"]
-                },
-                "description": "Actionable fixes with code/config blocks"
-            }
-        },
-        "required": ["summary", "explanation", "remediations"]
-    }
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
+    # 1. Try OpenRouter API if OPENROUTER_API_KEY is present
+    if openrouter_key:
+        try:
+            model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
+            openrouter_payload = {
+                "model": model,
+                "response_format": {"type": "json_object"},
+                "messages": [
                     {
-                        "text": (
+                        "role": "system",
+                        "content": (
                             "You are unilog's AI SRE Assistant. "
-                            "Analyze the system state and respond with JSON matching the schema.\n\n"
-                            + prompt
-                        )
-                    }
-                ]
+                            "Analyze system log metrics and insights. Respond ONLY with valid JSON matching keys:\n"
+                            "- summary (string): concise summary of log status\n"
+                            "- explanation (string): markdown-formatted root cause explanation\n"
+                            "- remediations (array of objects): [{title, description, code, language}]"
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
             }
-        ],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": schema
-        }
-    }
-
-    models_to_try = [
-        m for m in [
-            os.environ.get("GEMINI_MODEL"),
-            "gemini-1.5-flash",
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-        ] if m
-    ]
-
-    # De-duplicate while preserving order
-    seen = set()
-    unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
-
-    try:
-        async with httpx.AsyncClient() as client:
-            for model_name in unique_models:
-                target_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            async with httpx.AsyncClient() as client:
                 resp = await client.post(
-                    target_url,
-                    json=payload,
-                    headers={"Content-Type": "application/json"},
-                    timeout=25.0
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    json=openrouter_payload,
+                    headers={
+                        "Authorization": f"Bearer {openrouter_key}",
+                        "HTTP-Referer": "https://github.com/Asterioxer/unilog",
+                        "X-Title": "unilog SRE Assistant",
+                        "Content-Type": "application/json",
+                    },
+                    timeout=30.0,
                 )
-
                 if resp.status_code == 200:
                     result_json = resp.json()
-                    candidate_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
-                    parsed_response = json.loads(candidate_text)
-                    parsed_response["provider"] = "gemini-live"
+                    content = result_json["choices"][0]["message"]["content"]
+                    parsed = json.loads(content)
+                    parsed["provider"] = "openrouter-live"
                     recorder.record_ai_request(time.time() - start_t, fallback_used=False)
-                    return parsed_response
+                    return parsed
                 else:
-                    logger.warning(f"Gemini model '{model_name}' returned HTTP {resp.status_code}: {resp.text}")
+                    logger.warning(f"OpenRouter API returned error HTTP {resp.status_code}: {resp.text}")
+        except Exception as e:
+            logger.error(f"Exception during OpenRouter API request: {e}", exc_info=True)
 
-        # If all Gemini models fail or 404, fall back cleanly
-        recorder.record_ai_request(time.time() - start_t, fallback_used=True)
-        return generate_fallback_mock(req)
+    # 2. Try Gemini API if GEMINI_API_KEY is present
+    if gemini_key:
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "summary": {
+                    "type": "STRING",
+                    "description": "A concise high-level overview of the log status (e.g. 'CRITICAL: SQL Injection Attempts Detected')",
+                },
+                "explanation": {
+                    "type": "STRING",
+                    "description": "Markdown-formatted detailed analysis and root-cause explanation of the events.",
+                },
+                "remediations": {
+                    "type": "ARRAY",
+                    "items": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "title": {"type": "STRING", "description": "Title of the fix"},
+                            "description": {"type": "STRING", "description": "What this fix does"},
+                            "code": {"type": "STRING", "description": "Code snippet, configuration rule, or shell commands"},
+                            "language": {"type": "STRING", "description": "Language of code (nginx, sql, bash, etc)"},
+                        },
+                        "required": ["title", "description", "code", "language"],
+                    },
+                    "description": "Actionable fixes with code/config blocks",
+                },
+            },
+            "required": ["summary", "explanation", "remediations"],
+        }
 
-    except Exception as e:
-        logger.error(f"Exception during Gemini API request: {e}", exc_info=True)
-        recorder.record_ai_request(time.time() - start_t, fallback_used=True)
-        return generate_fallback_mock(req)
+        gemini_payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": (
+                                "You are unilog's AI SRE Assistant. "
+                                "Analyze the system state and respond with JSON matching the schema.\n\n"
+                                + prompt
+                            )
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseSchema": schema,
+            },
+        }
+
+        models_to_try = [
+            m for m in [
+                os.environ.get("GEMINI_MODEL"),
+                "gemini-1.5-flash",
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+            ] if m
+        ]
+        seen = set()
+        unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
+
+        try:
+            async with httpx.AsyncClient() as client:
+                for model_name in unique_models:
+                    target_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+                    resp = await client.post(
+                        target_url,
+                        json=gemini_payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=25.0,
+                    )
+                    if resp.status_code == 200:
+                        result_json = resp.json()
+                        candidate_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
+                        parsed_response = json.loads(candidate_text)
+                        parsed_response["provider"] = "gemini-live"
+                        recorder.record_ai_request(time.time() - start_t, fallback_used=False)
+                        return parsed_response
+                    else:
+                        logger.warning(f"Gemini model '{model_name}' returned HTTP {resp.status_code}: {resp.text}")
+        except Exception as e:
+            logger.error(f"Exception during Gemini API request: {e}", exc_info=True)
+
+    # 3. Fallback Engine
+    recorder.record_ai_request(time.time() - start_t, fallback_used=True)
+    return generate_fallback_mock(req)
+
 
 
