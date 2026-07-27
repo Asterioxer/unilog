@@ -144,7 +144,8 @@ def generate_fallback_mock(req: AIExplainRequest) -> dict:
     return {
         "summary": summary,
         "explanation": explanation,
-        "remediations": remediations
+        "remediations": remediations,
+        "provider": "local-fallback"
     }
 
 @router.post(
@@ -162,7 +163,6 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
         res = generate_fallback_mock(req)
         recorder.record_ai_request(time.time() - start_t, fallback_used=True)
         return res
-
 
     # Format the prompt with metrics and insights summaries
     prompt = (
@@ -221,31 +221,47 @@ async def explain_log_analysis(request: Request, req: AIExplainRequest):
         }
     }
 
+    models_to_try = [
+        m for m in [
+            os.environ.get("GEMINI_MODEL"),
+            "gemini-1.5-flash",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+        ] if m
+    ]
+
+    # De-duplicate while preserving order
+    seen = set()
+    unique_models = [m for m in models_to_try if not (m in seen or seen.add(m))]
+
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{GEMINI_API_URL}?key={api_key}",
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=30.0
-            )
-            
-            if resp.status_code != 200:
-                logger.error(f"Gemini API returned error {resp.status_code}: {resp.text}")
-                # Fall back to local mock to keep system operational (robust fallback)
-                recorder.record_ai_request(time.time() - start_t, fallback_used=True)
-                return generate_fallback_mock(req)
-                
-            result_json = resp.json()
-            # Extract generated text
-            candidate_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
-            parsed_response = json.loads(candidate_text)
-            recorder.record_ai_request(time.time() - start_t, fallback_used=False)
-            return parsed_response
+            for model_name in unique_models:
+                target_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                resp = await client.post(
+                    target_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=25.0
+                )
+
+                if resp.status_code == 200:
+                    result_json = resp.json()
+                    candidate_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed_response = json.loads(candidate_text)
+                    parsed_response["provider"] = "gemini-live"
+                    recorder.record_ai_request(time.time() - start_t, fallback_used=False)
+                    return parsed_response
+                else:
+                    logger.warning(f"Gemini model '{model_name}' returned HTTP {resp.status_code}: {resp.text}")
+
+        # If all Gemini models fail or 404, fall back cleanly
+        recorder.record_ai_request(time.time() - start_t, fallback_used=True)
+        return generate_fallback_mock(req)
 
     except Exception as e:
         logger.error(f"Exception during Gemini API request: {e}", exc_info=True)
-        # Fall back to local mock to keep system operational
         recorder.record_ai_request(time.time() - start_t, fallback_used=True)
         return generate_fallback_mock(req)
+
 

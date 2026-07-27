@@ -264,7 +264,9 @@ export interface AIExplainResponse {
   summary: string;
   explanation: string;
   remediations: AIRemediationCard[];
+  provider?: string;
 }
+
 
 export interface AIExplainRequest {
   metrics: Record<string, unknown>;

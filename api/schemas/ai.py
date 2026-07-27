@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from api.schemas.analyze import InsightResponse
+
 
 class AIExplainRequest(BaseModel):
     metrics: Dict[str, Any] = Field(..., description="Metrics bundle from analysis")
@@ -16,3 +17,5 @@ class AIExplainResponse(BaseModel):
     summary: str = Field(..., description="A concise high-level overview of the log state")
     explanation: str = Field(..., description="Markdown-formatted detailed analysis and root-cause explanation")
     remediations: List[AIRemediationCard] = Field(..., description="Actionable remediation steps with code snippets")
+    provider: Optional[str] = Field("local-fallback", description="Engine provider name ('gemini-live' or 'local-fallback')")
+
