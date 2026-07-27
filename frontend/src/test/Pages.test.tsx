@@ -58,9 +58,10 @@ describe("Landing and Dashboard placeholder render checks", () => {
 
   it("renders ApiReferencePage correctly", () => {
     render(<ApiReferencePage />);
-    expect(screen.getByText(/REST API & WebSocket Reference/i)).toBeInTheDocument();
+    expect(screen.getByText(/REST API & Observability Reference/i)).toBeInTheDocument();
     expect(screen.getByText("Swagger UI Docs")).toBeInTheDocument();
   });
+
 
   it("renders SettingsPage correctly", () => {
     render(
