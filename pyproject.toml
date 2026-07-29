@@ -20,9 +20,6 @@ dependencies = [
     "prometheus-client>=0.17.0",
 ]
 
-
-
-
 [project.scripts]
 unilog = "unilog.cli:cli"
 
@@ -49,4 +46,3 @@ markers = [
 
 [tool.ruff]
 exclude = ["scripts"]
-
