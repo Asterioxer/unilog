@@ -1,10 +1,10 @@
 # Production Multi-Stage Dockerfile for unilog Platform API
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS builder
 
 WORKDIR /app
 
 # Install uv for fast dependency installation
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest@sha256:df4cae8f3a96d175e2e5f992e597550000edbe78fdc2594d5cd8de1a217f504c /uv /uv/bin/uv
 
 # Copy project manifests
 COPY pyproject.toml README.md ./
@@ -14,7 +14,7 @@ COPY api ./api
 # Build wheel and install production dependencies
 RUN /uv/bin/uv pip install --system --no-cache .
 
-FROM python:3.12-slim AS runner
+FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS runner
 
 WORKDIR /app
 

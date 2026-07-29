@@ -19,6 +19,18 @@ interface ParsedMetricLine {
   raw: string;
 }
 
+function safeUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+    // Safe fallback for invalid URLs
+  }
+  return "about:blank";
+}
+
 const PRESET_PROMQL_QUERIES = [
   { label: "System Health Score", query: "unilog_health_overall_score" },
   { label: "HTTP Request Rate (RPS by Status)", query: "sum(rate(unilog_http_requests_total[1m])) by (status)" },
@@ -125,9 +137,20 @@ export default function GrafanaObserver() {
   };
 
   useEffect(() => {
-    fetchPrometheusMetrics();
-    const interval = setInterval(fetchPrometheusMetrics, 10000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    const loadMetrics = async () => {
+      if (isMounted) {
+        await fetchPrometheusMetrics();
+      }
+    };
+    void loadMetrics();
+    const interval = setInterval(() => {
+      void loadMetrics();
+    }, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Live PromQL Evaluation logic
@@ -406,7 +429,7 @@ scrape_configs:
               </p>
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <a
-                  href={grafanaUrl}
+                  href={safeUrl(grafanaUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black font-semibold text-xs rounded-lg hover:bg-amber-400 transition-all"
@@ -432,7 +455,7 @@ scrape_configs:
                 placeholder="Enter Grafana dashboard URL..."
               />
               <a
-                href={grafanaUrl}
+                href={safeUrl(grafanaUrl)}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-2 bg-muted text-foreground text-xs font-medium rounded-xl hover:bg-muted/80 transition-all"
@@ -442,7 +465,7 @@ scrape_configs:
             </div>
             <div className="w-full h-128 border border-border rounded-xl overflow-hidden bg-background">
               <iframe
-                src={grafanaUrl}
+                src={safeUrl(grafanaUrl)}
                 title="Grafana Dashboard"
                 className="w-full h-full border-0"
                 loading="lazy"

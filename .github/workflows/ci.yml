@@ -79,7 +79,7 @@ jobs:
       - name: Install Frontend Dependencies
         run: |
           cd frontend
-          npm install --legacy-peer-deps
+          npm ci --legacy-peer-deps
 
       - name: Run Frontend Lint (ESLint)
         run: |
@@ -102,9 +102,9 @@ jobs:
 
       - name: Verify Container Startup (Smoke Test)
         run: |
-          docker run -d --name unilog-container -p 8000:8000 unilog-api
+          docker run -d --name unilog-container -p 8002:8002 unilog-api
           for i in {1..15}; do
-            if curl -s http://localhost:8000/health | grep -q "healthy"; then
+            if curl -s http://localhost:8002/health | grep -q "healthy"; then
               echo "Smoke test passed successfully!"
               docker stop unilog-container
               docker rm unilog-container
